@@ -1,0 +1,8 @@
+Sons sem copyright (public/sounds/ncs/)
+=========================================
+Fonte: Mixkit (mixkit.co) — Mixkit Sound Effects Free License
+Uso comercial permitido, atribuição não obrigatória.
+Licença: https://mixkit.co/license/
+
+Para regenerar: npm run sounds:ncs
+(Requer ffmpeg no PATH)

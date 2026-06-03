@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  passwordHash     String?
+  name             String
+  role             String         @default("user") // user|admin
+  emailVerified    Boolean        @default(false)
+  totpSecret       String?
+  totpEnabled      Boolean        @default(false)
+  totpEnabledAt    DateTime?
+  totpBackupCodes  String?        // JSON array de hashes bcrypt dos códigos de backup
+  createdAt        DateTime       @default(now())
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  emailVerificationToken       String?
+  emailVerificationTokenExpiry DateTime?
+  creator          Creator?
+  oauthAccounts    OAuthAccount[]
+  securityChallenges SecurityChallenge[]
+}
+
+model SecurityChallenge {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   String    // withdraw_otp
+  codeHash  String
+  payload   String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, purpose])
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+}
+
+model Creator {
+  id                            String         @id @default(cuid())
+  userId                        String         @unique
+  user                          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username                      String         @unique
+  displayName                   String
+  bio                           String         @default("")
+  avatar                        String         @default("")
+  goal                          Float          @default(0)
+  raised                        Float          @default(0)
+  themeColor                    String         @default("#9146ff")
+  plan                          String         @default("free")
+  isSuspended                   Boolean        @default(false)
+  widgetToken                   String         @unique
+  onboardingCompleted           Boolean        @default(false)
+  notifyEmailDonation           Boolean        @default(true)
+  notifyEmailWeekly             Boolean        @default(false)
+  notifyPanelDonation           Boolean        @default(true)
+  subscriptionCancelAtPeriodEnd Boolean        @default(false)
+  paymentMethods                String         @default("[]")
+  alertSettings                 String         @default("{}")
+  tipPageSettings               String         @default("{}")
+  chatBotSettings               String         @default("{}")
+  affiliateCode                 String?        @unique
+  referredByCode                String?
+  affiliateClicks               Int            @default(0)
+  affiliateSignups              Int            @default(0)
+  affiliateEarnings             Float          @default(0)
+  apiKey                        String?        @unique
+  availableBalance              Float          @default(0)
+  totalWithdrawn                Float          @default(0)
+  pixKey                        String?
+  pixKeyType                    String?
+  pixHolderName                 String?
+  wooviPixKey                   String?
+  wooviPixKeyType               String?
+  wooviSubaccountName           String?
+  proExpiresAt                  DateTime?
+  createdAt                     DateTime       @default(now())
+  transactions                  Transaction[]
+  payouts                       Payout[]
+  alertMedia                    AlertMedia[]
+  notifications                 Notification[]
+  customSounds                  CustomSound[]
+  kycVerification               KycVerification?
+  wooviPixKeys                  CreatorWooviPixKey[]
+  subscriptionPayments          SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id            String    @id @default(cuid())
+  creatorId     String
+  creator       Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  correlationID String    @unique
+  amount        Float
+  planType      String
+  status        String    @default("pending")
+  pixCode       String?
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+}
+
+model CreatorWooviPixKey {
+  id             String   @id @default(cuid())
+  creatorId      String
+  creator        Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  pixKey         String   @unique
+  pixKeyType     String
+  subaccountName String
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([creatorId])
+}
+
+model KycVerification {
+  id               String    @id @default(cuid())
+  creatorId        String    @unique
+  creator          Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  status           String    @default("none") // none|pending|approved|rejected
+  legalName        String?
+  cpf              String?
+  birthDate        DateTime?
+  documentType     String? // rg|cnh
+  documentFrontKey String?
+  documentBackKey  String?
+  selfieKey        String?
+  rejectionReason  String?
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedByUserId String?
+  cpfVerificationProvider String?
+  cpfVerificationStatus   String? // skipped|mock|matched|mismatch|cpf_not_found|error
+  cpfVerificationMessage  String?
+  cpfVerifiedAt           DateTime?
+  diditSessionId          String?
+  diditStatus             String?
+  diditVerifiedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  amount      Float
+  message     String   @default("")
+  anonymous   Boolean  @default(false)
+  donorName   String
+  status      String   @default("pending")
+  method      String
+  pixCode         String?
+  wooviPaymentId  String?
+  splitPayment    Boolean      @default(false)
+  applicationFee Float?
+  donorTtsVoiceId String?
+  createdAt   DateTime @default(now())
+}
+
+model Payout {
+  id          String    @id @default(cuid())
+  creatorId   String
+  creator     Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  amount      Float
+  fee         Float?
+  status      String    @default("pending")
+  pixKey      String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model AlertMedia {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileType  String
+  fileSize  Int
+  width     Int
+  height    Int
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model CustomSound {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  name      String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AdminSettings {
+  id                String   @id @default("global")
+  commissionRate    Float    @default(3.5)
+  proPrice          Float    @default(29.9)
+  uploadLimitMb     Int      @default(10)
+  templateOverrides String   @default("{}")
+  updatedAt         DateTime @updatedAt
+}

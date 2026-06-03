@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 96" fill="none">
+  <defs>
+    <linearGradient id="pixWmAccentDark" x1="4" y1="24" x2="236" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <text x="4" y="64" font-family="system-ui,Segoe UI,sans-serif" font-size="48" font-weight="800" fill="#f8fafc">pix</text>
+  <text x="82" y="64" font-family="system-ui,Segoe UI,sans-serif" font-size="48" font-weight="800" fill="url(#pixWmAccentDark)">.tips</text>
+</svg>
