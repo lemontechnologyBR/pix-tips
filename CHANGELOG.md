@@ -7,6 +7,40 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.1.0] — 2026-06-08
+
+### LGPD e privacidade
+- Política de privacidade reescrita (Arts. 5, 7, 9, 11, 15, 18)
+- Banner de cookies granular (aceitar/rejeitar/gerenciar + revogação)
+- Consentimento obrigatório para dados sensíveis no fluxo KYC
+- Aviso de privacidade no formulário de doação
+- Endpoint `GET /api/user/export` para portabilidade de dados (Art. 18)
+- Exclusão de conta apaga arquivos KYC, avatar, mídia e sons no storage
+
+### Segurança
+- Confirmação atômica de pagamentos (corrige race condition / double-spend)
+- Bloqueio de conta suspensa em todas as requisições autenticadas
+- OAuth: removido auto-link por e-mail (previne takeover de conta)
+- API key mascarada no GET; exibida integralmente só na criação/rotação
+- Token de verificação de e-mail armazenado como SHA-256
+- Validação de magic bytes em uploads KYC, alert-media e tip-page-background
+- Rate limit em polling de status, TOTP enable e check-username
+- Seed demo bloqueado em produção; role `user` e senha aleatória
+- HSTS adicionado; CSP `unsafe-eval` apenas em dev; CORS localhost só em dev
+
+### Produção
+- Migration Prisma inicial (`prisma/migrations/0001_init`)
+- Prisma singleton corrigido para produção
+- Handlers globais `uncaughtException` / `unhandledRejection` no servidor
+- `RESEND_API_KEY` obrigatória no boot em produção
+- Billing Pro bloqueado em modo mock sem Woovi configurado
+- `.env.production.example` alinhado aos nomes reais das variáveis
+- Docker Compose integrado ao Traefik (SSL via proxy existente)
+- `robots.ts`, `sitemap.ts` e `opengraph-image.tsx` para SEO
+- Simulador de taxa na landing corrigido (2% em vez de 5%)
+
+---
+
 ## [1.0.0] — 2026-06-03
 
 ### Lançamento inicial
@@ -62,6 +96,6 @@ PATCH — correções de bugs e melhorias pequenas
 
 ### Próximas versões planejadas
 
-- **v1.1.0** — Página de status, melhorias no onboarding
-- **v1.2.0** — Notificações push, app mobile PWA melhorado
+- **v1.2.0** — Página de status, melhorias no onboarding, notificações push
+- **v1.3.0** — App mobile PWA melhorado
 - **v2.0.0** — Multi-idioma, marketplace de templates
