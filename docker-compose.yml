@@ -69,6 +69,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=pix-tips_proxy"
       - "traefik.http.routers.pixtips.rule=Host(`pix.tips`) || Host(`www.pix.tips`)"
       - "traefik.http.routers.pixtips.entrypoints=websecure"
       - "traefik.http.routers.pixtips.tls.certresolver=letsencrypt"

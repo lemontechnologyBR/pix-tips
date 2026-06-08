@@ -830,12 +830,6 @@ export function FinanceDashboard({
             )}
           </button>
         ))}
-        <Link
-          href="/dashboard/billing"
-          className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
-        >
-          Reduzir taxa → Pro
-        </Link>
       </div>
 
       {error && (

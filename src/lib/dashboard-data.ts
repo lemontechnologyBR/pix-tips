@@ -27,7 +27,6 @@ export const DASHBOARD_NAV: {
   { href: "/dashboard/widgets", label: "Widgets", icon: "widgets" },
   { href: "/dashboard/chat-bot", label: "ChatBot", icon: "chat-bot" },
   { href: "/dashboard/finance", label: "Financeiro", icon: "finance" },
-  { href: "/dashboard/billing", label: "Plano e taxas", icon: "billing" },
   { href: "/dashboard/settings", label: "Configurações", icon: "settings" },
   { href: "/dashboard/integrations", label: "Integrações", icon: "integrations" },
 ];
@@ -39,7 +38,6 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard/widgets": "Widgets",
   "/dashboard/chat-bot": "ChatBot",
   "/dashboard/finance": "Financeiro",
-  "/dashboard/billing": "Plano e taxas",
   "/dashboard/transactions": "Transações",
   "/dashboard/settings": "Configurações",
   "/dashboard/integrations": "Integrações",

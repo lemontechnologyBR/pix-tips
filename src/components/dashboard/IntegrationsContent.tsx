@@ -28,6 +28,9 @@ interface ProviderConfig {
   color: string;
   comingSoon?: boolean;
   comingSoonFeatures?: string[];
+  connectMode?: "oauth" | "link";
+  connectHref?: string;
+  connectLabel?: string;
   Icon: React.ComponentType<{ className?: string }>;
   features?: { label: string; href?: string; external?: boolean }[];
 }
@@ -77,12 +80,14 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Streamlabs",
     description: "Sincronize alertas e overlays com o Streamlabs Desktop",
     color: "from-teal-600/20 to-emerald-900/10 border-teal-500/30",
-    comingSoon: true,
+    connectMode: "link",
+    connectHref: "/dashboard/widgets",
+    connectLabel: "Configurar widgets",
     Icon: StreamLabsIcon,
-    comingSoonFeatures: [
-      "Alertas de doação no Streamlabs",
-      "Sincronização de overlays",
-      "Tema e sons personalizados",
+    features: [
+      { label: "Alertas de doação no Streamlabs", href: "/dashboard/widgets" },
+      { label: "Sincronização de overlays", href: "/dashboard/widgets" },
+      { label: "Tema e sons personalizados", href: "/dashboard/widgets" },
     ],
   },
   {
@@ -90,12 +95,14 @@ const PROVIDERS: ProviderConfig[] = [
     label: "StreamElements",
     description: "Conecte seus overlays e alertas ao StreamElements",
     color: "from-indigo-700/20 to-violet-900/10 border-indigo-500/30",
-    comingSoon: true,
+    connectMode: "link",
+    connectHref: "/dashboard/widgets",
+    connectLabel: "Configurar widgets",
     Icon: StreamElementsIcon,
-    comingSoonFeatures: [
-      "Alertas de doação no StreamElements",
-      "Temas de overlay compatíveis",
-      "Leaderboard de doações",
+    features: [
+      { label: "Alertas de doação no StreamElements", href: "/dashboard/widgets" },
+      { label: "Temas de overlay compatíveis", href: "/dashboard/widgets" },
+      { label: "Leaderboard de doações", href: "/dashboard/widgets" },
     ],
   },
 ];
@@ -141,8 +148,12 @@ export function IntegrationsContent({
     [],
   );
 
-  const connectedProviders = PROVIDERS.filter((p) => !p.comingSoon && connectedSet.has(p.id));
-  const disconnectedProviders = PROVIDERS.filter((p) => !p.comingSoon && !connectedSet.has(p.id));
+  const connectedProviders = PROVIDERS.filter(
+    (p) => !p.comingSoon && p.connectMode !== "link" && connectedSet.has(p.id),
+  );
+  const disconnectedProviders = PROVIDERS.filter(
+    (p) => !p.comingSoon && (p.connectMode === "link" || !connectedSet.has(p.id)),
+  );
   const comingSoonProviders = PROVIDERS.filter((p) => p.comingSoon);
 
   return (
@@ -177,7 +188,9 @@ export function IntegrationsContent({
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: "Plataformas disponíveis", value: PROVIDERS.filter((p) => !p.comingSoon).length.toString() },
-            { label: "Em breve", value: PROVIDERS.filter((p) => p.comingSoon).length.toString() },
+            ...(comingSoonProviders.length > 0
+              ? [{ label: "Em breve", value: comingSoonProviders.length.toString() }]
+              : []),
             { label: "Conectadas", value: connectedSet.size.toString() },
             { label: "Funcionalidades", value: PROVIDERS.filter((p) => !p.comingSoon).reduce((acc, p) => acc + (p.features?.length ?? 0), 0).toString() },
           ].map((stat) => (
@@ -329,12 +342,21 @@ export function IntegrationsContent({
                   </ul>
                 )}
 
-                <a
-                  href={`/api/auth/oauth/${provider.id}?mode=link&returnTo=${encodeURIComponent("/dashboard/integrations")}`}
-                  className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
-                >
-                  Conectar {provider.label}
-                </a>
+                {provider.connectMode === "link" ? (
+                  <Link
+                    href={provider.connectHref ?? "/dashboard/widgets"}
+                    className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
+                  >
+                    {provider.connectLabel ?? "Configurar"}
+                  </Link>
+                ) : (
+                  <a
+                    href={`/api/auth/oauth/${provider.id}?mode=link&returnTo=${encodeURIComponent("/dashboard/integrations")}`}
+                    className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
+                  >
+                    Conectar {provider.label}
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -342,6 +364,7 @@ export function IntegrationsContent({
       )}
 
       {/* Coming soon */}
+      {comingSoonProviders.length > 0 && (
       <section>
         <div className="mb-4 flex items-center gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
@@ -393,6 +416,7 @@ export function IntegrationsContent({
           ))}
         </div>
       </section>
+      )}
 
       {/* Warning: no password */}
       {!hasPassword && connectedSet.size > 0 && (
