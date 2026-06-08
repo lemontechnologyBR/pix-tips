@@ -12,14 +12,12 @@ if echo "$DATABASE_URL" | grep -qE "^postgres(ql)?://"; then
   echo "==> PostgreSQL detectado"
   sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
   echo "==> Schema patched para postgresql"
-
-  echo "==> Rodando migrações Prisma..."
-  npx prisma migrate deploy
 else
   echo "==> SQLite detectado"
-  echo "==> Sincronizando schema..."
-  npx prisma db push
 fi
+
+echo "==> Sincronizando schema com o banco..."
+npx prisma db push --skip-generate
 
 echo "==> Banco pronto. Iniciando aplicação..."
 exec npx tsx server.ts
