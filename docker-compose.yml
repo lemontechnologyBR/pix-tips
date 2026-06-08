@@ -1,5 +1,27 @@
 services:
 
+  traefik:
+    image: traefik:v3.3
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@pix.tips}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - proxy
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -20,8 +42,6 @@ services:
   app:
     image: ghcr.io/lemontechnologybr/pix-tips:latest
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://tippage:${POSTGRES_PASSWORD}@postgres:5432/tippage
@@ -64,8 +84,20 @@ services:
       - private_uploads:/app/private/uploads
     networks:
       - backend
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pixtips.rule=Host(`pix.tips`) || Host(`www.pix.tips`)"
+      - "traefik.http.routers.pixtips.entrypoints=websecure"
+      - "traefik.http.routers.pixtips.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pixtips.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.pix\\.tips/(.*)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://pix.tips/$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.pixtips.middlewares=www-redirect"
 
 networks:
+  proxy:
   backend:
     internal: true
 
@@ -73,3 +105,4 @@ volumes:
   postgres_data:
   uploads:
   private_uploads:
+  letsencrypt:
