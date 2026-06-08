@@ -3,6 +3,8 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { getSessionFromCookies } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {

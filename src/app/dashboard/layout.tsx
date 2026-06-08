@@ -1,10 +1,12 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 import { mapDbCreatorToCreator } from "@/lib/auth/creator-mapper";
 import { getSessionFromCookies } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db";
 
-const DashboardShell = dynamic(
+export const dynamic = "force-dynamic";
+
+const DashboardShell = nextDynamic(
   () =>
     import("@/components/dashboard/DashboardShell").then((mod) => mod.DashboardShell),
   {
