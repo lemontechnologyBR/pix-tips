@@ -1,23 +1,5 @@
 services:
 
-  # ── Reverse proxy + SSL automático (Let's Encrypt) ─────────────────────────
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"   # HTTP/3 / QUIC
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-    networks:
-      - frontend
-      - backend
-
   # ── Banco de dados ──────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -34,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - backend   # não exposto externamente
+      - backend
 
   # ── Aplicação Next.js + Socket.IO ──────────────────────────────────────────
   app:
@@ -57,15 +39,29 @@ services:
     volumes:
       - uploads:/app/public/uploads
     networks:
-      - backend   # só acessível via Caddy
+      - backend
+      - traefik_proxy   # rede externa do Traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pixtips.rule=Host(`pix.tips`) || Host(`www.pix.tips`)"
+      - "traefik.http.routers.pixtips.entrypoints=websecure"
+      - "traefik.http.routers.pixtips.tls=true"
+      - "traefik.http.routers.pixtips.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pixtips.loadbalancer.server.port=3000"
+      # Redireciona www → apex
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.pix\\.tips/(.*)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://pix.tips/$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.pixtips.middlewares=www-redirect"
+      # WebSocket (Socket.IO)
+      - "traefik.http.middlewares.pixtips-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
 
 networks:
-  frontend:   # Caddy ↔ internet
   backend:
-    internal: true   # isolado — sem acesso externo direto
+    internal: true
+  traefik_proxy:
+    external: true   # rede criada pelo Traefik no servidor
 
 volumes:
   postgres_data:
   uploads:
-  caddy_data:    # certificados TLS persistidos
-  caddy_config:
