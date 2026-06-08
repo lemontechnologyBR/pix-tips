@@ -17,7 +17,7 @@ else
 fi
 
 echo "==> Sincronizando schema com o banco..."
-npx prisma db push --skip-generate
+npx prisma db push
 
 echo "==> Banco pronto. Iniciando aplicação..."
 exec npx tsx server.ts
