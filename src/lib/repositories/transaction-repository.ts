@@ -209,28 +209,34 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
 export async function confirmTransaction(
   id: string,
 ): Promise<Transaction | null> {
-  const existing = await prisma.transaction.findUnique({ where: { id } });
-  if (!existing || existing.status !== "pending") return null;
+  // Atomic claim: updateMany with status condition ensures only one concurrent
+  // caller can transition pending → confirmed. If count === 0 the transaction
+  // was already processed (or doesn't exist) — skip all side-effects.
+  const result = await prisma.transaction.updateMany({
+    where: { id, status: "pending" },
+    data: { status: "confirmed" },
+  });
 
-  if (!(await prisma.creator.findUnique({ where: { id: existing.creatorId } }))) return null;
+  if (result.count === 0) {
+    return null;
+  }
+
+  const row = await prisma.transaction.findUnique({ where: { id } });
+  if (!row) return null;
+
+  if (!(await prisma.creator.findUnique({ where: { id: row.creatorId } }))) return null;
 
   const commissionRate = getCommissionRate();
-  const netAmount = computeNetAmount(existing.amount, commissionRate);
-  const isSplit = existing.splitPayment;
+  const netAmount = computeNetAmount(row.amount, commissionRate);
+  const isSplit = row.splitPayment;
 
-  const [row] = await prisma.$transaction([
-    prisma.transaction.update({
-      where: { id },
-      data: { status: "confirmed" },
-    }),
-    prisma.creator.update({
-      where: { id: existing.creatorId },
-      data: {
-        raised: { increment: existing.amount },
-        ...(isSplit ? {} : { availableBalance: { increment: netAmount } }),
-      },
-    }),
-  ]);
+  await prisma.creator.update({
+    where: { id: row.creatorId },
+    data: {
+      raised: { increment: row.amount },
+      ...(isSplit ? {} : { availableBalance: { increment: netAmount } }),
+    },
+  });
 
   return mapTransactionRow(row as TransactionRow);
 }

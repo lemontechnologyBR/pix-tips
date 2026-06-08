@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "crypto";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -80,12 +81,17 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
 
+    const rawVerificationToken = randomBytes(32).toString("hex");
+    const hashedVerificationToken = createHash("sha256")
+      .update(rawVerificationToken)
+      .digest("hex");
+
     const user = await db.user.create({
       data: {
         email,
         passwordHash,
         name: username.trim(),
-        emailVerificationToken: crypto.randomUUID(),
+        emailVerificationToken: hashedVerificationToken,
         emailVerificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
         creator: {
           create: {
@@ -108,7 +114,7 @@ export async function POST(request: Request) {
 
     if (user.emailVerificationToken) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const verifyUrl = `${baseUrl}/verify-email?token=${user.emailVerificationToken}`;
+      const verifyUrl = `${baseUrl}/verify-email?token=${rawVerificationToken}`;
       const { subject, html } = verifyEmailTemplate({ name: user.name, verifyUrl });
       await sendEmail({ to: user.email, subject, html });
     }

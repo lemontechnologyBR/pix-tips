@@ -16,6 +16,31 @@ import { isSessionError, requireSession } from "@/lib/auth/require-session";
 import { mimeToFileType } from "@/lib/validate-alert-media";
 import { getAdminSettings } from "@/lib/repositories/admin-settings-repository";
 
+function isValidMediaBuffer(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isPng =
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47;
+  const isWebP =
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50;
+  const isGif =
+    buffer[0] === 0x47 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x38;
+  return isJpeg || isPng || isWebP || isGif;
+}
+
 function readPngDimensions(buffer: Buffer): { width: number; height: number } | null {
   if (buffer.length < 24 || buffer.toString("ascii", 1, 4) !== "PNG") return null;
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
@@ -77,6 +102,11 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (!isValidMediaBuffer(buffer)) {
+      return NextResponse.json({ error: "Tipo de arquivo inválido" }, { status: 400 });
+    }
+
     const fromPng = readPngDimensions(buffer);
     const width = fromPng?.width ?? (Number(form.get("width")) || 0);
     const height = fromPng?.height ?? (Number(form.get("height")) || 0);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { io, type Socket } from "socket.io-client";
 import type { Creator, DonationFormState } from "@/types";
 import { PixPayment } from "./PixPayment";
@@ -533,6 +534,16 @@ export function DonationForm({ creator }: DonationFormProps) {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       <SubmitButton themeColor={creator.themeColor} amountLabel={amountLabel} />
+
+      <p className="text-center text-xs text-zinc-500">
+        Ao enviar, você concorda que seu nome escolhido e mensagem serão exibidos
+        publicamente durante o alerta do criador. Os dados são tratados conforme
+        nossa{" "}
+        <Link href="/privacidade" className="text-zinc-400 underline hover:text-zinc-200">
+          Política de Privacidade
+        </Link>
+        .
+      </p>
     </form>
   );
 }

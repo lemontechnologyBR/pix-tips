@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import {
   defaultAlertSettings,
   defaultTipPageSettings,
@@ -15,7 +16,6 @@ import { prisma } from "@/lib/db";
 const DEMO_USER_ID = "user-demo-001";
 const DEMO_CREATOR_ID = "creator-demo-001";
 const DEMO_EMAIL = "demo@pix.tips";
-const DEMO_PASSWORD = "demo123456";
 
 async function seedDemoNotifications(creatorId: string): Promise<void> {
   const existing = await prisma.notification.count({ where: { creatorId } });
@@ -76,18 +76,13 @@ async function seedDemoKyc(creatorId: string): Promise<void> {
   });
 }
 
-async function ensureDemoAdmin(): Promise<void> {
-  const user = await userRepo.findByEmail(DEMO_EMAIL);
-  if (user && user.role !== "admin") {
-    await userRepo.updateUserRole(user.id, "admin");
-  }
-}
 
 export async function ensureDemoSeeded(): Promise<void> {
+  if (process.env.NODE_ENV === "production") return;
+
   const existing = await creatorRepo.getByUsername("demo");
   if (existing) {
     await creatorRepo.update(existing.id, { onboardingCompleted: true });
-    await ensureDemoAdmin();
     await seedDemoTransactions(existing.id);
     await seedDemoPayouts(existing.id);
     await syncCreatorBalance(existing.id);
@@ -98,17 +93,16 @@ export async function ensureDemoSeeded(): Promise<void> {
 
   let user = await userRepo.findByEmail(DEMO_EMAIL);
   if (!user) {
-    const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+    const randomPassword = randomBytes(16).toString("hex");
+    const passwordHash = await bcrypt.hash(randomPassword, 10);
     user = await userRepo.createUser({
       id: DEMO_USER_ID,
       email: DEMO_EMAIL,
       passwordHash,
       name: "Streamer Demo",
-      role: "admin",
+      role: "user",
       emailVerified: true,
     });
-  } else if (user.role !== "admin") {
-    await userRepo.updateUserRole(user.id, "admin");
   }
 
   const alertSettings = defaultAlertSettings();

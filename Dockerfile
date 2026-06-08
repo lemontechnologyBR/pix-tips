@@ -52,12 +52,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/server.ts ./server.ts
 # (socket-server, store, db, chat-bot, …)
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
 
+# Entrypoint: runs Prisma migrations then starts the app
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# tsx compiles server.ts + its TypeScript imports on startup (~100 ms overhead).
-# Acceptable for production given the project's existing "start": "tsx server.ts".
-CMD ["npx", "tsx", "server.ts"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

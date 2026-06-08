@@ -85,6 +85,8 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const isDirty =
     profile.notifyEmailDonation !== savedSnapshot.notifyEmailDonation ||
@@ -135,6 +137,32 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
       setError("Erro de conexão.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleExportData() {
+    setExportingData(true);
+    setExportError(null);
+    try {
+      const res = await fetch("/api/user/export");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setExportError(data.error ?? "Erro ao exportar dados.");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "meus-dados-pix-tips.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError("Erro de conexão. Tente novamente.");
+    } finally {
+      setExportingData(false);
     }
   }
 
@@ -294,6 +322,27 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
 
         <ApiKeySection />
       </div>
+
+      <SettingsCard
+        title="Privacidade e dados (LGPD)"
+        description="Acesse uma cópia de todos os dados pessoais associados à sua conta."
+      >
+        <p className="text-sm text-zinc-400">
+          Em conformidade com a Lei Geral de Proteção de Dados (Art. 18, LGPD), você pode
+          exportar todos os seus dados em formato JSON. O download está disponível uma vez por hora.
+        </p>
+        {exportError && (
+          <p className="mt-3 text-sm text-red-400">{exportError}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleExportData}
+          disabled={exportingData}
+          className="mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {exportingData ? "Exportando..." : "Exportar meus dados"}
+        </button>
+      </SettingsCard>
 
       <SettingsCard
         title="Zona de perigo"

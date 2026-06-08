@@ -256,6 +256,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [cpfCheck, setCpfCheck] = useState<CpfCheckState>({ phase: "idle" });
+  const [lgpdConsent, setLgpdConsent] = useState(false);
   const cpfCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const status = statusConfig(profile.status);
@@ -459,6 +460,26 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
           </div>
 
           <form onSubmit={handleSubmit} className="divide-y divide-zinc-800/80">
+            <div className="p-5 sm:p-6">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
+                <p className="font-semibold text-amber-100">
+                  Aviso de tratamento de dados sensíveis (LGPD — Art. 11)
+                </p>
+                <p className="mt-2 leading-relaxed text-amber-200/80">
+                  Seus documentos e dados biométricos (selfie + RG/CNH) serão tratados como{" "}
+                  <strong className="text-amber-100">dados pessoais sensíveis</strong> conforme a LGPD (Art. 11).
+                  Utilizamos essas informações exclusivamente para verificação de identidade e prevenção a fraudes.
+                  Dados são compartilhados com nosso parceiro{" "}
+                  <span className="font-medium text-amber-100">Didit (verification.didit.me)</span> para
+                  análise automatizada. Consulte nossa{" "}
+                  <Link href="/privacidade" className="text-amber-300 underline hover:text-amber-100">
+                    Política de Privacidade
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+
             <section className="space-y-5 p-5 sm:p-6">
               <SectionHeading
                 icon="user"
@@ -607,6 +628,24 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                 </p>
               )}
 
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  required
+                  checked={lgpdConsent}
+                  onChange={(e) => setLgpdConsent(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cyan-500"
+                />
+                <span className="text-xs leading-relaxed text-zinc-400">
+                  Li e concordo com o tratamento dos meus dados sensíveis para fins de
+                  verificação de identidade conforme a{" "}
+                  <Link href="/privacidade" className="text-cyan-400 underline hover:text-cyan-300">
+                    Política de Privacidade
+                  </Link>
+                  .
+                </span>
+              </label>
+
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="flex items-center gap-2 text-xs text-zinc-500">
                   <KycFormIcon name="lock" className="h-3.5 w-3.5 shrink-0" />
@@ -614,7 +653,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                 </p>
                 <button
                   type="submit"
-                  disabled={submitting || !personalDone || !documentsDone}
+                  disabled={submitting || !personalDone || !documentsDone || !lgpdConsent}
                   className="shrink-0 rounded-xl web3-btn-primary px-6 py-2.5 text-sm font-semibold hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitting ? "Enviando…" : "Enviar para análise"}

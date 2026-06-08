@@ -40,6 +40,10 @@ export async function requireSession(): Promise<
     return NextResponse.json({ error: "Criador não encontrado" }, { status: 404 });
   }
 
+  if (creator.isSuspended) {
+    return NextResponse.json({ error: "Conta suspensa" }, { status: 403 });
+  }
+
   return { creator, userId: session.userId };
 }
 

@@ -433,34 +433,7 @@ export async function findOrCreateOAuthUser(
   });
 
   if (existingUser) {
-    console.warn(
-      `[oauth-security] Auto-linking OAuth provider "${provider}" to existing account ${existingUser.id} (email: ${existingUser.email}). Consider requiring re-auth.`,
-    );
-
-    await db.oAuthAccount.create({
-      data: {
-        userId: existingUser.id,
-        provider,
-        providerAccountId: userInfo.providerUserId,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      },
-    });
-
-    const creator = existingUser.creator;
-    if (!creator) {
-      throw new Error("Conta de criador não encontrada.");
-    }
-
-    return {
-      userId: existingUser.id,
-      creatorId: creator.id,
-      email: existingUser.email,
-      role: existingUser.role,
-      onboardingCompleted: creator.onboardingCompleted,
-      totpEnabled: existingUser.totpEnabled,
-      isNewUser: false,
-    };
+    throw new Error("oauth_email_conflict");
   }
 
   const username = await generateUniqueUsername(userInfo.email);

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/shared/BrandLogo";
+import { CookieManageButton } from "@/components/landing/CookieConsent";
 import { BRAND_NAME } from "@/lib/brand";
 
 const PLATFORM_LINKS = [
@@ -142,8 +143,11 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-white/5 py-6 text-center text-sm text-zinc-600">
-        © 2026 {BRAND_NAME} · Feito com ❤️ para streamers brasileiros
+      <div className="border-t border-white/5 px-4 py-6 text-center text-sm text-zinc-600">
+        <p>© 2026 {BRAND_NAME} · Feito com ❤️ para streamers brasileiros</p>
+        <div className="mt-2">
+          <CookieManageButton />
+        </div>
       </div>
     </footer>
   );

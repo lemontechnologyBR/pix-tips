@@ -1,10 +1,30 @@
 services:
+
+  # ── Reverse proxy + SSL automático (Let's Encrypt) ─────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3 / QUIC
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - frontend
+      - backend
+
+  # ── Banco de dados ──────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: tippage
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tippage}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obrigatório em .env.production}
       POSTGRES_DB: tippage
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -13,15 +33,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend   # não exposto externamente
 
+  # ── Aplicação Next.js + Socket.IO ──────────────────────────────────────────
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://tippage:${POSTGRES_PASSWORD:-tippage}@postgres:5432/tippage
+      DATABASE_URL: postgresql://tippage:${POSTGRES_PASSWORD}@postgres:5432/tippage
+      NEXT_PUBLIC_APP_URL: https://pix.tips
+      NEXT_PUBLIC_SOCKET_URL: https://pix.tips
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
     env_file:
       - .env.production
     depends_on:
@@ -29,7 +56,16 @@ services:
         condition: service_healthy
     volumes:
       - uploads:/app/public/uploads
+    networks:
+      - backend   # só acessível via Caddy
+
+networks:
+  frontend:   # Caddy ↔ internet
+  backend:
+    internal: true   # isolado — sem acesso externo direto
 
 volumes:
   postgres_data:
   uploads:
+  caddy_data:    # certificados TLS persistidos
+  caddy_config:

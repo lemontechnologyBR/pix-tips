@@ -84,6 +84,7 @@ model Creator {
   affiliateSignups              Int            @default(0)
   affiliateEarnings             Float          @default(0)
   apiKey                        String?        @unique
+  apiKeyCreatedAt               DateTime?
   availableBalance              Float          @default(0)
   totalWithdrawn                Float          @default(0)
   pixKey                        String?

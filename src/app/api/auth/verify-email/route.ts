@@ -1,17 +1,20 @@
+import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/db";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const token = searchParams.get("token")?.trim() ?? "";
+  const rawToken = searchParams.get("token")?.trim() ?? "";
 
-  if (!token) {
+  if (!rawToken) {
     return NextResponse.json({ error: "Token inválido ou ausente." }, { status: 400 });
   }
 
+  const hashedToken = createHash("sha256").update(rawToken).digest("hex");
+
   const db = getPrisma();
   const user = await db.user.findFirst({
-    where: { emailVerificationToken: token },
+    where: { emailVerificationToken: hashedToken },
   });
 
   if (!user) {

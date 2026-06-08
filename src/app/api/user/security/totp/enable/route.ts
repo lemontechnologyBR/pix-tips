@@ -6,10 +6,18 @@ import {
   generateBackupCodes,
   serializeBackupCodes,
 } from "@/lib/auth/backup-codes";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const session = await requireSession();
   if (isSessionError(session)) return session;
+
+  if (!rateLimit(`totp-enable:${session.userId}`, 5, 5 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Muitas tentativas. Aguarde 5 minutos." },
+      { status: 429 },
+    );
+  }
 
   const body = (await request.json()) as { code?: string };
   const code = body.code?.trim() ?? "";

@@ -10,6 +10,7 @@ import {
   isWooviChargePaid,
 } from "@/lib/payments/woovi";
 import { getPrisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 const EXPIRY_MS = 15 * 60 * 1000; // 15 minutos (mesmo valor da UI)
 
@@ -26,6 +27,11 @@ export async function GET(
 ) {
   try {
     const { transactionId } = await params;
+
+    if (!rateLimit(`status:${transactionId}`, 10, 60_000)) {
+      return NextResponse.json({ error: "Muitas requisições" }, { status: 429 });
+    }
+
     const transaction = await getTransaction(transactionId);
 
     if (!transaction) {

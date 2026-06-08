@@ -6,6 +6,26 @@ import { isSessionError, requireSession } from "@/lib/auth/require-session";
 import { uploadFile } from "@/lib/storage";
 import type { KycDocumentType } from "@/types";
 
+function isValidImageBuffer(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isPng =
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47;
+  const isWebP =
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50;
+  return isJpeg || isPng || isWebP;
+}
+
 export async function GET() {
   const session = await requireSession();
   if (isSessionError(session)) return session;
@@ -27,10 +47,15 @@ async function uploadKycDocument(
     return { error: `${label}: arquivo muito grande (máx. 5 MB).` };
   }
 
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  if (!isValidImageBuffer(buffer)) {
+    return { error: `${label}: tipo de arquivo inválido.` };
+  }
+
   const ext =
     file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const key = `${creatorId}/kyc/${uuidv4()}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
   await uploadFile(key, buffer, file.type);
   return { key };
 }

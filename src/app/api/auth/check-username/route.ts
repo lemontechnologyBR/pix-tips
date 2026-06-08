@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { isUsernameAvailableSlug, slugifyUsername } from "@/lib/auth/validators";
 import { getPrisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   try {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    if (!rateLimit(`check-username:${ip}`, 20, 60 * 1000)) {
+      return NextResponse.json({ error: "Muitas requisições. Tente novamente em breve." }, { status: 429 });
+    }
+
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username") ?? "";
     const slug = slugifyUsername(username);

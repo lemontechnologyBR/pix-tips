@@ -1,25 +1,25 @@
 #!/bin/sh
 set -e
 
-# Set default SQLite URL if DATABASE_URL is not provided
+# ── Detecta provider e corrige o schema Prisma ───────────────────────────────
 if [ -z "${DATABASE_URL:-}" ]; then
   DATABASE_URL="file:./prisma/dev.db"
   export DATABASE_URL
-  echo "==> DATABASE_URL not set — using default SQLite: $DATABASE_URL"
+  echo "==> DATABASE_URL não definido — usando SQLite padrão: $DATABASE_URL"
 fi
 
-# Detect provider from URL and patch schema.prisma accordingly
 if echo "$DATABASE_URL" | grep -qE "^postgres(ql)?://"; then
-  echo "==> PostgreSQL detected"
-  # Patch schema provider so prisma CLI uses correct SQL dialect
+  echo "==> PostgreSQL detectado"
   sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
-  echo "==> Schema provider patched to postgresql"
+  echo "==> Schema patched para postgresql"
+
+  echo "==> Rodando migrações Prisma..."
+  npx prisma migrate deploy
 else
-  echo "==> SQLite detected"
+  echo "==> SQLite detectado"
+  echo "==> Sincronizando schema..."
+  npx prisma db push
 fi
 
-echo "==> Running database push..."
-npx prisma db push --accept-data-loss
-
-echo "==> Database setup complete. Starting application..."
+echo "==> Banco pronto. Iniciando aplicação..."
 exec npx tsx server.ts

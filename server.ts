@@ -33,9 +33,10 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  const allowedOrigins = process.env.NEXT_PUBLIC_APP_URL
-    ? [process.env.NEXT_PUBLIC_APP_URL, "http://localhost:3000"]
-    : ["http://localhost:3000"];
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
+  ].filter(Boolean) as string[];
 
   const io = new SocketIOServer(httpServer, {
     path: "/api/socket",

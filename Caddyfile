@@ -1,0 +1,35 @@
+# ── pix.tips — configuração de produção ────────────────────────────────────
+# Caddy obtém e renova o certificado TLS (Let's Encrypt) automaticamente.
+# Requisito: portas 80 e 443 apontando para este servidor antes de subir.
+
+# Redireciona www → apex
+www.pix.tips {
+    redir https://pix.tips{uri} permanent
+}
+
+pix.tips {
+    # Proxy para o container Next.js + Socket.IO
+    reverse_proxy app:3000 {
+        # Preserva IP real do visitante
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Suporte a WebSockets (Socket.IO)
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 60s
+        }
+    }
+
+    # Compressão
+    encode gzip zstd
+
+    # Logs estruturados (opcional: remova se preferir sem logs)
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
