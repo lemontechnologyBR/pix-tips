@@ -47,8 +47,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts  ./next.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/.next  ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Prisma schema + generated client
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Prisma schema + generated client + config
+COPY --from=builder --chown=nextjs:nodejs /app/prisma        ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Custom server entry-point (TypeScript, compiled at startup by tsx)
 COPY --from=builder --chown=nextjs:nodejs /app/server.ts ./server.ts
