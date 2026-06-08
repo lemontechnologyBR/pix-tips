@@ -12,6 +12,8 @@ if echo "$DATABASE_URL" | grep -qE "^postgres(ql)?://"; then
   echo "==> PostgreSQL detectado"
   sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
   echo "==> Schema patched para postgresql"
+  echo "==> Regenerando Prisma Client para postgresql..."
+  npx prisma generate
 else
   echo "==> SQLite detectado"
 fi
