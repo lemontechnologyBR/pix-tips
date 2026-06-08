@@ -15,7 +15,12 @@ COPY . .
 # Generate Prisma client for the target platform
 RUN npx prisma generate
 
-# Build Next.js (next build only; prisma generate already done)
+# Build Next.js — NEXT_PUBLIC vars são placeholders em build time;
+# valores reais vêm das env vars em runtime via docker-compose
+ARG NEXT_PUBLIC_APP_URL=https://pix.tips
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npx next build
 
 # ─── Stage 2: runner ──────────────────────────────────────────────────────────
