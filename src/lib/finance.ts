@@ -16,14 +16,14 @@ export function computeNetAmount(amount: number, commissionRate: number): number
 }
 
 /**
- * Taxa fixa de saque para cobrir custos operacionais (Pix Out Woovi).
+ * Taxa fixa de saque para cobrir custos operacionais de transferência Pix.
  * Configurável via WOOVI_PAYOUT_FEE (padrão R$ 2,50).
  */
 export function computeWooviPayoutFee(): number {
   return Number(process.env.WOOVI_PAYOUT_FEE ?? 2.5);
 }
 
-/** Taxa Woovi por Pix recebido (referência; incluída na WOOVI_PAYOUT_FEE). */
+/** Taxa por Pix recebido (referência; incluída na WOOVI_PAYOUT_FEE). */
 export function computeWooviReceiveFee(amount: number): number {
   const percent = Number(process.env.WOOVI_FEE_PERCENT ?? 0.8);
   const minFee = Number(process.env.WOOVI_FEE_MIN ?? 0.5);
@@ -36,7 +36,7 @@ export function computeWooviReceiveFee(amount: number): number {
 /** @deprecated Use computeWooviReceiveFee */
 export const computeWooviFee = computeWooviReceiveFee;
 
-/** Taxa real cobrada pela Woovi no Pix Out (saque subconta → chave do criador). */
+/** Taxa real cobrada no Pix Out (saque → chave do criador). */
 export function computeWooviWithdrawFee(): number {
   return Number(process.env.WOOVI_WITHDRAW_FEE ?? 1);
 }

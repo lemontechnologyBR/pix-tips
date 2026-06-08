@@ -121,7 +121,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             error:
-              "Este criador ainda não cadastrou a chave Pix Woovi. Doações indisponíveis no momento.",
+              "Este criador ainda não cadastrou a chave Pix. Doações indisponíveis no momento.",
           },
           { status: 503 },
         );

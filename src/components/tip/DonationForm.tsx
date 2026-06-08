@@ -365,7 +365,7 @@ export function DonationForm({ creator }: DonationFormProps) {
           setError("O pagamento expirou. Tente novamente.");
         }
       } catch {
-        // próxima tentativa no intervalo (Woovi ou Mercado Pago)
+        // próxima tentativa no intervalo de polling do pagamento
       }
     }
 

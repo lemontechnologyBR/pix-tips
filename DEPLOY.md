@@ -20,7 +20,7 @@ NEXT_PUBLIC_SITE_URL=https://seu-dominio.com
 
 | Serviço | Variáveis | Sem elas |
 |---|---|---|
-| Woovi | `WOOVI_APP_ID`, `WOOVI_WEBHOOK_SECRET` | Recebimento Pix desativado (usa mock em dev) |
+| Pagamentos Pix | `WOOVI_APP_ID`, `WOOVI_WEBHOOK_SECRET` | Recebimento Pix desativado (usa mock em dev) |
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL` | Plano Pro desativado |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | E-mails logados no console |
 | S3/R2 | `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` | Uploads em `public/uploads/` |

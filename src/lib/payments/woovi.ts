@@ -27,11 +27,18 @@ const WOOVI_API_BASE = "https://api.woovi.com/api/v1";
 /** Woovi não permite split = 100% da cobrança; reserva mínima na conta principal. */
 export const WOOVI_SPLIT_MAIN_RESERVE_CENTS = 1;
 
+/** Remove referências ao provedor de pagamentos em mensagens exibidas ao usuário. */
+export function sanitizePaymentErrorMessage(message: string): string {
+  return message
+    .replace(/woovi/gi, "pix.tips")
+    .replace(/WOOVI_[A-Z_]+/g, "configuração interna");
+}
+
 export class WooviApiError extends Error {
   status: number;
 
   constructor(message: string, status: number) {
-    super(message);
+    super(sanitizePaymentErrorMessage(message));
     this.name = "WooviApiError";
     this.status = status;
   }
@@ -133,7 +140,7 @@ export async function checkWooviPixKey(
 ): Promise<WooviPixKeyCheckResult> {
   const appId = getWooviAppId();
   if (!appId) {
-    throw new WooviApiError("Integração Woovi não configurada na plataforma.", 503);
+    throw new WooviApiError("Pagamentos Pix indisponíveis no momento.", 503);
   }
 
   const trimmed = pixKey.trim();
@@ -213,11 +220,11 @@ function parseWooviError(raw: string, fallback: string): string {
       message?: string;
       errors?: Array<{ message?: string; description?: string }>;
     };
-    if (data.error) return data.error;
-    if (data.message) return data.message;
+    if (data.error) return sanitizePaymentErrorMessage(data.error);
+    if (data.message) return sanitizePaymentErrorMessage(data.message);
     const first = data.errors?.[0];
-    if (first?.description) return first.description;
-    if (first?.message) return first.message;
+    if (first?.description) return sanitizePaymentErrorMessage(first.description);
+    if (first?.message) return sanitizePaymentErrorMessage(first.message);
   } catch {
     // ignore
   }
@@ -235,13 +242,13 @@ function parseWooviError(raw: string, fallback: string): string {
     raw.includes("Saldo insuficiente") ||
     raw.includes("NOT_ENOUGH_BALANCE")
   ) {
-    return "Saldo insuficiente na Woovi para sacar. Há valor a mais na subconta (split antigo sem desconto da taxa). O sistema tentará ajustar automaticamente — clique em Sacar novamente.";
+    return "Saldo insuficiente para sacar. Há valor pendente de ajuste na sua conta. O sistema tentará corrigir automaticamente — clique em Sacar novamente.";
   }
   if (raw.includes("Unauthorized")) {
-    return "Credenciais Woovi inválidas. Verifique WOOVI_APP_ID.";
+    return "Configuração de pagamentos inválida. Contate a equipe pix.tips.";
   }
 
-  return raw.trim() || fallback;
+  return sanitizePaymentErrorMessage(raw.trim() || fallback);
 }
 
 export function normalizeWooviStatus(raw: string): WooviChargeStatus {
@@ -310,7 +317,7 @@ export async function createPixCharge(input: CreatePixChargeInput): Promise<PixC
   if (!res.ok) {
     console.error("[woovi] createPixCharge error:", raw);
     throw new WooviApiError(
-      parseWooviError(raw, "Falha ao criar cobrança Pix na Woovi."),
+      parseWooviError(raw, "Falha ao criar cobrança Pix."),
       res.status,
     );
   }
@@ -409,7 +416,7 @@ export async function creditWooviSubaccount(
 ): Promise<void> {
   const appId = getWooviAppId();
   if (!appId) {
-    throw new WooviApiError("Integração Woovi não configurada na plataforma.", 503);
+    throw new WooviApiError("Pagamentos Pix indisponíveis no momento.", 503);
   }
   if (valueCents < 1) return;
 
@@ -426,7 +433,7 @@ export async function creditWooviSubaccount(
   if (!res.ok) {
     console.error("[woovi] creditWooviSubaccount error:", raw);
     throw new WooviApiError(
-      parseWooviError(raw, "Falha ao creditar saldo na subconta Woovi."),
+      parseWooviError(raw, "Falha ao creditar saldo na sua conta de recebimentos."),
       res.status,
     );
   }
@@ -440,7 +447,7 @@ export async function debitWooviSubaccount(
 ): Promise<void> {
   const appId = getWooviAppId();
   if (!appId) {
-    throw new WooviApiError("Integração Woovi não configurada na plataforma.", 503);
+    throw new WooviApiError("Pagamentos Pix indisponíveis no momento.", 503);
   }
   if (valueCents < 1) return;
 
@@ -457,7 +464,7 @@ export async function debitWooviSubaccount(
   if (!res.ok) {
     console.error("[woovi] debitWooviSubaccount error:", raw);
     throw new WooviApiError(
-      parseWooviError(raw, "Falha ao ajustar saldo da subconta Woovi."),
+      parseWooviError(raw, "Falha ao ajustar saldo da sua conta de recebimentos."),
       res.status,
     );
   }
@@ -469,7 +476,7 @@ export async function withdrawWooviSubaccount(
 ): Promise<{ value: number; correlationID?: string }> {
   const appId = getWooviAppId();
   if (!appId) {
-    throw new WooviApiError("Integração Woovi não configurada na plataforma.", 503);
+    throw new WooviApiError("Pagamentos Pix indisponíveis no momento.", 503);
   }
 
   const sub = await getWooviSubaccount(pixKey);
@@ -504,7 +511,7 @@ export async function withdrawWooviSubaccount(
   if (!res.ok) {
     console.error("[woovi] withdrawWooviSubaccount error:", raw);
     throw new WooviApiError(
-      parseWooviError(raw, "Falha ao sacar saldo da subconta Woovi."),
+      parseWooviError(raw, "Falha ao processar o saque."),
       res.status,
     );
   }
@@ -553,7 +560,7 @@ export async function getChargeStatus(id: string): Promise<ChargeStatusResult> {
   });
 
   if (res.status === 404) {
-    throw new WooviApiError("Cobrança não encontrada na Woovi.", 404);
+    throw new WooviApiError("Cobrança não encontrada.", 404);
   }
 
   const raw = await res.text();
@@ -747,7 +754,7 @@ export async function createWooviSubaccount(input: {
 }): Promise<{ name: string; pixKey: string }> {
   const appId = getWooviAppId();
   if (!appId) {
-    throw new WooviApiError("Integração Woovi não configurada na plataforma.", 503);
+    throw new WooviApiError("Pagamentos Pix indisponíveis no momento.", 503);
   }
 
   const res = await fetch(`${WOOVI_API_BASE}/subaccount`, {
@@ -762,7 +769,7 @@ export async function createWooviSubaccount(input: {
   const raw = await res.text();
   if (!res.ok) {
     throw new WooviApiError(
-      parseWooviError(raw, "Falha ao criar subconta na Woovi."),
+      parseWooviError(raw, "Falha ao configurar recebimentos Pix."),
       res.status,
     );
   }

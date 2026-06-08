@@ -33,7 +33,7 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Prisma singleton corrigido para produção
 - Handlers globais `uncaughtException` / `unhandledRejection` no servidor
 - `RESEND_API_KEY` obrigatória no boot em produção
-- Billing Pro bloqueado em modo mock sem Woovi configurado
+- Billing Pro bloqueado em modo mock sem pagamentos Pix configurados
 - `.env.production.example` alinhado aos nomes reais das variáveis
 - Docker Compose integrado ao Traefik (SSL via proxy existente)
 - `robots.ts`, `sitemap.ts` e `opengraph-image.tsx` para SEO
@@ -59,7 +59,7 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Configurações: perfil, segurança (2FA/TOTP), integrações, ChatBot Twitch
 
 #### Pagamentos
-- Integração Woovi para recebimento Pix
+- Integração Pix para recebimento de doações
 - Taxa de 2% sobre doações recebidas
 - Saque mínimo de R$ 20,00 com taxa fixa de R$ 2,50
 - Valor mínimo de doação: R$ 10,00
@@ -72,7 +72,7 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Autenticação JWT com sessões seguras
 - 2FA/TOTP com backup codes
 - Rate limiting em todas as rotas sensíveis
-- Verificação HMAC em webhooks Woovi e Didit
+- Verificação HMAC em webhooks de pagamento e Didit
 - KYC via Didit para saques
 - Tokens de reset de senha hasheados (SHA-256)
 

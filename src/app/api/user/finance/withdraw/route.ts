@@ -16,7 +16,7 @@ export async function POST() {
   return NextResponse.json(
     {
       error:
-        "Este fluxo de saque foi descontinuado. Use /api/user/woovi/withdraw",
+        "Este fluxo de saque foi descontinuado. Use o saque pelo painel Financeiro.",
     },
     { status: 410 },
   );

@@ -268,10 +268,10 @@ export default function PrivacidadePage() {
           </p>
           <ul className="space-y-4">
             <li>
-              <strong className="text-zinc-300">Woovi</strong>{" "}
-              <span className="text-zinc-500 text-xs">(Brasil)</span> — Processamento de
-              pagamentos via Pix. Dados compartilhados: chave Pix, nome do titular, valor e
-              identificadores de transação.
+              <strong className="text-zinc-300">Processador de pagamentos Pix</strong>{" "}
+              <span className="text-zinc-500 text-xs">(parceiro contratado pela pix.tips — Brasil)</span>{" "}
+              — Processamento de pagamentos via Pix. Dados compartilhados: chave Pix, nome do
+              titular, valor e identificadores de transação.
             </li>
             <li>
               <strong className="text-zinc-300">Didit</strong>{" "}
