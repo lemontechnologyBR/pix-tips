@@ -19,7 +19,7 @@ services:
 
   app:
     build:
-      context: https://github.com/lemontechnologyBR/pix-tips.git#develop
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
