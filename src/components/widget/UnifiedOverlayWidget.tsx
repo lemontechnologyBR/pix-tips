@@ -324,6 +324,7 @@ export function UnifiedOverlayWidget({
         <ViewersOverlay
           viewers={viewerData.viewers}
           live={viewerData.live}
+          platformStats={viewerData.platforms}
           layout={alertSettings.viewersLayout}
           platforms={alertSettings.viewersPlatforms}
           position={alertSettings.viewersPosition}

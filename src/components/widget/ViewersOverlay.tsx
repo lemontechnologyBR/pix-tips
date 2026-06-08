@@ -7,6 +7,7 @@ import {
   TwitchIcon,
   YouTubeIcon,
 } from "@/components/shared/SocialProviderIcons";
+import type { ViewerPlatformMap } from "@/lib/viewers/types";
 import type {
   GoalOverlayPosition,
   OverlayDragPoint,
@@ -18,6 +19,7 @@ import { OverlayPositionShell } from "./OverlayPositionShell";
 interface ViewersOverlayProps {
   viewers: number;
   live?: boolean;
+  platformStats?: ViewerPlatformMap;
   layout?: ViewersOverlayLayout;
   platforms?: ViewersPlatform[];
   position?: GoalOverlayPosition;
@@ -347,6 +349,7 @@ function ViewersLayoutBody({
 export function ViewersOverlay({
   viewers,
   live = true,
+  platformStats,
   layout = "classic",
   platforms = ["twitch"],
   position = "top-left",
@@ -360,7 +363,15 @@ export function ViewersOverlay({
 }: ViewersOverlayProps) {
   const activePlatforms = platforms.length > 0 ? platforms : (["twitch"] as ViewersPlatform[]);
 
-  if (hideOffline && viewers === 0) return null;
+  const visiblePlatforms = activePlatforms.filter((platform) => {
+    const stats = platformStats?.[platform];
+    const platformViewers = stats?.viewers ?? viewers;
+    const platformLive = stats?.live ?? live;
+    if (hideOffline && !platformLive && platformViewers === 0) return false;
+    return true;
+  });
+
+  if (visiblePlatforms.length === 0) return null;
 
   return (
     <OverlayPositionShell
@@ -369,12 +380,17 @@ export function ViewersOverlay({
       embedded={embedded}
     >
       <div className={`flex flex-col ${embedded ? "gap-1" : "gap-1.5"}`}>
-        {activePlatforms.map((platform) => (
+        {visiblePlatforms.map((platform) => {
+          const stats = platformStats?.[platform];
+          const platformViewers = stats?.viewers ?? viewers;
+          const platformLive = stats?.live ?? live;
+
+          return (
           <ViewersLayoutBody
             key={platform}
             layout={layout}
-            viewers={viewers}
-            live={live}
+            viewers={platformViewers}
+            live={platformLive}
             platform={platform}
             themeColor={themeColor}
             embedded={embedded}
@@ -382,7 +398,8 @@ export function ViewersOverlay({
             bgColor={bgColor}
             textColor={textColor}
           />
-        ))}
+          );
+        })}
       </div>
     </OverlayPositionShell>
   );

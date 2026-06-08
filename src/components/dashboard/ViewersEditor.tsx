@@ -86,7 +86,7 @@ export function ViewersEditor({
           <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
             <h2 className="font-semibold text-white">Contador de espectadores</h2>
             <p className="text-sm text-zinc-400">
-              Marque as plataformas que deseja exibir. Atualiza a cada 30 segundos (Twitch).
+              Marque as plataformas que deseja exibir. Atualiza a cada 30 segundos por plataforma.
             </p>
 
             {twitchConnected && twitchChannel ? (
@@ -96,12 +96,20 @@ export function ViewersEditor({
             ) : (
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
                 Vincule sua conta Twitch em{" "}
-                <Link href="/dashboard/settings" className="underline hover:text-amber-100">
-                  Configurações
+                <Link href="/dashboard/integrations" className="underline hover:text-amber-100">
+                  Integrações
                 </Link>{" "}
                 para contador ao vivo na Twitch.
               </div>
             )}
+
+            <div className="rounded-lg border border-green-600/30 bg-green-600/10 px-3 py-2 text-sm text-green-200">
+              Para Kick, vincule sua conta Kick em{" "}
+              <Link href="/dashboard/integrations" className="underline hover:text-green-100">
+                Integrações
+              </Link>
+              .
+            </div>
 
             <div>
               <p className="text-xs text-zinc-500">Plataformas ativas</p>
@@ -293,6 +301,11 @@ export function ViewersEditor({
             <ViewersOverlay
               viewers={1247}
               live
+              platformStats={{
+                twitch: { viewers: 1247, live: true, channel: twitchChannel },
+                kick: { viewers: 532, live: true, channel: null },
+                youtube: { viewers: 0, live: false, channel: null },
+              }}
               layout={settings.viewersLayout}
               platforms={settings.viewersPlatforms}
               position={settings.viewersPosition}

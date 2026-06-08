@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ViewerPlatformMap } from "@/lib/viewers/types";
 import type { GoalOverlayPosition, OverlayDragPoint, ViewersOverlayLayout, ViewersPlatform } from "@/types";
 import { ViewersOverlay } from "./ViewersOverlay";
 import { widgetShellClass } from "./useDonationSocket";
@@ -10,6 +11,7 @@ const DEFAULT_POLL_INTERVAL_MS = 30_000;
 interface ViewerPayload {
   viewers: number;
   live: boolean;
+  platforms?: ViewerPlatformMap;
 }
 
 interface UseViewerCountOptions {
@@ -110,6 +112,7 @@ export function ViewersWidget({
       <ViewersOverlay
         viewers={data.viewers}
         live={data.live}
+        platformStats={data.platforms}
         layout={layout}
         platforms={platforms}
         position={position}
