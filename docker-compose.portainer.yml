@@ -1,0 +1,111 @@
+# ============================================================
+#  pix.tips — Stack para Portainer
+#  Cole este conteúdo no editor de Stack do Portainer.
+#
+#  ANTES DE CRIAR O STACK:
+#  1. Em "Environment variables" do Portainer, adicione todas
+#     as variáveis listadas em .env.production.example
+#  2. A rede do Traefik deve existir. Verifique com:
+#     docker network ls | grep traefik
+#     Troque "traefik_proxy" abaixo pelo nome correto.
+# ============================================================
+
+services:
+
+  # ── Banco de dados ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tippage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: tippage
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tippage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  # ── Aplicação Next.js + Socket.IO ──────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://tippage:${POSTGRES_PASSWORD}@postgres:5432/tippage
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://pix.tips}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_APP_URL:-https://pix.tips}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_APP_URL:-https://pix.tips}
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      # Auth
+      AUTH_SECRET: ${AUTH_SECRET}
+      # E-mail
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@pix.tips}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      # Woovi
+      WOOVI_APP_ID: ${WOOVI_APP_ID}
+      WOOVI_WEBHOOK_SECRET: ${WOOVI_WEBHOOK_SECRET}
+      WOOVI_PAYOUT_FEE: ${WOOVI_PAYOUT_FEE:-2.50}
+      # Didit KYC
+      DIDIT_API_KEY: ${DIDIT_API_KEY:-}
+      DIDIT_WEBHOOK_SECRET: ${DIDIT_WEBHOOK_SECRET:-}
+      # ElevenLabs TTS
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      # Storage S3/R2
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+      AWS_S3_KYC_BUCKET: ${AWS_S3_KYC_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-auto}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_CDN_URL: ${AWS_CDN_URL:-}
+      # KYC CPF
+      KYC_CPF_PROVIDER: ${KYC_CPF_PROVIDER:-none}
+      SERPRO_CONSUMER_KEY: ${SERPRO_CONSUMER_KEY:-}
+      SERPRO_CONSUMER_SECRET: ${SERPRO_CONSUMER_SECRET:-}
+      # OAuth
+      OAUTH_REDIRECT_BASE: ${OAUTH_REDIRECT_BASE:-https://pix.tips}
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/public/uploads
+      - private_uploads:/app/private/uploads
+    networks:
+      - backend
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pixtips.rule=Host(`pix.tips`) || Host(`www.pix.tips`)"
+      - "traefik.http.routers.pixtips.entrypoints=websecure"
+      - "traefik.http.routers.pixtips.tls=true"
+      - "traefik.http.routers.pixtips.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pixtips.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.pix\\.tips/(.*)"
+      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://pix.tips/$${1}"
+      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.pixtips.middlewares=www-redirect"
+
+networks:
+  backend:
+    internal: true
+  traefik_proxy:
+    external: true   # troque pelo nome da rede do seu Traefik
+
+volumes:
+  postgres_data:
+  uploads:
+  private_uploads:
