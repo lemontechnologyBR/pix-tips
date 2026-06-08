@@ -9,6 +9,16 @@ import { getCreatorById } from "./src/lib/store";
 import { startTwitchChatBot } from "./src/lib/chat-bot/twitch-bot";
 import { getPrisma } from "./src/lib/db";
 
+process.on('uncaughtException', (err) => {
+  console.error('[server] uncaughtException:', err)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandledRejection:', reason)
+  process.exit(1)
+})
+
 const dev = process.env.NODE_ENV !== "production";
 const hostname =
   process.env.HOSTNAME ??
@@ -16,7 +26,7 @@ const hostname =
 const port = parseInt(process.env.PORT ?? "3000", 10);
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
-const REQUIRED_ENV = ["AUTH_SECRET", "DATABASE_URL", "NEXT_PUBLIC_APP_URL"];
+const REQUIRED_ENV = ["AUTH_SECRET", "DATABASE_URL", "NEXT_PUBLIC_APP_URL", "RESEND_API_KEY"];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     console.error(`[boot] Missing required env var: ${key}`);
@@ -108,4 +118,7 @@ app.prepare().then(() => {
     }
     void startTwitchChatBot();
   });
+}).catch((err) => {
+  console.error('[server] Failed to start:', err)
+  process.exit(1)
 });

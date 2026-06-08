@@ -6,6 +6,13 @@ import type { ProPlanType } from "@/lib/payments/subscription";
 import { getPrisma } from "@/lib/db";
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === 'production' && !process.env.WOOVI_APP_ID) {
+    return NextResponse.json(
+      { error: 'Sistema de pagamento não configurado. Contate o suporte.' },
+      { status: 503 }
+    )
+  }
+
   try {
     const session = await requireSession();
     if (isSessionError(session)) return session;
@@ -15,6 +22,11 @@ export async function POST(request: Request) {
     const planType: ProPlanType = annual ? "pro_annual" : "pro_monthly";
 
     const checkout = await createProSubscriptionCharge(session.creator.id, planType);
+
+    if (checkout.mock && process.env.NODE_ENV === 'production') {
+      console.error('[billing] Mock checkout detectado em produção — abortando')
+      return NextResponse.json({ error: 'Erro interno de configuração' }, { status: 500 })
+    }
 
     // Em modo mock (sem Woovi configurado), confirma imediatamente
     if (checkout.mock) {

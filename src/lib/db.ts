@@ -77,9 +77,7 @@ function getOrCreatePrismaClient(): PrismaClient {
       "[db] Prisma client desatualizado. Execute: npx prisma generate && reinicie o servidor.",
     );
   }
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prisma = client;
-  }
+  globalForPrisma.prisma = client;
   return client;
 }
 

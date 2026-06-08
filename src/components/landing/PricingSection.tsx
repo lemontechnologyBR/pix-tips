@@ -10,7 +10,7 @@ export function PricingSection() {
   const [donationCount, setDonationCount] = useState(50);
 
   const gross = donationCount * AVG_DONATION;
-  const fee = gross * 0.05;
+  const fee = gross * 0.02;
   const net = gross - fee;
 
   return (

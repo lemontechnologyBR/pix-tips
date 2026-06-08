@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     description:
       "Plataforma brasileira para criadores receberem doações via Pix com alertas na live.",
     type: "website",
+    url: "https://pix.tips",
     locale: "pt_BR",
     siteName: "pix.tips",
   },
