@@ -1,10 +1,12 @@
 import { sendEmail } from "./email-client";
 import { donationReceivedEmail } from "./templates/donation-received";
+import { marketingUpdateEmail } from "./templates/marketing-update";
 import { passwordResetEmail } from "./templates/password-reset";
-import { subscriptionConfirmedEmail } from "./templates/subscription-confirmed";
 import { welcomeEmail } from "./templates/welcome";
 
 export { sendEmail } from "./email-client";
+export { syncMarketingContact } from "./resend-audience";
+export { runWeeklySummaryJob } from "./weekly-summary-job";
 
 export async function sendWelcomeEmail(
   to: string,
@@ -35,10 +37,10 @@ export async function sendDonationReceivedEmail(
   await sendEmail({ to, subject, html });
 }
 
-export async function sendSubscriptionConfirmedEmail(
+export async function sendMarketingUpdateEmail(
   to: string,
-  data: { name: string; amount?: number },
+  data: { name: string; headline: string; bodyHtml: string },
 ): Promise<void> {
-  const { subject, html } = subscriptionConfirmedEmail(data);
+  const { subject, html } = marketingUpdateEmail(data);
   await sendEmail({ to, subject, html });
 }

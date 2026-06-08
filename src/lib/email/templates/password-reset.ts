@@ -1,4 +1,4 @@
-import { emailLayout } from "./layout";
+import { emailButton, emailLayout } from "./layout";
 
 export interface PasswordResetEmailData {
   name: string;
@@ -13,7 +13,7 @@ export function passwordResetEmail(
     <p style="margin:0 0 20px;color:#a1a1aa;line-height:1.6;">
       Olá ${data.name}, recebemos uma solicitação para redefinir sua senha. O link expira em 1 hora.
     </p>
-    <a href="${data.resetUrl}" style="display:inline-block;padding:12px 24px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;">Redefinir senha</a>
+    ${emailButton(data.resetUrl, "Redefinir senha")}
     <p style="margin:24px 0 0;font-size:13px;color:#71717a;">
       Se você não solicitou, ignore este e-mail.
     </p>

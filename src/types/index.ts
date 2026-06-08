@@ -480,6 +480,7 @@ export interface UserProfile {
   notifyEmailDonation: boolean;
   notifyEmailWeekly: boolean;
   notifyPanelDonation: boolean;
+  marketingOptIn: boolean;
   payoutConfigured: boolean;
   pixKeyMasked: string | null;
   pixKeyType: PixKeyType | null;

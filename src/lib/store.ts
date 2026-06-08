@@ -127,7 +127,12 @@ export async function getUserProfile(creatorId: string): Promise<UserProfile> {
     financeRepo.getFinanceOverview(creatorId),
     db.user.findFirst({
       where: { creator: { id: creatorId } },
-      select: { id: true, passwordHash: true, totpEnabled: true },
+      select: {
+        id: true,
+        passwordHash: true,
+        totpEnabled: true,
+        marketingOptIn: true,
+      },
     }),
   ]);
 
@@ -152,6 +157,7 @@ export async function getUserProfile(creatorId: string): Promise<UserProfile> {
     notifyEmailDonation: c.notifyEmailDonation,
     notifyEmailWeekly: c.notifyEmailWeekly,
     notifyPanelDonation: c.notifyPanelDonation,
+    marketingOptIn: Boolean(userRow?.marketingOptIn),
     payoutConfigured: payout.configured,
     pixKeyMasked: payout.pixKeyMasked,
     pixKeyType: payout.pixKeyType,
@@ -288,6 +294,11 @@ export async function deleteUserAccount(
     }
   } catch (err) {
     console.warn("[deleteUserAccount] Falha ao limpar tip-page-background:", err);
+  }
+
+  if (user.marketingOptIn) {
+    const { syncMarketingContact } = await import("@/lib/email/resend-audience");
+    await syncMarketingContact(user.email, user.name, false).catch(console.error);
   }
 
   await db.user.delete({ where: { id: userId } });

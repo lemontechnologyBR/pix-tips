@@ -14,6 +14,7 @@ export function RegisterForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [terms, setTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
@@ -72,7 +73,7 @@ export function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password, terms }),
+        body: JSON.stringify({ email, username, password, terms, marketingOptIn }),
       });
 
       const data = (await res.json()) as { error?: string; redirect?: string };
@@ -173,6 +174,23 @@ export function RegisterForm() {
           <Link href="/privacidade" className="text-cyan-400 hover:underline">
             política de privacidade
           </Link>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={marketingOptIn}
+          onChange={(e) => setMarketingOptIn(e.target.checked)}
+          className="mt-1 rounded border-zinc-600 accent-cyan-500"
+        />
+        <span className="text-zinc-400">
+          Quero receber novidades e dicas da pix.tips por e-mail (opcional). Você pode cancelar
+          a qualquer momento nas{" "}
+          <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">
+            configurações
+          </Link>
+          .
         </span>
       </label>
 

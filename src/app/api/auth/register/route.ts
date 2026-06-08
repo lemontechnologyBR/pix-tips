@@ -19,7 +19,9 @@ import {
   slugifyUsername,
 } from "@/lib/auth/validators";
 import { generateAffiliateCode } from "@/lib/affiliate";
+import { SITE_URL } from "@/lib/brand";
 import { sendEmail } from "@/lib/email/email-client";
+import { syncMarketingContact } from "@/lib/email/resend-audience";
 import { verifyEmailTemplate } from "@/lib/email/templates/verify-email";
 import { getPrisma } from "@/lib/db";
 
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
       password?: string;
       username?: string;
       terms?: boolean;
+      marketingOptIn?: boolean;
     };
 
     const email = body.email?.trim().toLowerCase() ?? "";
@@ -86,11 +89,15 @@ export async function POST(request: Request) {
       .update(rawVerificationToken)
       .digest("hex");
 
+    const marketingOptIn = Boolean(body.marketingOptIn);
+
     const user = await db.user.create({
       data: {
         email,
         passwordHash,
         name: username.trim(),
+        marketingOptIn,
+        marketingOptInAt: marketingOptIn ? new Date() : null,
         emailVerificationToken: hashedVerificationToken,
         emailVerificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
         creator: {
@@ -113,10 +120,15 @@ export async function POST(request: Request) {
     await sendWelcomeEmail(user.email, creator.displayName, creator.username);
 
     if (user.emailVerificationToken) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const verifyUrl = `${baseUrl}/verify-email?token=${rawVerificationToken}`;
+      const verifyUrl = `${SITE_URL}/verify-email?token=${rawVerificationToken}`;
       const { subject, html } = verifyEmailTemplate({ name: user.name, verifyUrl });
       await sendEmail({ to: user.email, subject, html });
+    }
+
+    if (marketingOptIn) {
+      await syncMarketingContact(user.email, creator.displayName, true).catch(
+        console.error,
+      );
     }
 
     const token = await createSession({

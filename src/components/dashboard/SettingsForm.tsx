@@ -78,6 +78,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
     notifyEmailDonation: initialProfile.notifyEmailDonation,
     notifyEmailWeekly: initialProfile.notifyEmailWeekly,
     notifyPanelDonation: initialProfile.notifyPanelDonation,
+    marketingOptIn: initialProfile.marketingOptIn,
   });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -91,7 +92,8 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
   const isDirty =
     profile.notifyEmailDonation !== savedSnapshot.notifyEmailDonation ||
     profile.notifyEmailWeekly !== savedSnapshot.notifyEmailWeekly ||
-    profile.notifyPanelDonation !== savedSnapshot.notifyPanelDonation;
+    profile.notifyPanelDonation !== savedSnapshot.notifyPanelDonation ||
+    profile.marketingOptIn !== savedSnapshot.marketingOptIn;
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -120,6 +122,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
           notifyEmailDonation: profile.notifyEmailDonation,
           notifyEmailWeekly: profile.notifyEmailWeekly,
           notifyPanelDonation: profile.notifyPanelDonation,
+          marketingOptIn: profile.marketingOptIn,
         }),
       });
       const data = await res.json();
@@ -131,6 +134,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
         notifyEmailDonation: profile.notifyEmailDonation,
         notifyEmailWeekly: profile.notifyEmailWeekly,
         notifyPanelDonation: profile.notifyPanelDonation,
+        marketingOptIn: profile.marketingOptIn,
       });
       showToast("Preferências salvas!");
     } catch {
@@ -250,6 +254,48 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
         >
           {saving ? "Salvando..." : "Salvar preferências"}
         </button>
+      </SettingsCard>
+
+      <SettingsCard
+        title="Comunicações de marketing"
+        description="Conforme a LGPD (Art. 7º, I), só enviamos novidades se você consentir."
+      >
+        <label
+          className={`flex cursor-pointer items-start gap-4 rounded-xl border px-4 py-4 transition ${
+            profile.marketingOptIn
+              ? "border-cyan-500/40 bg-cyan-500/5"
+              : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-700"
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={profile.marketingOptIn}
+            onChange={(e) =>
+              setProfile((p) => ({ ...p, marketingOptIn: e.target.checked }))
+            }
+            className="mt-1 h-4 w-4 rounded border-zinc-600 accent-cyan-500"
+          />
+          <span>
+            <span className="block text-sm font-medium text-zinc-200">
+              Receber novidades da plataforma
+            </span>
+            <span className="mt-1 block text-xs leading-relaxed text-zinc-500">
+              Dicas para criadores, atualizações de recursos e comunicados importantes. Não
+              inclui notificações de doação (configure acima).
+            </span>
+          </span>
+        </label>
+        <p className="mt-4 text-xs text-zinc-500">
+          Você pode revogar este consentimento a qualquer momento. Saiba mais na{" "}
+          <Link href="/privacidade" className="text-cyan-400 hover:underline">
+            política de privacidade
+          </Link>{" "}
+          ou em{" "}
+          <Link href="/privacidade/solicitacao" className="text-cyan-400 hover:underline">
+            exercício de direitos LGPD
+          </Link>
+          . Salve as alterações com o botão na seção Notificações acima.
+        </p>
       </SettingsCard>
 
       <SettingsCard

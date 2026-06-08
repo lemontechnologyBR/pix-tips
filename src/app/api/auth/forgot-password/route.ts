@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "@/lib/auth/emails";
 import { isValidEmail } from "@/lib/auth/validators";
+import { SITE_URL } from "@/lib/brand";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPrisma } from "@/lib/db";
 
@@ -39,8 +40,7 @@ export async function POST(request: Request) {
         data: { resetToken: hashedToken, resetTokenExpiry },
       });
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const resetLink = `${baseUrl}/reset-password?token=${rawToken}`;
+      const resetLink = `${SITE_URL}/reset-password?token=${rawToken}`;
 
       await sendPasswordResetEmail(user.email, user.name, resetLink);
     }

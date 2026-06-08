@@ -35,6 +35,8 @@ export async function GET() {
         id: true,
         email: true,
         createdAt: true,
+        marketingOptIn: true,
+        marketingOptInAt: true,
       },
     }),
     db.transaction.findMany({
@@ -73,6 +75,8 @@ export async function GET() {
       avatarUrl: creator.avatar || null,
       pixKey: creator.pixKey ? `****${creator.pixKey.slice(-4)}` : null,
       bio: creator.bio || null,
+      marketingOptIn: userRow?.marketingOptIn ?? false,
+      marketingOptInAt: userRow?.marketingOptInAt,
     },
     transacoesRecebidas: transactions.map((t) => ({
       id: t.id,
