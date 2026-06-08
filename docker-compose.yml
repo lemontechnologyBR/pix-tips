@@ -18,9 +18,7 @@ services:
       - backend
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/lemontechnologybr/pix-tips:latest
     restart: unless-stopped
     environment:
       NODE_ENV: production
