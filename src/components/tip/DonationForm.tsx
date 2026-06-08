@@ -15,6 +15,7 @@ import { SuccessAnimation } from "./form/SuccessAnimation";
 import { ErrorState } from "./form/ErrorState";
 import { TTS_VOICES, type TtsVoiceConfig } from "@/lib/tts-config";
 import { speakText } from "@/lib/tts";
+import { resolveTipPageFormTheme } from "@/lib/tip-page-theme";
 
 // ─── ícone SVG único por voz ────────────────────────────────────────────────
 function VoiceIcon({ voiceId, color }: { voiceId: string; color: string }) {
@@ -285,6 +286,7 @@ function VoiceSelector({ voices, selected, onSelect }: VoiceSelectorProps) {
 
 interface DonationFormProps {
   creator: Creator;
+  layoutId?: string;
 }
 
 interface PaymentData {
@@ -296,7 +298,9 @@ interface PaymentData {
   paymentProvider?: "woovi";
 }
 
-export function DonationForm({ creator }: DonationFormProps) {
+export function DonationForm({ creator, layoutId }: DonationFormProps) {
+  const resolvedLayoutId = layoutId ?? creator.tipPageSettings.layoutId ?? "default";
+  const formTheme = resolveTipPageFormTheme(resolvedLayoutId);
   const presets = creator.tipPageSettings.presetAmounts;
   const tipTtsEnabled = creator.tipPageSettings.tipTtsEnabled ?? false;
   const tipTtsVoices = creator.tipPageSettings.tipTtsVoices ?? [];
@@ -504,6 +508,7 @@ export function DonationForm({ creator }: DonationFormProps) {
         amount={amount}
         customAmount={customAmount}
         themeColor={creator.themeColor}
+        formTheme={formTheme}
         onSelectPreset={selectPreset}
         onCustomChange={setCustomAmount}
       />
@@ -514,10 +519,11 @@ export function DonationForm({ creator }: DonationFormProps) {
         donorName={donorName}
         onDonorNameChange={setDonorName}
         showDonorName={!anonymous}
+        formTheme={formTheme}
       />
 
       {creator.tipPageSettings.allowAnonymous && (
-        <AnonymousToggle checked={anonymous} onChange={setAnonymous} />
+        <AnonymousToggle checked={anonymous} onChange={setAnonymous} formTheme={formTheme} />
       )}
 
       {tipTtsEnabled && availableVoices.length > 0 && (
@@ -531,11 +537,11 @@ export function DonationForm({ creator }: DonationFormProps) {
         />
       )}
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className={formTheme.error}>{error}</p>}
 
-      <SubmitButton themeColor={creator.themeColor} amountLabel={amountLabel} />
+      <SubmitButton themeColor={creator.themeColor} amountLabel={amountLabel} formTheme={formTheme} />
 
-      <p className="text-center text-xs text-zinc-500">
+      <p className={formTheme.muted}>
         Ao enviar, você concorda que seu nome escolhido e mensagem serão exibidos
         publicamente durante o alerta do criador. Os dados são tratados conforme
         nossa{" "}

@@ -353,10 +353,10 @@ export function QrCodeAppearanceControls({
               onChange={(e) => onChange({ showAvatarInQr: e.target.checked })}
               className="h-4 w-4 rounded accent-cyan-500"
             />
-            Logo no centro do QR
+            Avatar no centro do QR
           </label>
           <p className="text-[11px] text-zinc-500">
-            Plano gratuito: marca pix.tips. Plano Pro: seu avatar.
+            Exibe seu avatar no centro. Sem avatar cadastrado, usa a marca pix.tips.
           </p>
         </div>
       )}

@@ -4,6 +4,7 @@ import { DonationForm } from "./DonationForm";
 import { GoalProgressBar } from "./GoalProgressBar";
 import { SupporterWall } from "./SupporterWall";
 import { TipPageFooter } from "./TipPageFooter";
+import { ThemeVariantLayout } from "./theme-variant-layouts";
 import { formatCurrency } from "@/lib/format";
 import {
   hasCustomBackground,
@@ -57,28 +58,34 @@ function Avatar({
 // ─────────────────────────────────────────────────────────────
 function DefaultLayout({ creator, recentDonations }: TipPageRendererProps) {
   const s = creator.tipPageSettings;
-  const bg = resolveTipPageBackground(s, creator.themeColor, s.darkMode !== false);
+  const tc = creator.themeColor;
+  const bg = resolveTipPageBackground(s, tc, s.darkMode !== false);
   const font = resolveTipPageFontFamily(s.fontFamily);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10" style={{ ...bg, fontFamily: font }}>
-      <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-8">
-        <header className="flex flex-col items-center gap-4 text-center">
-          <Avatar src={creator.avatar} alt={creator.displayName} themeColor={creator.themeColor} />
-          <div>
-            <h1 className="text-2xl font-bold text-white">{creator.displayName}</h1>
-            <p className="mt-1 max-w-md text-sm text-zinc-400">{creator.bio}</p>
+      <div className="mx-auto w-full max-w-lg">
+        <header className="relative flex items-center gap-5 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 backdrop-blur">
+          <div className="absolute left-0 top-0 h-full w-1.5" style={{ backgroundColor: tc }} />
+          <Avatar src={creator.avatar} alt={creator.displayName} size="md" themeColor={tc} className="ml-2 shrink-0" />
+          <div className="min-w-0 text-left">
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500">Criador</p>
+            <h1 className="truncate text-xl font-bold text-white">{creator.displayName}</h1>
+            <p className="mt-1 line-clamp-2 text-sm text-zinc-400">{creator.bio}</p>
           </div>
         </header>
 
-        <GoalProgressBar raised={creator.raised} goal={creator.goal} themeColor={creator.themeColor} goalTitle={s.goalTitle} />
+        <div className="mt-6 flex flex-col gap-6">
+          <GoalProgressBar raised={creator.raised} goal={creator.goal} themeColor={tc} goalTitle={s.goalTitle} />
 
-        <div className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 backdrop-blur">
-          <DonationForm creator={creator} />
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 backdrop-blur" style={{ borderTopColor: tc + "60", borderTopWidth: 2 }}>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Enviar doação</p>
+            <DonationForm creator={creator} layoutId="default" />
+          </div>
+
+          {s.showSupporterWall && <SupporterWall donations={recentDonations} />}
+          <TipPageFooter layoutId="default" />
         </div>
-
-        {s.showSupporterWall && <SupporterWall donations={recentDonations} />}
-        <TipPageFooter />
       </div>
     </main>
   );
@@ -104,17 +111,25 @@ function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
       };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10" style={bgStyle}>
-      <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        {/* Header glass card */}
-        <div className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-xl">
-          <Avatar src={creator.avatar} alt={creator.displayName} size="lg" themeColor={tc} className="mx-auto" />
-          <h1 className="mt-4 text-2xl font-bold text-white drop-shadow">{creator.displayName}</h1>
-          <p className="mt-1 text-sm text-white/60">{creator.bio}</p>
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10" style={bgStyle}>
+      <div className="pointer-events-none absolute -right-20 top-20 h-64 w-64 rounded-full opacity-30 blur-3xl" style={{ background: tc }} />
+      <div className="pointer-events-none absolute -left-16 bottom-32 h-48 w-48 rounded-full opacity-20 blur-3xl" style={{ background: "#818cf8" }} />
+
+      <div className="relative mx-auto flex w-full max-w-lg flex-col gap-5">
+        {/* Header glass card — offset prism */}
+        <div className="relative w-full">
+          <div className="absolute -right-2 -top-2 h-full w-full rounded-3xl border border-white/5 bg-white/[0.02]" />
+          <div className="relative rounded-3xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-xl" style={{ boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), 0 0 40px ${tc}15` }}>
+            <div className="mx-auto inline-block rounded-full p-1" style={{ background: `linear-gradient(135deg, ${tc}40, #818cf840)` }}>
+              <Avatar src={creator.avatar} alt={creator.displayName} size="lg" themeColor={tc} className="mx-auto" />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold text-white drop-shadow">{creator.displayName}</h1>
+            <p className="mt-1 text-sm text-white/60">{creator.bio}</p>
+          </div>
         </div>
 
         {creator.goal > 0 && (
-          <div className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-xl">
+          <div className="ml-4 w-[calc(100%-1rem)] rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-xl">
             <div className="mb-2 flex justify-between text-sm">
               <span className="text-white/60">{s.goalTitle}</span>
               <span className="font-semibold text-white">{formatCurrency(creator.raised)} / {formatCurrency(creator.goal)}</span>
@@ -125,12 +140,12 @@ function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
           </div>
         )}
 
-        <div className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
-          <DonationForm creator={creator} />
+        <div className="-ml-2 w-[calc(100%+0.5rem)] rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
+          <DonationForm creator={creator} layoutId="glass" />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
-          <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+          <div className="ml-6 w-[calc(100%-1.5rem)] rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/40">Apoiadores recentes</h2>
             <ul className="space-y-2">
               {recentDonations.map((d) => (
@@ -142,7 +157,7 @@ function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
             </ul>
           </div>
         )}
-        <TipPageFooter />
+        <TipPageFooter layoutId="glass" />
       </div>
     </main>
   );
@@ -160,19 +175,25 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
     : null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10" style={{ ...(customBg ?? { backgroundColor: "#050505" }), fontFamily: font }}>
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10" style={{ ...(customBg ?? { backgroundColor: "#050505", backgroundImage: `linear-gradient(${tc}08 1px, transparent 1px), linear-gradient(90deg, ${tc}08 1px, transparent 1px)`, backgroundSize: "40px 40px" }), fontFamily: font }}>
       <style>{`
         .neon-glow { box-shadow: 0 0 12px ${tc}80, 0 0 40px ${tc}30; }
         .neon-text { text-shadow: 0 0 10px ${tc}cc, 0 0 30px ${tc}80; }
         .neon-border { border-color: ${tc}60; box-shadow: 0 0 8px ${tc}40, inset 0 0 8px ${tc}10; }
         .neon-progress { background: linear-gradient(90deg, ${tc}, #a855f7); box-shadow: 0 0 8px ${tc}80; }
+        .neon-scanline { background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px); }
       `}</style>
+      <div className="neon-scanline pointer-events-none absolute inset-0 opacity-40" />
 
-      <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        {/* Decorative top line */}
-        <div className="h-px w-32 neon-glow" style={{ background: `linear-gradient(90deg, transparent, ${tc}, transparent)` }} />
+      <div className="relative mx-auto flex w-full max-w-lg flex-col items-center gap-6">
+        <div className="flex w-full items-center justify-between font-mono text-[10px] uppercase tracking-widest" style={{ color: tc + "80" }}>
+          <span>◈ sys.donate</span>
+          <span>◈ neon.v2</span>
+        </div>
 
-        <header className="flex flex-col items-center gap-3 text-center">
+        <header className="relative flex w-full flex-col items-center gap-3 text-center">
+          <span className="absolute -left-1 top-1/2 -translate-y-1/2 font-mono text-2xl opacity-30" style={{ color: tc }}>[</span>
+          <span className="absolute -right-1 top-1/2 -translate-y-1/2 font-mono text-2xl opacity-30" style={{ color: tc }}>]</span>
           <div className="neon-glow rounded-full" style={{ padding: 3 }}>
             <Avatar src={creator.avatar} alt={creator.displayName} size="lg" themeColor={tc} />
           </div>
@@ -193,7 +214,7 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
         )}
 
         <div className="neon-border w-full rounded-2xl border bg-zinc-950 p-6">
-          <DonationForm creator={creator} />
+          <DonationForm creator={creator} layoutId="neon" />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -212,8 +233,7 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
           </div>
         )}
 
-        <div className="h-px w-32 neon-glow" style={{ background: `linear-gradient(90deg, transparent, ${tc}, transparent)` }} />
-        <TipPageFooter />
+        <TipPageFooter layoutId="neon" />
       </div>
     </main>
   );
@@ -237,17 +257,18 @@ function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
     : null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-16" style={{ ...(customBg ?? { backgroundColor: bgColor }), fontFamily: font }}>
-      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-10">
-        <header className="flex flex-col items-center gap-5 text-center">
-          <div className="overflow-hidden rounded-full h-20 w-20" style={{ outline: `2px solid ${tc}`, outlineOffset: 4 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
+    <main className="flex min-h-screen flex-col justify-center px-6 py-16 sm:px-12" style={{ ...(customBg ?? { backgroundColor: bgColor }), fontFamily: font }}>
+      <div className="mx-auto flex w-full max-w-md flex-col gap-10">
+        <header className="text-left">
+          <div className="mb-6 flex items-center gap-4">
+            <div className="overflow-hidden rounded-full h-16 w-16 shrink-0" style={{ outline: `2px solid ${tc}`, outlineOffset: 3 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
+            </div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.35em]" style={{ color: textSecondary }}>Apoie</p>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight" style={{ color: textPrimary }}>{creator.displayName}</h1>
-            <p className="mt-2 text-sm leading-relaxed" style={{ color: textSecondary }}>{creator.bio}</p>
-          </div>
+          <h1 className="text-4xl font-light tracking-tight sm:text-5xl" style={{ color: textPrimary }}>{creator.displayName}</h1>
+          <p className="mt-4 max-w-sm text-base leading-relaxed" style={{ color: textSecondary }}>{creator.bio}</p>
         </header>
 
         <div className="h-px w-full" style={{ backgroundColor: dividerColor }} />
@@ -268,7 +289,7 @@ function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
         )}
 
         <div className="w-full">
-          <DonationForm creator={creator} />
+          <DonationForm creator={creator} layoutId="minimal" />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -290,7 +311,7 @@ function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
             </div>
           </>
         )}
-        <TipPageFooter />
+        <TipPageFooter layoutId="minimal" darkMode={isDark} />
       </div>
     </main>
   );
@@ -357,7 +378,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
 
         <div className="retro-box w-full p-5" style={{ backgroundColor: "#1a1a1a" }}>
           <div className="mb-3 text-xs font-bold uppercase" style={{ color: tc }}>{'> INSERT COIN'}</div>
-          <DonationForm creator={creator} />
+          <DonationForm creator={creator} layoutId="retro" />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -374,7 +395,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
           </div>
         )}
 
-        <TipPageFooter className="text-center" />
+        <TipPageFooter layoutId="retro" className="text-center" />
       </div>
     </main>
   );
@@ -393,7 +414,11 @@ function SplitLayout({ creator, recentDonations }: TipPageRendererProps) {
 
   return (
     <main className="min-h-screen" style={{ ...(customBg ?? { backgroundColor: "#0f172a" }), fontFamily: font }}>
-      <div className="mx-auto max-w-5xl min-h-screen grid grid-cols-1 lg:grid-cols-[380px_1fr]">
+      <div className="flex items-center justify-between border-b border-white/5 px-6 py-2" style={{ background: `linear-gradient(90deg, ${tc}15, transparent)` }}>
+        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Perfil</span>
+        <span className="rounded-full px-3 py-0.5 text-[10px] font-bold uppercase" style={{ backgroundColor: tc + "25", color: tc }}>Doar agora →</span>
+      </div>
+      <div className="mx-auto max-w-5xl min-h-[calc(100vh-40px)] grid grid-cols-1 lg:grid-cols-[380px_1fr]">
         {/* Left sidebar */}
         <aside className="flex flex-col items-center gap-6 border-r border-white/5 px-8 py-12 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto" style={{ background: `linear-gradient(180deg, ${tc}10, transparent 60%)` }}>
           <Avatar src={creator.avatar} alt={creator.displayName} size="xl" themeColor={tc} />
@@ -435,19 +460,20 @@ function SplitLayout({ creator, recentDonations }: TipPageRendererProps) {
           )}
 
           <div className="mt-auto">
-            <TipPageFooter />
+            <TipPageFooter layoutId="split" />
           </div>
         </aside>
 
         {/* Right form area */}
-        <div className="flex flex-col items-center justify-center px-8 py-12">
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-white">Fazer uma doação</h2>
+        <div className="relative flex flex-col items-center justify-center px-8 py-12">
+          <div className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: `repeating-linear-gradient(90deg, ${tc}10 0 1px, transparent 1px 60px)` }} />
+          <div className="relative w-full max-w-md">
+            <div className="mb-8 border-l-4 pl-5" style={{ borderColor: tc }}>
+              <h2 className="text-2xl font-bold text-white">Fazer uma doação</h2>
               <p className="mt-1 text-sm text-zinc-400">Apoie o trabalho de {creator.displayName}</p>
             </div>
-            <div className="rounded-3xl border border-white/8 bg-white/4 p-6 backdrop-blur">
-              <DonationForm creator={creator} />
+            <div className="rounded-3xl border border-white/8 bg-white/4 p-6 shadow-2xl backdrop-blur">
+              <DonationForm creator={creator} layoutId="split" />
             </div>
           </div>
         </div>
@@ -465,27 +491,39 @@ function BannerLayout({ creator, recentDonations }: TipPageRendererProps) {
   const s = creator.tipPageSettings;
   const bg = resolveTipPageBackground(s, tc, s.darkMode !== false);
 
+  const percent = creator.goal > 0 ? Math.min((creator.raised / creator.goal) * 100, 100) : 0;
+
   return (
     <main className="min-h-screen" style={{ ...bg, fontFamily: font }}>
-      {/* Hero banner */}
-      <div className="relative h-48 w-full overflow-hidden" style={{ background: `linear-gradient(135deg, ${tc}dd, ${tc}44 50%, transparent)` }}>
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `radial-gradient(circle at 30% 50%, white 1px, transparent 1px), radial-gradient(circle at 70% 50%, white 1px, transparent 1px)`, backgroundSize: "30px 30px" }} />
+      <div className="relative h-56 w-full overflow-hidden sm:h-64" style={{ background: `linear-gradient(135deg, ${tc}ee 0%, ${tc}66 45%, #09090b 100%)` }}>
+        <div className="absolute inset-0 opacity-25" style={{ backgroundImage: `radial-gradient(circle at 30% 50%, white 1px, transparent 1px)`, backgroundSize: "24px 24px" }} />
+        <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-3">
+          {creator.goal > 0 && (
+            <div className="rounded-full border border-white/20 bg-black/30 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur">
+              Meta {Math.round(percent)}%
+            </div>
+          )}
+          <div className="rounded-full border border-white/20 bg-black/30 px-4 py-1.5 text-xs text-white/80 backdrop-blur">
+            {recentDonations.length} apoios recentes
+          </div>
+        </div>
       </div>
 
-      {/* Avatar overlapping banner */}
       <div className="mx-auto max-w-lg px-4">
-        <div className="relative -mt-14 flex items-end gap-5 pb-4">
-          <div className="shrink-0 rounded-full border-4 border-zinc-900 overflow-hidden h-28 w-28">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
-          </div>
-          <div className="pb-2">
-            <h1 className="text-2xl font-bold text-white">{creator.displayName}</h1>
-            <p className="text-sm text-zinc-400">{creator.bio}</p>
+        <div className="relative -mt-16 rounded-2xl border border-zinc-800 bg-zinc-950/90 p-5 shadow-2xl backdrop-blur">
+          <div className="flex items-start gap-4">
+            <div className="shrink-0 overflow-hidden rounded-2xl border-4 border-zinc-900 h-24 w-24 sm:h-28 sm:w-28">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 pt-2">
+              <h1 className="text-xl font-bold text-white sm:text-2xl">{creator.displayName}</h1>
+              <p className="mt-1 text-sm text-zinc-400">{creator.bio}</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 pb-10">
+        <div className="mt-6 flex flex-col gap-5 pb-10">
           {creator.goal > 0 && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
               <GoalProgressBar raised={creator.raised} goal={creator.goal} themeColor={tc} goalTitle={s.goalTitle} />
@@ -493,11 +531,11 @@ function BannerLayout({ creator, recentDonations }: TipPageRendererProps) {
           )}
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 backdrop-blur">
-            <DonationForm creator={creator} />
+            <DonationForm creator={creator} layoutId="banner" />
           </div>
 
           {s.showSupporterWall && <SupporterWall donations={recentDonations} />}
-          <TipPageFooter />
+          <TipPageFooter layoutId="banner" />
         </div>
       </div>
     </main>
@@ -516,56 +554,48 @@ function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
     ? resolveTipPageBackground(s, gold, s.darkMode !== false)
     : null;
 
+  const percent = creator.goal > 0 ? Math.min((creator.raised / creator.goal) * 100, 100) : 0;
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12" style={{ ...(customBg ?? { backgroundColor: "#0a0500", backgroundImage: `radial-gradient(ellipse at top, #2a1200, #0a0500 60%)` }), fontFamily: font }}>
       <style>{`
-        .vip-card { background: linear-gradient(135deg, #1c1004, #120a00); border: 1px solid ${gold}40; box-shadow: 0 0 30px ${gold}10, inset 0 1px 0 ${gold}20; }
+        .vip-ticket { background: linear-gradient(135deg, #1c1004, #120a00); border: 1px solid ${gold}40; box-shadow: 0 0 30px ${gold}10, inset 0 1px 0 ${gold}20; }
         .vip-divider { background: linear-gradient(90deg, transparent, ${gold}60, transparent); height: 1px; }
         .vip-text-gold { color: ${goldLight}; }
         .vip-progress { background: linear-gradient(90deg, ${gold}, ${goldLight}); box-shadow: 0 0 8px ${gold}80; }
+        .vip-notch { background: radial-gradient(circle at 0 50%, transparent 8px, ${gold}40 8px); }
       `}</style>
 
-      <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        {/* Crown icon */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="text-3xl">👑</div>
-          <div className="vip-divider w-40" />
-        </div>
-
-        {/* Header VIP card */}
-        <div className="vip-card w-full rounded-3xl p-6 text-center">
-          <div className="mx-auto h-24 w-24 overflow-hidden rounded-full" style={{ border: `2px solid ${gold}`, boxShadow: `0 0 20px ${gold}40` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold vip-text-gold">{creator.displayName}</h1>
-          <div className="vip-divider mx-auto mt-3 mb-3 w-24" />
-          <p className="text-sm text-amber-900/80 text-amber-200/50">{creator.bio}</p>
-        </div>
-
-        {creator.goal > 0 && (
-          <div className="vip-card w-full rounded-2xl px-5 py-4">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="text-amber-700/70">{s.goalTitle}</span>
-              <span className="vip-text-gold font-semibold">{formatCurrency(creator.raised)} / {formatCurrency(creator.goal)}</span>
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="vip-ticket relative overflow-hidden rounded-2xl">
+          <div className="absolute left-1/2 top-0 bottom-0 w-px border-l border-dashed opacity-30" style={{ borderColor: gold }} />
+          <div className="grid md:grid-cols-2">
+            <div className="p-6 text-center md:text-left">
+              <p className="text-xs font-bold uppercase tracking-[0.4em] vip-text-gold">VIP PASS</p>
+              <div className="mx-auto mt-4 h-20 w-20 overflow-hidden rounded-full md:mx-0" style={{ border: `2px solid ${gold}`, boxShadow: `0 0 20px ${gold}40` }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
+              </div>
+              <h1 className="mt-4 text-2xl font-bold vip-text-gold">{creator.displayName}</h1>
+              <p className="mt-2 text-sm text-amber-200/50">{creator.bio}</p>
+              {creator.goal > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs text-amber-700/70">{s.goalTitle}</p>
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-amber-950/60">
+                    <div className="vip-progress h-full rounded-full" style={{ width: `${percent}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-amber-950/60">
-              <div className="vip-progress h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((creator.raised / creator.goal) * 100, 100)}%` }} />
+            <div className="border-t border-dashed p-6 md:border-t-0 md:border-l" style={{ borderColor: gold + "30" }}>
+              <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest vip-text-gold">Apoie</p>
+              <DonationForm creator={creator} layoutId="vip" />
             </div>
           </div>
-        )}
-
-        <div className="vip-card w-full rounded-3xl p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="vip-divider flex-1" />
-            <span className="text-xs font-semibold uppercase tracking-widest vip-text-gold">Apoie</span>
-            <div className="vip-divider flex-1" />
-          </div>
-          <DonationForm creator={creator} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
-          <div className="vip-card w-full rounded-2xl p-5">
+          <div className="vip-ticket mt-6 rounded-2xl p-5">
             <h2 className="mb-4 text-center text-xs font-semibold uppercase tracking-widest vip-text-gold">— Membros VIP —</h2>
             <ul className="space-y-2">
               {recentDonations.map((d) => (
@@ -577,9 +607,7 @@ function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
             </ul>
           </div>
         )}
-
-        <div className="vip-divider w-32" />
-        <TipPageFooter />
+        <TipPageFooter layoutId="vip" className="mt-8" />
       </div>
     </main>
   );
@@ -615,8 +643,10 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
         <div className="aurora3 absolute left-1/4 bottom-0 h-[40vh] w-[40vw] rounded-full" style={{ background: "radial-gradient(circle, #34d39970, transparent 70%)", filter: "blur(50px)" }} />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        <header className="aurora-card flex flex-col items-center gap-4 rounded-3xl p-6 text-center">
+      <div className="relative mx-auto flex w-full max-w-lg flex-col gap-0">
+        <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+
+        <header className="aurora-card relative z-10 mx-4 flex flex-col items-center gap-4 rounded-3xl p-6 text-center">
           <Avatar src={creator.avatar} alt={creator.displayName} size="lg" themeColor={tc} />
           <div>
             <h1 className="text-2xl font-bold text-white">{creator.displayName}</h1>
@@ -625,7 +655,7 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
         </header>
 
         {creator.goal > 0 && (
-          <div className="aurora-card w-full rounded-2xl px-5 py-4">
+          <div className="aurora-card relative z-10 mx-8 mt-6 w-[calc(100%-4rem)] rounded-2xl px-5 py-4">
             <div className="mb-2 flex justify-between text-sm">
               <span className="text-white/50">{s.goalTitle}</span>
               <span className="font-medium text-white">{formatCurrency(creator.raised)} / {formatCurrency(creator.goal)}</span>
@@ -636,12 +666,12 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
           </div>
         )}
 
-        <div className="aurora-card w-full rounded-3xl p-6 shadow-2xl">
-          <DonationForm creator={creator} />
+        <div className="aurora-card relative z-10 -mx-2 mt-6 w-[calc(100%+1rem)] rounded-3xl p-6 shadow-2xl">
+          <DonationForm creator={creator} layoutId="aurora" />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
-          <div className="aurora-card w-full rounded-2xl p-5">
+          <div className="aurora-card relative z-10 mx-6 mt-6 rounded-2xl p-5">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/30">Apoiadores recentes</h2>
             <ul className="space-y-2">
               {recentDonations.map((d) => (
@@ -653,7 +683,7 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
             </ul>
           </div>
         )}
-        <TipPageFooter />
+        <TipPageFooter layoutId="aurora" className="relative z-10 mt-8" />
       </div>
     </main>
   );
@@ -679,10 +709,15 @@ function CardLayout({ creator, recentDonations }: TipPageRendererProps) {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-12" style={{ ...(customBg ?? { background: outerBg }), fontFamily: font }}>
-      {/* Single floating mega-card */}
-      <div className="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden" style={{ backgroundColor: cardBg, border: `1px solid ${cardBorder}`, boxShadow: `0 25px 80px rgba(0,0,0,0.4), 0 0 0 1px ${tc}20` }}>
-        {/* Card header with theme color accent */}
-        <div className="h-2 w-full" style={{ background: `linear-gradient(90deg, ${tc}, ${tc}80)` }} />
+      <div className="relative w-full max-w-md">
+        <div className="absolute -right-3 -top-3 h-full w-full rounded-3xl opacity-40" style={{ background: `linear-gradient(135deg, ${tc}30, transparent)` }} />
+        <div className="relative overflow-hidden rounded-3xl shadow-2xl" style={{ backgroundColor: cardBg, border: `1px solid ${cardBorder}`, boxShadow: `0 25px 80px rgba(0,0,0,0.4), 0 0 0 1px ${tc}20` }}>
+          <div className="relative h-3 w-full" style={{ background: `linear-gradient(90deg, ${tc}, ${tc}80)` }}>
+            <div className="absolute left-1/2 top-0 h-4 w-16 -translate-x-1/2 rounded-b-2xl" style={{ backgroundColor: isDark ? "#0a0a0a" : "#e2e8f0" }} />
+          </div>
+          <div className="absolute right-6 top-8 flex h-8 w-10 items-center justify-center rounded-md border opacity-60" style={{ borderColor: tc + "40", background: isDark ? "#1a1a1a" : "#f1f5f9" }}>
+            <div className="h-5 w-7 rounded-sm border" style={{ borderColor: tc + "60", background: `linear-gradient(135deg, ${tc}20, transparent)` }} />
+          </div>
 
         <div className="p-6 flex flex-col gap-6">
           {/* Creator */}
@@ -712,7 +747,7 @@ function CardLayout({ creator, recentDonations }: TipPageRendererProps) {
           {/* Divider */}
           <div className="h-px" style={{ backgroundColor: cardBorder }} />
 
-          <DonationForm creator={creator} />
+          <DonationForm creator={creator} layoutId="card" />
 
           {s.showSupporterWall && recentDonations.length > 0 && (
             <>
@@ -732,213 +767,9 @@ function CardLayout({ creator, recentDonations }: TipPageRendererProps) {
           )}
 
           <div className="pt-2">
-            <TipPageFooter />
+            <TipPageFooter layoutId="card" darkMode={isDark} />
           </div>
         </div>
-      </div>
-    </main>
-  );
-}
-
-const THEME_VARIANTS = {
-  studio: {
-    label: "AO VIVO",
-    bg: "#0f172a",
-    bgImage: "radial-gradient(circle at 20% 0%, rgba(239,68,68,.24), transparent 35%), linear-gradient(135deg, #0f172a, #020617)",
-    accent: "#ef4444",
-    card: "rgba(15,23,42,.84)",
-    border: "rgba(248,113,113,.28)",
-    text: "#f8fafc",
-    muted: "#94a3b8",
-    shape: "rounded-2xl",
-  },
-  ocean: {
-    label: "ONDA DE APOIO",
-    bg: "#082f49",
-    bgImage: "radial-gradient(circle at 80% 0%, rgba(56,189,248,.35), transparent 38%), linear-gradient(180deg, #082f49, #020617)",
-    accent: "#38bdf8",
-    card: "rgba(8,47,73,.72)",
-    border: "rgba(125,211,252,.25)",
-    text: "#e0f2fe",
-    muted: "#7dd3fc",
-    shape: "rounded-[2rem]",
-  },
-  sakura: {
-    label: "SWEET SUPPORT",
-    bg: "#fff1f2",
-    bgImage: "radial-gradient(circle at 20% 0%, rgba(251,113,133,.25), transparent 38%), linear-gradient(180deg, #fff1f2, #ffffff)",
-    accent: "#fb7185",
-    card: "rgba(255,255,255,.92)",
-    border: "rgba(251,113,133,.28)",
-    text: "#881337",
-    muted: "#be123c",
-    shape: "rounded-[2rem]",
-  },
-  matrix: {
-    label: "SYSTEM TIP",
-    bg: "#020617",
-    bgImage: "linear-gradient(180deg, rgba(34,197,94,.12), transparent), repeating-linear-gradient(90deg, rgba(34,197,94,.08) 0 1px, transparent 1px 48px)",
-    accent: "#22c55e",
-    card: "rgba(3,19,10,.88)",
-    border: "rgba(34,197,94,.32)",
-    text: "#bbf7d0",
-    muted: "#4ade80",
-    shape: "rounded-lg",
-  },
-  news: {
-    label: "EDIÇÃO ESPECIAL",
-    bg: "#f5f5f0",
-    bgImage: "linear-gradient(180deg, #f5f5f0, #e7e5e4)",
-    accent: "#111827",
-    card: "rgba(255,255,255,.94)",
-    border: "rgba(17,24,39,.24)",
-    text: "#111827",
-    muted: "#57534e",
-    shape: "rounded-none",
-  },
-  comic: {
-    label: "POW!",
-    bg: "#fef3c7",
-    bgImage: "radial-gradient(circle at 20% 20%, rgba(239,68,68,.22), transparent 20%), radial-gradient(circle at 80% 0%, rgba(59,130,246,.18), transparent 24%), #fef3c7",
-    accent: "#ef4444",
-    card: "#ffffff",
-    border: "rgba(17,24,39,.85)",
-    text: "#111827",
-    muted: "#7c2d12",
-    shape: "rounded-3xl",
-  },
-  forest: {
-    label: "RAÍZES",
-    bg: "#052e16",
-    bgImage: "radial-gradient(circle at 25% 0%, rgba(132,204,22,.25), transparent 35%), linear-gradient(180deg, #052e16, #020617)",
-    accent: "#84cc16",
-    card: "rgba(20,83,45,.76)",
-    border: "rgba(132,204,22,.28)",
-    text: "#ecfccb",
-    muted: "#bef264",
-    shape: "rounded-3xl",
-  },
-  sunset: {
-    label: "SUNSET LIVE",
-    bg: "#431407",
-    bgImage: "radial-gradient(circle at 50% 0%, rgba(251,146,60,.42), transparent 38%), linear-gradient(180deg, #7c2d12, #09090b)",
-    accent: "#fb923c",
-    card: "rgba(67,20,7,.82)",
-    border: "rgba(251,146,60,.3)",
-    text: "#ffedd5",
-    muted: "#fdba74",
-    shape: "rounded-[2rem]",
-  },
-  space: {
-    label: "COSMIC TIP",
-    bg: "#020617",
-    bgImage: "radial-gradient(circle at 20% 15%, rgba(167,139,250,.35), transparent 28%), radial-gradient(circle at 80% 30%, rgba(34,211,238,.22), transparent 30%), #020617",
-    accent: "#a78bfa",
-    card: "rgba(17,24,39,.82)",
-    border: "rgba(167,139,250,.28)",
-    text: "#ede9fe",
-    muted: "#c4b5fd",
-    shape: "rounded-[2rem]",
-  },
-  street: {
-    label: "STREET SUPPORT",
-    bg: "#111827",
-    bgImage: "linear-gradient(135deg, rgba(250,204,21,.18), transparent 35%), repeating-linear-gradient(-10deg, transparent 0 18px, rgba(255,255,255,.035) 18px 20px), #111827",
-    accent: "#facc15",
-    card: "rgba(31,41,55,.9)",
-    border: "rgba(250,204,21,.32)",
-    text: "#f9fafb",
-    muted: "#fde68a",
-    shape: "rounded-xl",
-  },
-} as const;
-
-function VariantLayout({
-  creator,
-  recentDonations,
-  variant,
-}: TipPageRendererProps & { variant: keyof typeof THEME_VARIANTS }) {
-  const cfg = THEME_VARIANTS[variant];
-  const s = creator.tipPageSettings;
-  const accent = creator.themeColor || cfg.accent;
-  const font = variant === "matrix" ? '"Courier New", monospace' : resolveTipPageFontFamily(s.fontFamily);
-  const percent = creator.goal > 0 ? Math.min((creator.raised / creator.goal) * 100, 100) : 0;
-  const customBg = hasCustomBackground(s)
-    ? resolveTipPageBackground(s, accent, s.darkMode !== false)
-    : null;
-
-  return (
-    <main
-      className="flex min-h-screen flex-col justify-center px-4 py-10"
-      style={{ ...(customBg ?? { backgroundColor: cfg.bg, backgroundImage: cfg.bgImage }), fontFamily: font }}
-    >
-      <div className="mx-auto grid w-full max-w-4xl gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <section
-          className={`${cfg.shape} border p-6 shadow-2xl`}
-          style={{ background: cfg.card, borderColor: cfg.border }}
-        >
-          <p className="mb-4 text-xs font-black uppercase tracking-[0.3em]" style={{ color: accent }}>
-            {cfg.label}
-          </p>
-          <div className="flex items-center gap-4">
-            <div
-              className={`${variant === "news" ? "rounded-none" : "rounded-2xl"} h-20 w-20 shrink-0 overflow-hidden border-2`}
-              style={{ borderColor: accent }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black" style={{ color: cfg.text }}>
-                {creator.displayName}
-              </h1>
-              <p className="mt-1 text-sm leading-relaxed" style={{ color: cfg.muted }}>
-                {creator.bio}
-              </p>
-            </div>
-          </div>
-
-          {creator.goal > 0 && (
-            <div className="mt-6">
-              <div className="mb-2 flex justify-between text-xs" style={{ color: cfg.muted }}>
-                <span>{s.goalTitle}</span>
-                <span>{formatCurrency(creator.raised)} / {formatCurrency(creator.goal)}</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-black/25">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${percent}%`, backgroundColor: accent }}
-                />
-              </div>
-            </div>
-          )}
-
-          {s.showSupporterWall && recentDonations.length > 0 && (
-            <div className="mt-6">
-              <h2 className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: cfg.muted }}>
-                Apoiadores recentes
-              </h2>
-              <ul className="space-y-2">
-                {recentDonations.slice(0, 4).map((d) => (
-                  <li key={d.id} className="flex items-baseline justify-between border-b border-white/10 pb-2">
-                    <span className="text-sm" style={{ color: cfg.text }}>{d.donorName ?? "Anônimo"}</span>
-                    <span className="text-sm font-bold" style={{ color: accent }}>{formatCurrency(d.amount)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-
-        <section
-          className={`${cfg.shape} border p-6 shadow-2xl`}
-          style={{ background: cfg.card, borderColor: cfg.border }}
-        >
-          <DonationForm creator={creator} />
-        </section>
-
-        <div className="lg:col-span-2">
-          <TipPageFooter />
         </div>
       </div>
     </main>
@@ -959,16 +790,16 @@ const LAYOUT_MAP: Record<string, (props: TipPageRendererProps) => React.ReactNod
   vip:     (p) => <VipLayout      {...p} />,
   aurora:  (p) => <AuroraLayout   {...p} />,
   card:    (p) => <CardLayout     {...p} />,
-  studio:  (p) => <VariantLayout  {...p} variant="studio" />,
-  ocean:   (p) => <VariantLayout  {...p} variant="ocean" />,
-  sakura:  (p) => <VariantLayout  {...p} variant="sakura" />,
-  matrix:  (p) => <VariantLayout  {...p} variant="matrix" />,
-  news:    (p) => <VariantLayout  {...p} variant="news" />,
-  comic:   (p) => <VariantLayout  {...p} variant="comic" />,
-  forest:  (p) => <VariantLayout  {...p} variant="forest" />,
-  sunset:  (p) => <VariantLayout  {...p} variant="sunset" />,
-  space:   (p) => <VariantLayout  {...p} variant="space" />,
-  street:  (p) => <VariantLayout  {...p} variant="street" />,
+  studio:  (p) => <ThemeVariantLayout {...p} variant="studio" />,
+  ocean:   (p) => <ThemeVariantLayout {...p} variant="ocean" />,
+  sakura:  (p) => <ThemeVariantLayout {...p} variant="sakura" />,
+  matrix:  (p) => <ThemeVariantLayout {...p} variant="matrix" />,
+  news:    (p) => <ThemeVariantLayout {...p} variant="news" />,
+  comic:   (p) => <ThemeVariantLayout {...p} variant="comic" />,
+  forest:  (p) => <ThemeVariantLayout {...p} variant="forest" />,
+  sunset:  (p) => <ThemeVariantLayout {...p} variant="sunset" />,
+  space:   (p) => <ThemeVariantLayout {...p} variant="space" />,
+  street:  (p) => <ThemeVariantLayout {...p} variant="street" />,
 };
 
 export function TipPageRenderer(props: TipPageRendererProps) {

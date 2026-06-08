@@ -8,15 +8,15 @@ export const QR_BRAND_LOGO_SRC = BRAND_LOGO_ICON_SRC;
 export const QR_BRAND_LOGO_DATA_URL = QR_BRAND_LOGO_SRC;
 
 export function resolveQrCenterImageUrl(
-  plan: PlanType,
+  _plan: PlanType,
   avatarUrl?: string,
 ): string {
-  if (plan === "pro" && avatarUrl?.trim()) {
+  if (avatarUrl?.trim()) {
     return avatarUrl.trim();
   }
   return QR_BRAND_LOGO_SRC;
 }
 
-export function isQrCenterAvatar(plan: PlanType, avatarUrl?: string): boolean {
-  return plan === "pro" && Boolean(avatarUrl?.trim());
+export function isQrCenterAvatar(_plan: PlanType, avatarUrl?: string): boolean {
+  return Boolean(avatarUrl?.trim());
 }

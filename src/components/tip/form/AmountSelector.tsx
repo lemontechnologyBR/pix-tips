@@ -1,8 +1,12 @@
+import type { TipPageFormTheme } from "@/lib/tip-page-theme";
+import { resolveTipPageFormTheme } from "@/lib/tip-page-theme";
+
 interface AmountSelectorProps {
   presets: number[];
   amount: number;
   customAmount: string;
   themeColor: string;
+  formTheme?: TipPageFormTheme;
   onSelectPreset: (value: number) => void;
   onCustomChange: (value: string) => void;
 }
@@ -12,32 +16,35 @@ export function AmountSelector({
   amount,
   customAmount,
   themeColor,
+  formTheme,
   onSelectPreset,
   onCustomChange,
 }: AmountSelectorProps) {
+  const t = formTheme ?? resolveTipPageFormTheme();
+
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-zinc-300">Valor</label>
+      <label className={t.label}>Valor</label>
       <div className="grid grid-cols-4 gap-2">
-          {presets.map((value) => (
+          {presets.map((value) => {
+            const active = amount === value && customAmount === "";
+            return (
             <button
               key={value}
               type="button"
               onClick={() => onSelectPreset(value)}
-              className={`rounded-lg py-2.5 text-sm font-semibold transition ${
-                amount === value && customAmount === ""
-                  ? "text-white"
-                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-              }`}
+              className={active ? t.presetActive : t.presetInactive}
               style={
-                amount === value && customAmount === ""
-                  ? { backgroundColor: themeColor }
+                active
+                  ? { backgroundColor: themeColor, borderColor: t.mode === "retro" || t.mode === "matrix" ? themeColor : undefined, boxShadow: t.mode === "retro" ? `3px 3px 0 ${themeColor}` : t.mode === "vip" ? `0 0 12px ${themeColor}60` : undefined }
+                  : t.mode === "retro" ? { borderColor: "#3f3f46", boxShadow: "3px 3px 0 #3f3f46" }
                   : undefined
               }
             >
               R${value}
             </button>
-          ))}
+            );
+          })}
       </div>
       <input
         type="text"
@@ -45,7 +52,10 @@ export function AmountSelector({
         placeholder="Outro valor (R$)"
         value={customAmount}
         onChange={(e) => onCustomChange(e.target.value)}
-        className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-white placeholder:text-zinc-500 focus:border-cyan-500 focus:outline-none"
+        className={`mt-2 ${t.input}`}
+        style={{ borderColor: undefined }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = t.focusColor; }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = ""; }}
       />
     </div>
   );
