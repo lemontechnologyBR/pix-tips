@@ -1,12 +1,11 @@
 services:
 
-  # ── Banco de dados ──────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: tippage
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obrigatório em .env.production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: tippage
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,30 +17,54 @@ services:
     networks:
       - backend
 
-  # ── Aplicação Next.js + Socket.IO ──────────────────────────────────────────
   app:
     build:
-      context: .
+      context: https://github.com/lemontechnologyBR/pix-tips.git#develop
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://tippage:${POSTGRES_PASSWORD}@postgres:5432/tippage
-      NEXT_PUBLIC_APP_URL: https://pix.tips
-      NEXT_PUBLIC_SOCKET_URL: https://pix.tips
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_APP_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      EMAIL_FROM: ${EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      WOOVI_APP_ID: ${WOOVI_APP_ID}
+      WOOVI_WEBHOOK_SECRET: ${WOOVI_WEBHOOK_SECRET}
+      WOOVI_PAYOUT_FEE: ${WOOVI_PAYOUT_FEE:-2.50}
+      DIDIT_API_KEY: ${DIDIT_API_KEY:-}
+      DIDIT_WEBHOOK_SECRET: ${DIDIT_WEBHOOK_SECRET:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+      AWS_S3_KYC_BUCKET: ${AWS_S3_KYC_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-auto}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_CDN_URL: ${AWS_CDN_URL:-}
+      KYC_CPF_PROVIDER: ${KYC_CPF_PROVIDER:-none}
+      SERPRO_CONSUMER_KEY: ${SERPRO_CONSUMER_KEY:-}
+      SERPRO_CONSUMER_SECRET: ${SERPRO_CONSUMER_SECRET:-}
+      OAUTH_REDIRECT_BASE: ${NEXT_PUBLIC_APP_URL}
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID:-}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
       PORT: 3000
       HOSTNAME: "0.0.0.0"
-    env_file:
-      - .env.production
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - uploads:/app/public/uploads          # mídia pública (fallback sem S3)
-      - private_uploads:/app/private/uploads # documentos KYC (fallback sem S3)
+      - uploads:/app/public/uploads
+      - private_uploads:/app/private/uploads
     networks:
       - backend
-      - traefik_proxy   # rede externa do Traefik
+      - traefik_proxy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.pixtips.rule=Host(`pix.tips`) || Host(`www.pix.tips`)"
@@ -49,19 +72,16 @@ services:
       - "traefik.http.routers.pixtips.tls=true"
       - "traefik.http.routers.pixtips.tls.certresolver=letsencrypt"
       - "traefik.http.services.pixtips.loadbalancer.server.port=3000"
-      # Redireciona www → apex
       - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.pix\\.tips/(.*)"
       - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://pix.tips/$${1}"
       - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
       - "traefik.http.routers.pixtips.middlewares=www-redirect"
-      # WebSocket (Socket.IO)
-      - "traefik.http.middlewares.pixtips-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
 
 networks:
   backend:
     internal: true
   traefik_proxy:
-    external: true   # rede criada pelo Traefik no servidor
+    external: true
 
 volumes:
   postgres_data:
