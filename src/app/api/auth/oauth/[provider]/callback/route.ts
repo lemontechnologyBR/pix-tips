@@ -8,6 +8,7 @@ import {
   exchangeCode,
   findOrCreateOAuthUser,
   getUserInfo,
+  isLinkOnlyOAuthProvider,
   isOAuthProvider,
   linkOAuthAccount,
 } from "@/lib/auth/oauth";
@@ -71,18 +72,23 @@ export async function GET(request: Request, context: RouteContext) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const oauthError = searchParams.get("error");
+  const streamelementsDenied = searchParams.get("error") === "true";
 
   const cookieStore = await cookies();
   const linkUserId = cookieStore.get(OAUTH_LINK_USER_COOKIE)?.value;
   const returnTo = safeReturnPath(cookieStore.get(OAUTH_RETURN_COOKIE)?.value);
 
-  if (oauthError) {
+  if (oauthError || streamelementsDenied) {
     if (linkUserId) {
       return linkResultRedirect(returnTo, {
         error: "Login social cancelado ou negado.",
       });
     }
     return errorRedirect("Login social cancelado ou negado.");
+  }
+
+  if (isLinkOnlyOAuthProvider(provider) && !linkUserId) {
+    return errorRedirect("Esta integração só pode ser vinculada a uma conta existente.");
   }
 
   if (!code || !state) {

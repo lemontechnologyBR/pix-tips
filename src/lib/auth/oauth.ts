@@ -9,7 +9,14 @@ import { sendWelcomeEmail } from "@/lib/auth/emails";
 import { isUsernameAvailableSlug, slugifyUsername } from "@/lib/auth/validators";
 import { getPrisma } from "@/lib/db";
 
-export type OAuthProvider = "google" | "twitch" | "youtube" | "discord" | "kick";
+export type OAuthProvider =
+  | "google"
+  | "twitch"
+  | "youtube"
+  | "discord"
+  | "kick"
+  | "streamlabs"
+  | "streamelements";
 
 export const OAUTH_STATE_COOKIE = "oauth_state";
 export const OAUTH_PKCE_COOKIE = "oauth_pkce_verifier";
@@ -21,7 +28,19 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
   "youtube",
   "discord",
   "kick",
+  "streamlabs",
+  "streamelements",
 ];
+
+/** Provedores que só podem ser vinculados a uma conta existente (sem login social). */
+export const LINK_ONLY_OAUTH_PROVIDERS: OAuthProvider[] = [
+  "streamlabs",
+  "streamelements",
+];
+
+export function isLinkOnlyOAuthProvider(provider: OAuthProvider): boolean {
+  return LINK_ONLY_OAUTH_PROVIDERS.includes(provider);
+}
 
 export function generatePkcePair(): { verifier: string; challenge: string } {
   const verifier = randomBytes(32).toString("base64url");
@@ -145,6 +164,40 @@ export function buildAuthUrl(
     });
 
     return `https://id.kick.com/oauth/authorize?${params.toString()}`;
+  }
+
+  if (provider === "streamlabs") {
+    const clientId = process.env.STREAMLABS_CLIENT_ID;
+    if (!clientId) {
+      throw new Error("STREAMLABS_CLIENT_ID não configurado.");
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: getOAuthRedirectUri("streamlabs"),
+      response_type: "code",
+      scope: "donations.create alerts.create",
+      state,
+    });
+
+    return `https://streamlabs.com/api/v2.0/authorize?${params.toString()}`;
+  }
+
+  if (provider === "streamelements") {
+    const clientId = process.env.STREAMELEMENTS_CLIENT_ID;
+    if (!clientId) {
+      throw new Error("STREAMELEMENTS_CLIENT_ID não configurado.");
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: getOAuthRedirectUri("streamelements"),
+      response_type: "code",
+      scope: "tips:write channel:read",
+      state,
+    });
+
+    return `https://api.streamelements.com/oauth2/authorize?${params.toString()}`;
   }
 
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
@@ -315,6 +368,84 @@ export async function exchangeCode(
     };
   }
 
+  if (provider === "streamlabs") {
+    const clientId = process.env.STREAMLABS_CLIENT_ID;
+    const clientSecret = process.env.STREAMLABS_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      throw new Error("Credenciais Streamlabs OAuth não configuradas.");
+    }
+
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: getOAuthRedirectUri("streamlabs"),
+    });
+
+    const res = await fetch("https://streamlabs.com/api/v2.0/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`Falha ao trocar código Streamlabs: ${detail}`);
+    }
+
+    const data = (await res.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  }
+
+  if (provider === "streamelements") {
+    const clientId = process.env.STREAMELEMENTS_CLIENT_ID;
+    const clientSecret = process.env.STREAMELEMENTS_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      throw new Error("Credenciais StreamElements OAuth não configuradas.");
+    }
+
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: getOAuthRedirectUri("streamelements"),
+    });
+
+    const res = await fetch("https://api.streamelements.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`Falha ao trocar código StreamElements: ${detail}`);
+    }
+
+    const data = (await res.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  }
+
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
 }
 
@@ -452,6 +583,62 @@ export async function getUserInfo(
       email: profile.email.trim().toLowerCase(),
       name: profile.name?.trim() || profile.email.split("@")[0],
       avatar: profile.profile_picture,
+    };
+  }
+
+  if (provider === "streamlabs") {
+    const res = await fetch("https://streamlabs.com/api/v2.0/user", {
+      headers: { Authorization: `Bearer ${tokens.accessToken}` },
+    });
+
+    if (!res.ok) {
+      throw new Error("Não foi possível obter perfil Streamlabs.");
+    }
+
+    const data = (await res.json()) as {
+      streamlabs?: { id?: number | string; display_name?: string };
+    };
+
+    const profile = data.streamlabs;
+    if (!profile?.id) {
+      throw new Error("Perfil Streamlabs inválido.");
+    }
+
+    const providerUserId = String(profile.id);
+
+    return {
+      providerUserId,
+      email: `${providerUserId}@linked.streamlabs`,
+      name: profile.display_name?.trim() || "Streamlabs",
+    };
+  }
+
+  if (provider === "streamelements") {
+    const res = await fetch("https://api.streamelements.com/kappa/v2/channels/me", {
+      headers: { Authorization: `oAuth ${tokens.accessToken}` },
+    });
+
+    if (!res.ok) {
+      throw new Error("Não foi possível obter perfil StreamElements.");
+    }
+
+    const data = (await res.json()) as {
+      _id?: string;
+      email?: string;
+      displayName?: string;
+      username?: string;
+      avatar?: string;
+    };
+
+    if (!data._id) {
+      throw new Error("Perfil StreamElements inválido.");
+    }
+
+    return {
+      providerUserId: data._id,
+      email: (data.email ?? `${data._id}@linked.streamelements`).trim().toLowerCase(),
+      name: data.displayName?.trim() || data.username?.trim() || "StreamElements",
+      avatar: data.avatar,
     };
   }
 
@@ -651,6 +838,38 @@ export async function listOAuthAccounts(
       provider: account.provider as OAuthProvider,
       createdAt: account.createdAt,
     }));
+}
+
+export async function getOAuthAccountForCreator(
+  creatorId: string,
+  provider: OAuthProvider,
+): Promise<{ accessToken: string; providerAccountId: string } | null> {
+  const db = getPrisma();
+  const creator = await db.creator.findUnique({
+    where: { id: creatorId },
+    select: {
+      user: {
+        select: {
+          oauthAccounts: {
+            where: { provider },
+            select: {
+              accessToken: true,
+              providerAccountId: true,
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  const account = creator?.user.oauthAccounts[0];
+  if (!account?.accessToken) return null;
+
+  return {
+    accessToken: account.accessToken,
+    providerAccountId: account.providerAccountId,
+  };
 }
 
 export async function unlinkOAuthAccount(

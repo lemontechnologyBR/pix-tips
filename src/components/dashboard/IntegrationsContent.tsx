@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   TwitchIcon,
   YouTubeIcon,
@@ -28,9 +29,6 @@ interface ProviderConfig {
   color: string;
   comingSoon?: boolean;
   comingSoonFeatures?: string[];
-  connectMode?: "oauth" | "link";
-  connectHref?: string;
-  connectLabel?: string;
   Icon: React.ComponentType<{ className?: string }>;
   features?: { label: string; href?: string; external?: boolean }[];
 }
@@ -80,14 +78,11 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Streamlabs",
     description: "Sincronize alertas e overlays com o Streamlabs Desktop",
     color: "from-teal-600/20 to-emerald-900/10 border-teal-500/30",
-    connectMode: "link",
-    connectHref: "/dashboard/widgets",
-    connectLabel: "Configurar widgets",
     Icon: StreamLabsIcon,
     features: [
-      { label: "Alertas de doação no Streamlabs", href: "/dashboard/widgets" },
-      { label: "Sincronização de overlays", href: "/dashboard/widgets" },
-      { label: "Tema e sons personalizados", href: "/dashboard/widgets" },
+      { label: "Alertas de doação no Streamlabs" },
+      { label: "Sincronização de overlays" },
+      { label: "Tema e sons personalizados" },
     ],
   },
   {
@@ -95,14 +90,11 @@ const PROVIDERS: ProviderConfig[] = [
     label: "StreamElements",
     description: "Conecte seus overlays e alertas ao StreamElements",
     color: "from-indigo-700/20 to-violet-900/10 border-indigo-500/30",
-    connectMode: "link",
-    connectHref: "/dashboard/widgets",
-    connectLabel: "Configurar widgets",
     Icon: StreamElementsIcon,
     features: [
-      { label: "Alertas de doação no StreamElements", href: "/dashboard/widgets" },
-      { label: "Temas de overlay compatíveis", href: "/dashboard/widgets" },
-      { label: "Leaderboard de doações", href: "/dashboard/widgets" },
+      { label: "Alertas de doação no StreamElements" },
+      { label: "Temas de overlay compatíveis" },
+      { label: "Leaderboard de doações" },
     ],
   },
 ];
@@ -113,6 +105,8 @@ export function IntegrationsContent({
   twitchChannel,
   botConfigured,
 }: IntegrationsContentProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [accounts, setAccounts] = useState(initialAccounts);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -122,16 +116,36 @@ export function IntegrationsContent({
     [accounts],
   );
 
-  function showToast(msg: string) {
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3500);
-  }
+  }, []);
+
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    const oauthError = searchParams.get("error");
+
+    if (connected) {
+      showToast(`Conta ${connected} vinculada com sucesso!`);
+      void fetch("/api/user/oauth-accounts")
+        .then((r) => r.json())
+        .then((data: { accounts?: UserProfile["connectedAccounts"] }) => {
+          if (data.accounts) setAccounts(data.accounts);
+        });
+      router.replace("/dashboard/integrations");
+    } else if (oauthError) {
+      showToast(oauthError);
+      router.replace("/dashboard/integrations");
+    }
+  }, [searchParams, router, showToast]);
 
   const handleDisconnect = useCallback(
     async (provider: string) => {
       setDisconnecting(provider);
       try {
-        const res = await fetch(`/api/auth/oauth/${provider}`, { method: "DELETE" });
+        const res = await fetch(`/api/user/oauth-accounts/${provider}`, {
+          method: "DELETE",
+        });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           showToast(data.error ?? "Erro ao desvincular.");
@@ -149,10 +163,10 @@ export function IntegrationsContent({
   );
 
   const connectedProviders = PROVIDERS.filter(
-    (p) => !p.comingSoon && p.connectMode !== "link" && connectedSet.has(p.id),
+    (p) => !p.comingSoon && connectedSet.has(p.id),
   );
   const disconnectedProviders = PROVIDERS.filter(
-    (p) => !p.comingSoon && (p.connectMode === "link" || !connectedSet.has(p.id)),
+    (p) => !p.comingSoon && !connectedSet.has(p.id),
   );
   const comingSoonProviders = PROVIDERS.filter((p) => p.comingSoon);
 
@@ -342,21 +356,12 @@ export function IntegrationsContent({
                   </ul>
                 )}
 
-                {provider.connectMode === "link" ? (
-                  <Link
-                    href={provider.connectHref ?? "/dashboard/widgets"}
-                    className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
-                  >
-                    {provider.connectLabel ?? "Configurar"}
-                  </Link>
-                ) : (
-                  <a
-                    href={`/api/auth/oauth/${provider.id}?mode=link&returnTo=${encodeURIComponent("/dashboard/integrations")}`}
-                    className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
-                  >
-                    Conectar {provider.label}
-                  </a>
-                )}
+                <a
+                  href={`/api/auth/oauth/${provider.id}?mode=link&returnTo=${encodeURIComponent("/dashboard/integrations")}`}
+                  className="inline-flex w-full justify-center rounded-lg bg-zinc-900/80 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
+                >
+                  Conectar {provider.label}
+                </a>
               </div>
             ))}
           </div>

@@ -3,6 +3,7 @@ import { resolveAlertSoundId } from "@/lib/alert-catalog";
 import { sendDonationReceivedEmail } from "@/lib/email";
 import { formatCurrency } from "@/lib/format";
 import { createNotification } from "@/lib/notifications/service";
+import { forwardDonationToIntegrations } from "@/lib/integrations/forward-donation";
 import { getCreatorById } from "@/lib/store";
 import type { DonationPayload, Transaction } from "@/types";
 
@@ -49,6 +50,12 @@ export async function emitDonationAlert(
   alertsNs
     .to(`tx:${transaction.id}`)
     .emit("payment-confirmed", { transactionId: transaction.id });
+
+  try {
+    await forwardDonationToIntegrations(transaction.creatorId, transaction);
+  } catch (err) {
+    console.error("[emit-donation] integration error:", err);
+  }
 
   if (creator.notifyEmailDonation && creator.email) {
     try {

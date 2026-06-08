@@ -8,6 +8,7 @@ import {
   buildAuthUrl,
   generateOAuthState,
   generatePkcePair,
+  isLinkOnlyOAuthProvider,
   isOAuthProvider,
 } from "@/lib/auth/oauth";
 import { isSessionError, requireSession } from "@/lib/auth/require-session";
@@ -45,6 +46,15 @@ export async function GET(request: Request, context: RouteContext) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("mode");
   const returnTo = safeReturnPath(searchParams.get("returnTo"));
+
+  if (isLinkOnlyOAuthProvider(provider) && mode !== "link") {
+    const integrationsUrl = new URL("/dashboard/integrations", redirectBase());
+    integrationsUrl.searchParams.set(
+      "error",
+      "Esta integração precisa ser vinculada com sua conta já logada.",
+    );
+    return NextResponse.redirect(integrationsUrl);
+  }
 
   try {
     const state = generateOAuthState();
