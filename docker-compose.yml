@@ -37,7 +37,8 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - uploads:/app/public/uploads
+      - uploads:/app/public/uploads          # mídia pública (fallback sem S3)
+      - private_uploads:/app/private/uploads # documentos KYC (fallback sem S3)
     networks:
       - backend
       - traefik_proxy   # rede externa do Traefik
@@ -65,3 +66,4 @@ networks:
 volumes:
   postgres_data:
   uploads:
+  private_uploads:

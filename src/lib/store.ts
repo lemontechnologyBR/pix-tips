@@ -9,7 +9,7 @@ import type {
 } from "@/types";
 import { listOAuthAccounts } from "@/lib/auth/oauth";
 import { getPrisma } from "@/lib/db";
-import { deleteFile } from "@/lib/storage";
+import { deleteFile, deletePrivateFile } from "@/lib/storage";
 import * as creatorRepo from "@/lib/repositories/creator-repository";
 import * as financeRepo from "@/lib/repositories/finance-repository";
 import * as transactionRepo from "@/lib/repositories/transaction-repository";
@@ -212,7 +212,7 @@ export async function deleteUserAccount(
       const keys = [kyc.documentFrontKey, kyc.documentBackKey, kyc.selfieKey].filter(
         (k): k is string => Boolean(k),
       );
-      await Promise.all(keys.map((key) => deleteFile(key).catch((err) => {
+      await Promise.all(keys.map((key) => deletePrivateFile(key).catch((err) => {
         console.warn(`[deleteUserAccount] Falha ao apagar arquivo KYC (${key}):`, err);
       })));
     }

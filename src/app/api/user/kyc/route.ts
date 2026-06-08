@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { KYC_ALLOWED_MIMES, KYC_MAX_FILE_SIZE } from "@/lib/kyc";
 import { getKycProfile, submitKyc, validateKycFields } from "@/lib/repositories/kyc-repository";
 import { isSessionError, requireSession } from "@/lib/auth/require-session";
-import { uploadFile } from "@/lib/storage";
+import { uploadPrivateFile } from "@/lib/storage";
 import type { KycDocumentType } from "@/types";
 
 function isValidImageBuffer(buffer: Buffer): boolean {
@@ -56,7 +56,7 @@ async function uploadKycDocument(
   const ext =
     file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const key = `${creatorId}/kyc/${uuidv4()}.${ext}`;
-  await uploadFile(key, buffer, file.type);
+  await uploadPrivateFile(key, buffer, file.type);
   return { key };
 }
 

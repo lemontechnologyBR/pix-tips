@@ -1,6 +1,5 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/db";
+import { readPrivateFile } from "@/lib/storage";
 import {
   canSubmitKyc,
   isKycApproved,
@@ -386,49 +385,11 @@ export async function getKycDocumentKey(
   return row.selfieKey;
 }
 
-function isS3Enabled(): boolean {
-  return Boolean(process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID);
-}
-
 export async function readKycDocumentBuffer(key: string): Promise<{
   buffer: Buffer;
   contentType: string;
 } | null> {
-  const ext = path.extname(key).toLowerCase();
-  const contentType =
-    ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
-
-  if (isS3Enabled()) {
-    const { S3Client, GetObjectCommand: GetCmd } = await import("@aws-sdk/client-s3");
-    const client = new S3Client({
-      region: process.env.AWS_REGION ?? "auto",
-      endpoint: process.env.AWS_S3_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-      },
-      forcePathStyle: Boolean(process.env.AWS_S3_ENDPOINT),
-    });
-
-    const res = await client.send(
-      new GetCmd({
-        Bucket: process.env.AWS_S3_BUCKET!,
-        Key: key,
-      }),
-    );
-
-    if (!res.Body) return null;
-    const bytes = await res.Body.transformToByteArray();
-    return { buffer: Buffer.from(bytes), contentType: res.ContentType ?? contentType };
-  }
-
-  const filePath = path.join(process.cwd(), "public", "uploads", key);
-  try {
-    const buffer = await readFile(filePath);
-    return { buffer, contentType };
-  } catch {
-    return null;
-  }
+  return readPrivateFile(key);
 }
 
 export { mapKycProfile };

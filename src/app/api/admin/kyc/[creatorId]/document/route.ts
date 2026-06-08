@@ -7,6 +7,7 @@ import {
   getKycDocumentKey,
   readKycDocumentBuffer,
 } from "@/lib/repositories/kyc-repository";
+import { getPresignedUrl } from "@/lib/storage";
 
 export async function GET(
   request: Request,
@@ -28,6 +29,13 @@ export async function GET(
     return NextResponse.json({ error: "Documento não encontrado." }, { status: 404 });
   }
 
+  // Em produção com S3/R2: redireciona para URL pré-assinada (expira em 5 min)
+  const presignedUrl = await getPresignedUrl(key);
+  if (presignedUrl) {
+    return NextResponse.redirect(presignedUrl, { status: 302 });
+  }
+
+  // Local / dev: proxy pelo servidor (arquivos fora de public/)
   const file = await readKycDocumentBuffer(key);
   if (!file) {
     return NextResponse.json({ error: "Arquivo não encontrado." }, { status: 404 });
