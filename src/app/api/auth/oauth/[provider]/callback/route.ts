@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   OAUTH_LINK_USER_COOKIE,
+  OAUTH_PKCE_COOKIE,
   OAUTH_RETURN_COOKIE,
   OAUTH_STATE_COOKIE,
   exchangeCode,
@@ -92,7 +93,9 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const savedState = cookieStore.get(OAUTH_STATE_COOKIE)?.value;
+  const pkceVerifier = cookieStore.get(OAUTH_PKCE_COOKIE)?.value;
   cookieStore.set({ name: OAUTH_STATE_COOKIE, value: "", ...clearCookieOptions });
+  cookieStore.set({ name: OAUTH_PKCE_COOKIE, value: "", ...clearCookieOptions });
 
   if (linkUserId) {
     cookieStore.set({ name: OAUTH_LINK_USER_COOKIE, value: "", ...clearCookieOptions });
@@ -109,7 +112,11 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   try {
-    const tokens = await exchangeCode(provider, code);
+    const tokens = await exchangeCode(
+      provider,
+      code,
+      provider === "kick" ? pkceVerifier : undefined,
+    );
     const userInfo = await getUserInfo(provider, tokens);
 
     if (linkUserId) {

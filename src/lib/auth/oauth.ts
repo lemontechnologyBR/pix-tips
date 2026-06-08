@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import {
   generateWidgetToken,
   getDefaultAlertSettings,
@@ -9,9 +9,10 @@ import { sendWelcomeEmail } from "@/lib/auth/emails";
 import { isUsernameAvailableSlug, slugifyUsername } from "@/lib/auth/validators";
 import { getPrisma } from "@/lib/db";
 
-export type OAuthProvider = "google" | "twitch" | "youtube" | "discord";
+export type OAuthProvider = "google" | "twitch" | "youtube" | "discord" | "kick";
 
 export const OAUTH_STATE_COOKIE = "oauth_state";
+export const OAUTH_PKCE_COOKIE = "oauth_pkce_verifier";
 export const OAUTH_LINK_USER_COOKIE = "oauth_link_user_id";
 export const OAUTH_RETURN_COOKIE = "oauth_return_to";
 export const OAUTH_PROVIDERS: OAuthProvider[] = [
@@ -19,7 +20,14 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
   "twitch",
   "youtube",
   "discord",
+  "kick",
 ];
+
+export function generatePkcePair(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(32).toString("base64url");
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { verifier, challenge };
+}
 
 export interface OAuthTokens {
   accessToken: string;
@@ -58,7 +66,11 @@ function googleScopes(provider: OAuthProvider): string[] {
   return scopes;
 }
 
-export function buildAuthUrl(provider: OAuthProvider, state: string): string {
+export function buildAuthUrl(
+  provider: OAuthProvider,
+  state: string,
+  options?: { codeChallenge?: string },
+): string {
   if (provider === "google" || provider === "youtube") {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId) {
@@ -113,12 +125,35 @@ export function buildAuthUrl(provider: OAuthProvider, state: string): string {
     return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
   }
 
+  if (provider === "kick") {
+    const clientId = process.env.KICK_CLIENT_ID;
+    if (!clientId) {
+      throw new Error("KICK_CLIENT_ID não configurado.");
+    }
+    if (!options?.codeChallenge) {
+      throw new Error("PKCE obrigatório para login com Kick.");
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: getOAuthRedirectUri("kick"),
+      response_type: "code",
+      scope: "user:read",
+      state,
+      code_challenge: options.codeChallenge,
+      code_challenge_method: "S256",
+    });
+
+    return `https://id.kick.com/oauth/authorize?${params.toString()}`;
+  }
+
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
 }
 
 export async function exchangeCode(
   provider: OAuthProvider,
   code: string,
+  codeVerifier?: string,
 ): Promise<OAuthTokens> {
   if (provider === "google" || provider === "youtube") {
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -222,6 +257,49 @@ export async function exchangeCode(
     if (!res.ok) {
       const detail = await res.text();
       throw new Error(`Falha ao trocar código Discord: ${detail}`);
+    }
+
+    const data = (await res.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresIn: data.expires_in,
+    };
+  }
+
+  if (provider === "kick") {
+    const clientId = process.env.KICK_CLIENT_ID;
+    const clientSecret = process.env.KICK_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      throw new Error("Credenciais Kick OAuth não configuradas.");
+    }
+    if (!codeVerifier) {
+      throw new Error("Verificador PKCE ausente para login com Kick.");
+    }
+
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: getOAuthRedirectUri("kick"),
+      code_verifier: codeVerifier,
+    });
+
+    const res = await fetch("https://id.kick.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`Falha ao trocar código Kick: ${detail}`);
     }
 
     const data = (await res.json()) as {
@@ -343,6 +421,37 @@ export async function getUserInfo(
       email: data.email.trim().toLowerCase(),
       name: data.global_name?.trim() || data.username,
       avatar,
+    };
+  }
+
+  if (provider === "kick") {
+    const res = await fetch("https://api.kick.com/public/v1/users", {
+      headers: { Authorization: `Bearer ${tokens.accessToken}` },
+    });
+
+    if (!res.ok) {
+      throw new Error("Não foi possível obter perfil Kick.");
+    }
+
+    const payload = (await res.json()) as {
+      data?: Array<{
+        user_id: number;
+        name?: string;
+        email?: string;
+        profile_picture?: string;
+      }>;
+    };
+
+    const profile = payload.data?.[0];
+    if (!profile?.email) {
+      throw new Error("E-mail não disponível na conta Kick.");
+    }
+
+    return {
+      providerUserId: String(profile.user_id),
+      email: profile.email.trim().toLowerCase(),
+      name: profile.name?.trim() || profile.email.split("@")[0],
+      avatar: profile.profile_picture,
     };
   }
 

@@ -2,6 +2,7 @@
 
 import {
   GoogleIcon,
+  KickIcon,
   SOCIAL_PROVIDER_ICONS,
   TwitchIcon,
   YouTubeIcon,
@@ -11,6 +12,7 @@ const providers = [
   { id: "google", label: "Google", icon: GoogleIcon },
   { id: "twitch", label: "Twitch", icon: TwitchIcon },
   { id: "youtube", label: "YouTube", icon: YouTubeIcon },
+  { id: "kick", label: "Kick", icon: KickIcon },
 ] as const;
 
 export function SocialLoginButtons() {

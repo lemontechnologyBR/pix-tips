@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   OAUTH_LINK_USER_COOKIE,
+  OAUTH_PKCE_COOKIE,
   OAUTH_RETURN_COOKIE,
   OAUTH_STATE_COOKIE,
   buildAuthUrl,
   generateOAuthState,
+  generatePkcePair,
   isOAuthProvider,
 } from "@/lib/auth/oauth";
 import { isSessionError, requireSession } from "@/lib/auth/require-session";
@@ -46,7 +48,10 @@ export async function GET(request: Request, context: RouteContext) {
 
   try {
     const state = generateOAuthState();
-    const url = buildAuthUrl(provider, state);
+    const pkce = provider === "kick" ? generatePkcePair() : null;
+    const url = buildAuthUrl(provider, state, {
+      codeChallenge: pkce?.challenge,
+    });
 
     const cookieStore = await cookies();
     cookieStore.set({
@@ -54,6 +59,14 @@ export async function GET(request: Request, context: RouteContext) {
       value: state,
       ...cookieOptions,
     });
+
+    if (pkce) {
+      cookieStore.set({
+        name: OAUTH_PKCE_COOKIE,
+        value: pkce.verifier,
+        ...cookieOptions,
+      });
+    }
 
     if (mode === "link") {
       const session = await requireSession();

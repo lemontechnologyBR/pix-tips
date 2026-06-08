@@ -67,15 +67,10 @@ const PROVIDERS: ProviderConfig[] = [
   {
     id: "kick",
     label: "Kick",
-    description: "Receba doações e alertas diretamente na sua live do Kick",
+    description: "Login social com sua conta Kick",
     color: "from-green-700/20 to-green-900/10 border-green-600/30",
-    comingSoon: true,
     Icon: KickIcon,
-    comingSoonFeatures: [
-      "Alertas de doação ao vivo",
-      "Página de doação integrada",
-      "Estatísticas de stream",
-    ],
+    features: [{ label: "Login via Kick na sua conta" }],
   },
   {
     id: "streamlabs",
