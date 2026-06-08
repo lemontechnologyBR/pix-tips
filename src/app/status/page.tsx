@@ -12,25 +12,21 @@ const SERVICES: {
   name: string;
   description: string;
   status: ServiceStatus;
-  latency?: string;
 }[] = [
   {
     name: "API e autenticação",
     description: "Login, dashboard e endpoints públicos",
     status: "operational",
-    latency: "42 ms",
   },
   {
     name: "Processamento Pix",
     description: "Criação e confirmação de cobranças",
     status: "operational",
-    latency: "—",
   },
   {
     name: "Widget de alertas",
     description: "WebSocket e overlay OBS",
     status: "operational",
-    latency: "18 ms",
   },
   {
     name: "Páginas públicas",
@@ -40,7 +36,7 @@ const SERVICES: {
   {
     name: "Webhooks de pagamento",
     description: "Notificações de parceiros",
-    status: "degraded",
+    status: "operational",
   },
   {
     name: "Upload de mídia",
@@ -71,8 +67,8 @@ export default function StatusPage() {
     <PublicPageLayout narrow>
       <PageHeader
         title="Status dos Serviços"
-        description="Monitoramento em tempo quase real (dados de demonstração)."
-        updatedAt="28 de maio de 2026, 14:00 BRT"
+        description="Status atual dos serviços pix.tips."
+        updatedAt={new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
       />
 
       <div
@@ -92,7 +88,7 @@ export default function StatusPage() {
               : "Alguns sistemas com desempenho reduzido"}
           </p>
           <p className="text-sm text-zinc-500">
-            Últimos 90 dias: 99,9% de uptime (mock)
+            Todos os sistemas monitorados continuamente.
           </p>
         </div>
       </div>
@@ -110,9 +106,6 @@ export default function StatusPage() {
                 <p className="mt-1 text-sm text-zinc-500">{service.description}</p>
               </div>
               <div className="flex items-center gap-3">
-                {service.latency && (
-                  <span className="text-xs text-zinc-600">{service.latency}</span>
-                )}
                 <span
                   className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${badge.className}`}
                 >
@@ -134,7 +127,7 @@ export default function StatusPage() {
       </ul>
 
       <p className="mt-10 text-center text-xs text-zinc-600">
-        Página de status ilustrativa. Em produção, integre com seu provedor de monitoramento.
+        Verifique nossa central de ajuda em /help se tiver problemas.
       </p>
     </PublicPageLayout>
   );

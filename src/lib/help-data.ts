@@ -22,12 +22,12 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Quanto tempo leva para ativar minha página?",
         answer:
-          "A página pública fica disponível assim que você salvar as configurações iniciais. Para o primeiro saque, é necessário concluir a verificação de identidade (KYC), que leva até 2 dias úteis.",
+          "A página pública fica disponível assim que você salvar as configurações iniciais. Para o primeiro saque, é necessário concluir a verificação de identidade (KYC).",
       },
       {
         question: "O que é a verificação KYC?",
         answer:
-          "KYC (Know Your Customer) confirma sua identidade com CPF, data de nascimento e fotos do documento. É obrigatória para saques e exigida por regulamentação de pagamentos no Brasil.",
+          "KYC (Know Your Customer) confirma sua identidade com CPF, data de nascimento e fotos do documento. É obrigatória para saques e exigida por regulamentação de pagamentos no Brasil. Com Didit, o processo é automático e leva apenas alguns minutos.",
       },
     ],
   },
@@ -44,11 +44,6 @@ export const HELP_SECTIONS: HelpSection[] = [
         question: "Qual é o link da minha página?",
         answer:
           "Seu link público é pix.tips/seu-usuario (substitua pelo seu username). Você pode copiá-lo no painel e colar na bio das redes.",
-      },
-      {
-        question: "Posso usar domínio próprio?",
-        answer:
-          "Domínios personalizados estão no roadmap dos planos Pro. Por enquanto, use o link padrão da plataforma.",
       },
     ],
   },
@@ -69,7 +64,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Posso usar sons e GIFs personalizados?",
         answer:
-          "Sim, nos planos que incluem biblioteca de mídia. Faça upload de áudio ou imagem nas configurações de alertas, respeitando os limites de tamanho.",
+          "Sim. Faça upload de áudio ou imagem nas configurações de alertas, respeitando os limites de tamanho.",
       },
     ],
   },
@@ -80,7 +75,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Quais métodos de pagamento são aceitos?",
         answer:
-          "Pix é o método principal no Brasil. Cartão de crédito pode estar disponível conforme seu plano e região. Consulte o painel de cobrança para detalhes.",
+          "Pix é o único método de pagamento disponível. É rápido, seguro e funciona 24 horas por dia, 7 dias por semana.",
       },
       {
         question: "Quando o valor cai na minha conta?",
@@ -90,28 +85,33 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Existe taxa por transação?",
         answer:
-          "Sim. A taxa varia conforme o plano (gratuito, Criador ou Pro). Veja a seção Preços na landing ou em Planos no painel para percentuais atualizados.",
+          "Taxa fixa de 2% descontada de cada doação confirmada. Não há mensalidades nem planos pagos.",
       },
     ],
   },
   {
-    id: "planos",
-    title: "Planos",
+    id: "saques",
+    title: "Saques",
     faqs: [
       {
-        question: "Posso começar de graça?",
+        question: "Como faço meu primeiro saque?",
         answer:
-          "Sim. O plano gratuito inclui página de doações, Pix e alertas básicos, com limite de transações mensais conforme descrito na landing.",
+          "Em Financeiro no painel, clique em Sacar. É necessário ter KYC aprovado, saldo mínimo de R$ 20,00 e uma chave Pix cadastrada. O saque é processado via Pix Out.",
       },
       {
-        question: "Como faço upgrade ou downgrade?",
+        question: "Qual é o valor mínimo para sacar?",
         answer:
-          "Em Dashboard → Cobrança, escolha o plano desejado. Upgrades são imediatos; downgrades vigoram no próximo ciclo de faturamento.",
+          "R$ 20,00. Há uma taxa fixa de R$ 2,50 por saque para cobrir os custos do Pix Out e manutenção da plataforma.",
       },
       {
-        question: "Há contrato de fidelidade?",
+        question: "Quanto tempo leva para o dinheiro chegar?",
         answer:
-          "Não. Você pode cancelar a assinatura a qualquer momento; o acesso Pro permanece até o fim do período já pago.",
+          "Saques Pix Out são processados em segundos após confirmação. Em alguns casos pode levar até 1 hora útil dependendo da instituição destinatária.",
+      },
+      {
+        question: "Posso sacar a qualquer momento?",
+        answer:
+          "Sim, desde que tenha saldo disponível acima de R$ 20,00 e KYC aprovado. Há um intervalo mínimo de 30 segundos entre saques consecutivos.",
       },
     ],
   },
@@ -127,7 +127,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Uma doação não foi confirmada",
         answer:
-          "Peça ao apoiador o comprovante Pix. Confira em Transações se o status está pendente. Se persistir, abra um ticket com data, valor e ID da transação.",
+          "Peça ao apoiador o comprovante Pix. Confira em Transações se o status está pendente. Se persistir, entre em contato pelo suporte@pix.tips com data, valor e ID da transação.",
       },
       {
         question: "Não consigo entrar no painel",
