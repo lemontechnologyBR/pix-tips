@@ -1,3 +1,4 @@
+import { BRAND_NAME } from "@/lib/brand";
 import type { Creator } from "@/types";
 import { DonationForm } from "./DonationForm";
 import { GoalProgressBar } from "./GoalProgressBar";
@@ -318,7 +319,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
         <div className="w-full text-center">
           <div className="inline-flex items-center gap-2 text-xs" style={{ color: tc }}>
             <span>▓▒░</span>
-            <span className="font-bold uppercase tracking-widest">TIP PAGE v2.0</span>
+            <span className="font-bold uppercase tracking-widest">{BRAND_NAME}</span>
             <span>░▒▓</span>
           </div>
         </div>
@@ -373,8 +374,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
           </div>
         )}
 
-        <div className="text-center text-xs" style={{ color: tc }}>▓▒░ © PXTIPS ░▒▓</div>
-        <TipPageFooter />
+        <TipPageFooter className="text-center" />
       </div>
     </main>
   );
