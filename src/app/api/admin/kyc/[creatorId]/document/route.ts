@@ -3,11 +3,23 @@ import {
   isAdminSessionError,
   requireAdminSession,
 } from "@/lib/auth/require-admin";
+import { fetchDiditDocumentImage, isDiditConfigured } from "@/lib/didit";
 import {
+  getKycDiditSessionId,
   getKycDocumentKey,
   readKycDocumentBuffer,
 } from "@/lib/repositories/kyc-repository";
-import { getPresignedUrl } from "@/lib/storage";
+
+type DocumentKind = "front" | "back" | "selfie";
+
+function imageResponse(buffer: Buffer, contentType: string): NextResponse {
+  return new NextResponse(new Uint8Array(buffer), {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "private, no-store",
+    },
+  });
+}
 
 export async function GET(
   request: Request,
@@ -24,27 +36,22 @@ export async function GET(
     return NextResponse.json({ error: "Tipo de documento inválido." }, { status: 400 });
   }
 
-  const key = await getKycDocumentKey(creatorId, kind);
-  if (!key) {
-    return NextResponse.json({ error: "Documento não encontrado." }, { status: 404 });
+  const documentKind = kind as DocumentKind;
+  const key = await getKycDocumentKey(creatorId, documentKind);
+  if (key) {
+    const file = await readKycDocumentBuffer(key);
+    if (file) {
+      return imageResponse(file.buffer, file.contentType);
+    }
   }
 
-  // Em produção com S3/R2: redireciona para URL pré-assinada (expira em 5 min)
-  const presignedUrl = await getPresignedUrl(key);
-  if (presignedUrl) {
-    return NextResponse.redirect(presignedUrl, { status: 302 });
+  const diditSessionId = await getKycDiditSessionId(creatorId);
+  if (diditSessionId && isDiditConfigured()) {
+    const diditFile = await fetchDiditDocumentImage(diditSessionId, documentKind);
+    if (diditFile) {
+      return imageResponse(diditFile.buffer, diditFile.contentType);
+    }
   }
 
-  // Local / dev: proxy pelo servidor (arquivos fora de public/)
-  const file = await readKycDocumentBuffer(key);
-  if (!file) {
-    return NextResponse.json({ error: "Arquivo não encontrado." }, { status: 404 });
-  }
-
-  return new NextResponse(new Uint8Array(file.buffer), {
-    headers: {
-      "Content-Type": file.contentType,
-      "Cache-Control": "private, no-store",
-    },
-  });
+  return NextResponse.json({ error: "Documento não encontrado." }, { status: 404 });
 }

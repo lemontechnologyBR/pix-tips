@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { kycStatusLabel } from "@/lib/kyc";
 import { cpfVerificationStatusLabel } from "@/lib/kyc/cpf-provider";
 import type { AdminKycRow } from "@/lib/repositories/kyc-repository";
@@ -20,6 +20,67 @@ const FILTERS: { id: "all" | KycStatus; label: string }[] = [
 
 function docUrl(creatorId: string, kind: "front" | "back" | "selfie") {
   return `/api/admin/kyc/${creatorId}/document?kind=${kind}`;
+}
+
+function KycDocumentImage({
+  creatorId,
+  kind,
+  label,
+}: {
+  creatorId: string;
+  kind: "front" | "back" | "selfie";
+  label: string;
+}) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+
+    setLoading(true);
+    setError(false);
+    setSrc(null);
+
+    fetch(docUrl(creatorId, kind))
+      .then(async (res) => {
+        if (!res.ok) throw new Error("fetch failed");
+        const blob = await res.blob();
+        if (!blob.type.startsWith("image/")) throw new Error("invalid image");
+        objectUrl = URL.createObjectURL(blob);
+        if (!cancelled) setSrc(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [creatorId, kind]);
+
+  return (
+    <div className="rounded-lg border border-zinc-800 p-2">
+      <p className="mb-2 text-xs text-zinc-500">{label}</p>
+      {loading ? (
+        <div className="flex h-48 items-center justify-center rounded bg-zinc-950 text-xs text-zinc-500">
+          Carregando...
+        </div>
+      ) : error || !src ? (
+        <div className="flex h-48 items-center justify-center rounded bg-zinc-950 text-xs text-zinc-500">
+          Documento indisponível
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={kind} className="max-h-48 w-full rounded object-contain" />
+      )}
+    </div>
+  );
 }
 
 function cpfCheckBadge(status: CpfVerificationStatus | null) {
@@ -186,23 +247,9 @@ export function AdminKycTable({ initialItems }: AdminKycTableProps) {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {(["front", "back", "selfie"] as const).map((kind) => (
-                <div key={kind} className="rounded-lg border border-zinc-800 p-2">
-                  <p className="mb-2 text-xs text-zinc-500">
-                    {kind === "front"
-                      ? "Frente"
-                      : kind === "back"
-                        ? "Verso"
-                        : "Selfie"}
-                  </p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={docUrl(selected.creatorId, kind)}
-                    alt={kind}
-                    className="max-h-48 w-full rounded object-contain"
-                  />
-                </div>
-              ))}
+              <KycDocumentImage creatorId={selected.creatorId} kind="front" label="Frente" />
+              <KycDocumentImage creatorId={selected.creatorId} kind="back" label="Verso" />
+              <KycDocumentImage creatorId={selected.creatorId} kind="selfie" label="Selfie" />
             </div>
 
             {selected.status === "pending" ? (

@@ -385,6 +385,14 @@ export async function getKycDocumentKey(
   return row.selfieKey;
 }
 
+export async function getKycDiditSessionId(creatorId: string): Promise<string | null> {
+  const row = await prisma.kycVerification.findUnique({
+    where: { creatorId },
+    select: { diditSessionId: true },
+  });
+  return row?.diditSessionId ?? null;
+}
+
 export async function readKycDocumentBuffer(key: string): Promise<{
   buffer: Buffer;
   contentType: string;

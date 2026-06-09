@@ -20,6 +20,8 @@ export interface DiditSessionResponse {
   vendor_data?: string;
 }
 
+export type DiditDocumentKind = "front" | "back" | "selfie";
+
 export interface DiditIdVerification {
   status?: string;
   full_name?: string;
@@ -30,6 +32,11 @@ export interface DiditIdVerification {
   date_of_birth?: string;
   document_type?: string;
   nationality?: string;
+  portrait_image?: string | null;
+  front_image?: string | null;
+  back_image?: string | null;
+  full_front_image?: string | null;
+  full_back_image?: string | null;
 }
 
 export interface DiditDecisionResponse {
@@ -112,6 +119,57 @@ export async function createDiditSession(input: {
   }
 
   return JSON.parse(raw) as DiditSessionResponse;
+}
+
+function pickDiditIdVerification(
+  decision: DiditDecisionResponse,
+): DiditIdVerification | null {
+  return (
+    decision.id_verifications?.find(
+      (item) => item.status?.toLowerCase() === "approved",
+    ) ??
+    decision.id_verifications?.[0] ??
+    null
+  );
+}
+
+export function pickDiditDocumentImageUrl(
+  idVerification: DiditIdVerification,
+  kind: DiditDocumentKind,
+): string | null {
+  if (kind === "front") {
+    return idVerification.front_image ?? idVerification.full_front_image ?? null;
+  }
+  if (kind === "back") {
+    return idVerification.back_image ?? idVerification.full_back_image ?? null;
+  }
+  return idVerification.portrait_image ?? null;
+}
+
+export async function fetchDiditDocumentImage(
+  sessionId: string,
+  kind: DiditDocumentKind,
+): Promise<{ buffer: Buffer; contentType: string } | null> {
+  if (!isDiditConfigured()) return null;
+
+  try {
+    const decision = await getDiditSessionDecision(sessionId);
+    const idVerification = pickDiditIdVerification(decision);
+    if (!idVerification) return null;
+
+    const url = pickDiditDocumentImageUrl(idVerification, kind);
+    if (!url) return null;
+
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    return { buffer, contentType };
+  } catch (error) {
+    console.error("[didit] document image fetch failed:", error);
+    return null;
+  }
 }
 
 export async function getDiditSessionDecision(
