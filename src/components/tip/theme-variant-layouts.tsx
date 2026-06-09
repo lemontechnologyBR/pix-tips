@@ -176,7 +176,7 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: accent }} />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent }} />
           </span>
-          <span className="font-mono text-xs font-bold uppercase tracking-widest" style={{ color: accent }}>REC · {cfg.label}</span>
+          <span className="font-mono text-xs font-bold uppercase tracking-widest" style={{ color: accent }}>REC</span>
         </div>
         <div className="mx-auto grid max-w-5xl gap-0 lg:grid-cols-2">
           <section className="relative border-r p-8" style={{ borderColor: cfg.border }}>
@@ -223,8 +223,7 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
         </svg>
         <div className="relative mx-auto max-w-lg">
           <div className="mb-8 text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.3em]" style={{ color: accent }}>{cfg.label}</p>
-            <div className="mx-auto mt-4 flex h-32 w-32 items-center justify-center rounded-full" style={{ background: `radial-gradient(circle, ${accent}30, transparent 70%)`, border: `2px solid ${accent}40` }}>
+            <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full" style={{ background: `radial-gradient(circle, ${accent}30, transparent 70%)`, border: `2px solid ${accent}40` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={creator.avatar} alt={creator.displayName} className="h-24 w-24 rounded-full object-cover" />
             </div>
@@ -264,9 +263,8 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
           ))}
         </div>
         <div className="relative mx-auto max-w-md text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em]" style={{ color: cfg.accent }}>{cfg.label}</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={creator.avatar} alt={creator.displayName} className="mx-auto mt-6 h-24 w-24 rounded-full object-cover shadow-lg" style={{ border: `3px solid ${cfg.accent}50` }} />
+          <img src={creator.avatar} alt={creator.displayName} className="mx-auto h-24 w-24 rounded-full object-cover shadow-lg" style={{ border: `3px solid ${cfg.accent}50` }} />
           <h1 className="mt-5 text-3xl font-light" style={{ color: cfg.text }}>{creator.displayName}</h1>
           <p className="mt-3 text-sm leading-relaxed" style={{ color: cfg.muted }}>{creator.bio}</p>
           {creator.goal > 0 && (
@@ -299,7 +297,6 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
           <div className="mb-4 border p-3 text-xs" style={{ borderColor: accent, color: accent }}>
             <p>&gt; user.init(&quot;{creator.username}&quot;)</p>
             <p>&gt; status: ONLINE</p>
-            <p>&gt; {cfg.label}</p>
           </div>
           <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
             <div className="border p-5" style={{ borderColor: cfg.border, background: cfg.card }}>
@@ -346,7 +343,7 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
       <main className="min-h-screen px-4 py-10" style={{ ...baseStyle, fontFamily: font }}>
         <div className="mx-auto max-w-3xl border-4 border-gray-900 bg-white p-6 shadow-lg">
           <div className="border-b-4 border-gray-900 pb-4 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-500">{today} · {cfg.label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-500">{today}</p>
             <h1 className="mt-2 font-serif text-4xl font-black uppercase leading-none text-gray-900">{creator.displayName}</h1>
             <p className="mt-2 font-serif text-sm italic text-gray-600">{creator.bio}</p>
           </div>
@@ -385,8 +382,7 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
         <div className="pointer-events-none absolute right-8 top-8 rotate-12 text-6xl font-black opacity-20" style={{ color: accent, WebkitTextStroke: "2px #111" }}>POW!</div>
         <div className="mx-auto max-w-lg">
           <div className="relative rounded-3xl border-4 border-gray-900 bg-white p-6 shadow-[8px_8px_0_#111]">
-            <div className="absolute -top-4 left-6 rounded-full border-4 border-gray-900 px-4 py-1 text-xs font-black uppercase" style={{ backgroundColor: accent, color: "#fff" }}>{cfg.label}</div>
-            <div className="mt-4 flex items-start gap-4">
+            <div className="flex items-start gap-4">
               <div className="shrink-0 overflow-hidden rounded-2xl border-4 border-gray-900 shadow-[4px_4px_0_#111]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={creator.avatar} alt={creator.displayName} className="h-24 w-24 object-cover" />
@@ -424,7 +420,6 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
         <div className="mx-auto max-w-lg">
           <div className="text-center">
             <span className="text-2xl">🌿</span>
-            <p className="mt-2 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: accent }}>{cfg.label}</p>
             <div className="relative mx-auto mt-6 h-32 w-32">
               <div className="absolute inset-0 rounded-full opacity-40" style={{ background: `radial-gradient(circle, ${accent}40, transparent 70%)` }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -463,9 +458,8 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
         <div className="absolute left-1/2 top-16 h-20 w-20 -translate-x-1/2 rounded-full opacity-80" style={{ background: `radial-gradient(circle, #fde68a, ${accent})`, boxShadow: `0 0 60px ${accent}` }} />
         <div className="relative mx-auto max-w-lg px-4 pb-12 pt-36">
           <div className="text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.4em]" style={{ color: cfg.muted }}>{cfg.label}</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={creator.avatar} alt={creator.displayName} className="mx-auto mt-6 h-24 w-24 rounded-full object-cover" style={{ boxShadow: `0 0 0 4px ${accent}60` }} />
+            <img src={creator.avatar} alt={creator.displayName} className="mx-auto h-24 w-24 rounded-full object-cover" style={{ boxShadow: `0 0 0 4px ${accent}60` }} />
             <h1 className="mt-4 text-3xl font-bold" style={{ color: cfg.text }}>{creator.displayName}</h1>
             <p className="mt-2 text-sm" style={{ color: cfg.muted }}>{creator.bio}</p>
           </div>
@@ -502,8 +496,7 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
           <div key={i} className="pointer-events-none absolute rounded-full bg-white" style={{ top: s.top, left: s.left, width: s.size, height: s.size, opacity: 0.4 + (i % 5) * 0.1 }} />
         ))}
         <div className="relative mx-auto max-w-lg text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.5em]" style={{ color: accent }}>{cfg.label}</p>
-          <div className="relative mx-auto mt-8 h-40 w-40">
+          <div className="relative mx-auto h-40 w-40">
             <div className="absolute inset-0 animate-spin rounded-full border border-dashed opacity-30" style={{ borderColor: accent, animationDuration: "20s" }} />
             <div className="absolute inset-4 animate-spin rounded-full border opacity-20" style={{ borderColor: "#22d3ee", animationDuration: "12s", animationDirection: "reverse" }} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -535,9 +528,6 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
   return (
     <main className="min-h-screen px-4 py-10" style={{ ...baseStyle, fontFamily: font }}>
       <div className="mx-auto max-w-4xl">
-        <div className="mb-6 inline-block -rotate-2 border-4 px-6 py-2 font-black uppercase tracking-widest shadow-lg" style={{ borderColor: accent, background: accent, color: "#111" }}>
-          {cfg.label}
-        </div>
         <div className="grid gap-0 lg:grid-cols-2">
           <section className="relative border-4 border-gray-900 p-6 lg:border-r-0" style={{ background: cfg.card }}>
             <div className="absolute right-4 top-4 h-16 w-16 rotate-12 border-4 border-dashed opacity-20" style={{ borderColor: accent }} />

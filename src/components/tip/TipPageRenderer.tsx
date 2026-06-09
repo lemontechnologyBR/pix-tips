@@ -1,4 +1,3 @@
-import { BRAND_NAME } from "@/lib/brand";
 import type { Creator } from "@/types";
 import { DonationForm } from "./DonationForm";
 import { GoalProgressBar } from "./GoalProgressBar";
@@ -186,11 +185,6 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
       <div className="neon-scanline pointer-events-none absolute inset-0 opacity-40" />
 
       <div className="relative mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        <div className="flex w-full items-center justify-between font-mono text-[10px] uppercase tracking-widest" style={{ color: tc + "80" }}>
-          <span>◈ sys.donate</span>
-          <span>◈ neon.v2</span>
-        </div>
-
         <header className="relative flex w-full flex-col items-center gap-3 text-center">
           <span className="absolute -left-1 top-1/2 -translate-y-1/2 font-mono text-2xl opacity-30" style={{ color: tc }}>[</span>
           <span className="absolute -right-1 top-1/2 -translate-y-1/2 font-mono text-2xl opacity-30" style={{ color: tc }}>]</span>
@@ -336,15 +330,6 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
       `}</style>
 
       <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-6">
-        {/* Top decorative bar */}
-        <div className="w-full text-center">
-          <div className="inline-flex items-center gap-2 text-xs" style={{ color: tc }}>
-            <span>▓▒░</span>
-            <span className="font-bold uppercase tracking-widest">{BRAND_NAME}</span>
-            <span>░▒▓</span>
-          </div>
-        </div>
-
         {/* Header */}
         <div className="retro-box w-full p-5" style={{ backgroundColor: "#1a1a1a" }}>
           <div className="flex items-center gap-4">
@@ -571,8 +556,7 @@ function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
           <div className="absolute left-1/2 top-0 bottom-0 w-px border-l border-dashed opacity-30" style={{ borderColor: gold }} />
           <div className="grid md:grid-cols-2">
             <div className="p-6 text-center md:text-left">
-              <p className="text-xs font-bold uppercase tracking-[0.4em] vip-text-gold">VIP PASS</p>
-              <div className="mx-auto mt-4 h-20 w-20 overflow-hidden rounded-full md:mx-0" style={{ border: `2px solid ${gold}`, boxShadow: `0 0 20px ${gold}40` }}>
+              <div className="mx-auto h-20 w-20 overflow-hidden rounded-full md:mx-0" style={{ border: `2px solid ${gold}`, boxShadow: `0 0 20px ${gold}40` }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={creator.avatar} alt={creator.displayName} className="h-full w-full object-cover" />
               </div>
