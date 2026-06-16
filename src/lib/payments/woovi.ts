@@ -27,6 +27,17 @@ const WOOVI_API_BASE = "https://api.woovi.com/api/v1";
 /** Woovi não permite split = 100% da cobrança; reserva mínima na conta principal. */
 export const WOOVI_SPLIT_MAIN_RESERVE_CENTS = 1;
 
+/**
+ * Estima a taxa Woovi para Pix in (usada para limitar o split).
+ * Woovi cobra ~0,8% com mínimo de R$ 0,50 (50 centavos).
+ * O split enviado deve ser menor que (total - taxa_woovi).
+ */
+function estimateWooviInFeeCents(totalCents: number): number {
+  const percentageFee = Math.ceil(totalCents * 0.008);
+  const minimumFee = 50; // R$ 0,50
+  return Math.max(percentageFee, minimumFee);
+}
+
 /** Remove referências ao provedor de pagamentos em mensagens exibidas ao usuário. */
 export function sanitizePaymentErrorMessage(message: string): string {
   return message
@@ -595,6 +606,11 @@ export async function createWooviCharge(
   let splitReserveCents = 0;
 
   if (input.creatorPixKey && creatorCents > 0) {
+    // Woovi exige que o split seja menor que (total - taxa_woovi).
+    // Calcular o teto real: total - taxa_estimada - 1 centavo de reserva.
+    const wooviFeeCents = estimateWooviInFeeCents(totalCents);
+    const maxSplitCents = Math.max(0, totalCents - wooviFeeCents - WOOVI_SPLIT_MAIN_RESERVE_CENTS);
+
     if (creatorCents >= totalCents) {
       if (totalCents <= WOOVI_SPLIT_MAIN_RESERVE_CENTS) {
         throw new WooviApiError(
@@ -602,8 +618,12 @@ export async function createWooviCharge(
           400,
         );
       }
-      creatorCents = totalCents - WOOVI_SPLIT_MAIN_RESERVE_CENTS;
-      splitReserveCents = WOOVI_SPLIT_MAIN_RESERVE_CENTS;
+      creatorCents = maxSplitCents;
+      splitReserveCents = totalCents - creatorCents;
+    } else if (creatorCents > maxSplitCents) {
+      // Split válido perante nossa comissão, mas excede o teto da Woovi.
+      splitReserveCents = totalCents - maxSplitCents;
+      creatorCents = maxSplitCents;
     }
   }
 
