@@ -127,12 +127,12 @@ export const FAQ_ITEMS = [
   {
     question: "Quanto custa usar a plataforma?",
     answer:
-      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos apenas 2% de taxa sobre cada doação recebida. Nada mais.",
+      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos 3% + R$ 0,50 por doação recebida. Nada mais.",
   },
   {
-    question: "Como funciona a taxa de 2%?",
+    question: "Como funciona a taxa de 3% + R$ 0,50?",
     answer:
-      "A taxa de 2% é descontada automaticamente de cada doação no momento em que ela é confirmada. Se um fã enviar R$ 10,00, você recebe R$ 9,80 no seu saldo. Não há cobrança fixa, mensalidade ou taxa de adesão.",
+      "A taxa é descontada automaticamente de cada doação no momento em que ela é confirmada: 3% do valor + R$ 0,50 fixos. Se um fã enviar R$ 10,00, você recebe R$ 9,20 no seu saldo (R$ 0,30 + R$ 0,50 = R$ 0,80 de taxa). Não há mensalidade ou taxa de adesão.",
   },
   {
     question: "Quanto tempo leva para receber o Pix?",
@@ -207,7 +207,7 @@ export const FAQ_ITEMS = [
 ] as const;
 
 export const PLATFORM_FEATURES = [
-  "2% de taxa sobre doações recebidas (sem mensalidade)",
+  "3% + R$ 0,50 por doação recebida (sem mensalidade)",
   "Saques imediatos via Pix Out com taxa fixa de R$ 2,50",
   "30+ templates de alerta + sons exclusivos",
   "Widgets OBS completos (alerta, meta, QR, leaderboard, stats, viewers)",

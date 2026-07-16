@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { tipPagePath } from "@/lib/brand";
+import { formatCommissionLabel } from "@/lib/finance";
 import { kycStatusLabel } from "@/lib/kyc";
 import type { FinanceOverview, UserProfile } from "@/types";
 
@@ -125,9 +126,14 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Comissão por doação</p>
             <p className="mt-2 text-3xl font-black text-white">
-              {financeOverview.commissionRate}%
+              {formatCommissionLabel(
+                financeOverview.commissionRate,
+                financeOverview.commissionFixedFee,
+              )}
             </p>
-            <p className="mt-1 text-xs text-zinc-500">Descontado de cada doação confirmada</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Percentual + taxa fixa por doação confirmada
+            </p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>

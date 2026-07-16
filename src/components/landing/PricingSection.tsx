@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { computeFee, formatCommissionLabel } from "@/lib/finance";
 import { PLATFORM_FEATURES } from "@/lib/landing-data";
 
 const AVG_DONATION = 20; // R$ used in the monthly simulator
@@ -10,8 +11,10 @@ export function PricingSection() {
   const [donationCount, setDonationCount] = useState(50);
 
   const gross = donationCount * AVG_DONATION;
-  const fee = gross * 0.02;
+  // Taxa por doação × quantidade (3% + R$ 0,50 em cada uma)
+  const fee = donationCount * computeFee(AVG_DONATION);
   const net = gross - fee;
+  const commissionLabel = formatCommissionLabel();
 
   return (
     <section id="precos" className="relative py-24 overflow-hidden">
@@ -53,7 +56,7 @@ export function PricingSection() {
               <span className="mb-1.5 text-base text-zinc-500">/mês</span>
             </div>
             <p className="mt-2 text-sm font-medium text-cyan-400">
-              Apenas 2% sobre cada doação recebida
+              Apenas {commissionLabel} sobre cada doação recebida
             </p>
 
             {/* Divider */}
@@ -149,7 +152,7 @@ export function PricingSection() {
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-red-500/15 bg-red-500/5 px-4 py-3">
                   <span className="text-sm text-zinc-400">
-                    Taxa pix.tips (2%)
+                    Taxa pix.tips ({commissionLabel})
                   </span>
                   <span className="text-base font-bold text-red-400">
                     − R$ {fee.toFixed(2).replace(".", ",")}

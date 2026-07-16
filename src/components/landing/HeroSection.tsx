@@ -133,7 +133,7 @@ export function HeroSection() {
 
               {/* Subtitle */}
               <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-400">
-                Crie sua página em segundos, compartilhe o link e receba apoio direto dos seus fãs — sem mensalidade, só 2% quando receber.
+                Crie sua página em segundos, compartilhe o link e receba apoio direto dos seus fãs — sem mensalidade, só 3% + R$ 0,50 quando receber.
               </p>
 
               {/* Stats row */}

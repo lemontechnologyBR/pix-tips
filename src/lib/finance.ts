@@ -1,5 +1,11 @@
-/** Comissão única da plataforma sobre cada doação recebida (%). */
-export const COMMISSION_RATE = 2;
+/** Comissão percentual da plataforma sobre cada doação recebida (%). */
+export const COMMISSION_RATE = 3;
+
+/**
+ * Taxa fixa por doação (R$).
+ * Cobre a taxa mínima de Pix in da Woovi (~R$ 0,50) e margem operacional.
+ */
+export const COMMISSION_FIXED_FEE = 0.5;
 
 export const MIN_WITHDRAW_AMOUNT = 20;
 
@@ -7,12 +13,37 @@ export function getCommissionRate(): number {
   return COMMISSION_RATE;
 }
 
-export function computeFee(amount: number, commissionRate: number): number {
-  return Math.round(amount * commissionRate) / 100;
+export function getCommissionFixedFee(): number {
+  return COMMISSION_FIXED_FEE;
 }
 
-export function computeNetAmount(amount: number, commissionRate: number): number {
-  return amount - computeFee(amount, commissionRate);
+/** Taxa total da plataforma: percentual + fixo. */
+export function computeFee(
+  amount: number,
+  commissionRate: number = COMMISSION_RATE,
+  fixedFee: number = COMMISSION_FIXED_FEE,
+): number {
+  const percent = Math.round(amount * commissionRate) / 100;
+  const total = Math.round((percent + fixedFee) * 100) / 100;
+  // Nunca cobrar mais do que o valor da doação (edge case de valores mínimos).
+  return Math.min(amount, Math.max(0, total));
+}
+
+export function computeNetAmount(
+  amount: number,
+  commissionRate: number = COMMISSION_RATE,
+  fixedFee: number = COMMISSION_FIXED_FEE,
+): number {
+  return Math.round((amount - computeFee(amount, commissionRate, fixedFee)) * 100) / 100;
+}
+
+/** Texto curto para UI: "3% + R$ 0,50". */
+export function formatCommissionLabel(
+  rate: number = COMMISSION_RATE,
+  fixedFee: number = COMMISSION_FIXED_FEE,
+): string {
+  const fixed = fixedFee.toFixed(2).replace(".", ",");
+  return `${rate}% + R$ ${fixed}`;
 }
 
 /**

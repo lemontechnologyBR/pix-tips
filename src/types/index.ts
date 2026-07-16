@@ -596,6 +596,7 @@ export interface FinanceOverview {
   totalFees: number;
   totalNet: number;
   commissionRate: number;
+  commissionFixedFee: number;
   monthGross: number;
   monthFees: number;
   monthNet: number;

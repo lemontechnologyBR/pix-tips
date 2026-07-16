@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { DiditKycVerification } from "@/components/dashboard/DiditKycVerification";
 import { KycVerificationForm } from "@/components/dashboard/KycVerificationForm";
-import { computeFee, computeNetAmount, computeWooviWithdrawFees, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
+import { computeFee, computeNetAmount, computeWooviWithdrawFees, formatCommissionLabel, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
 import { formatCurrency } from "@/lib/format";
 import type {
   FinanceOverview,
@@ -494,7 +494,7 @@ export function FinanceDashboard({
           <p className="mt-1 text-sm text-zinc-400">{payoutSubtitle}</p>
         </div>
         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
-          Taxa {overview.commissionRate}%
+          Taxa {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}
         </span>
       </div>
 
@@ -749,8 +749,9 @@ export function FinanceDashboard({
 
                   <p className="mt-4 max-w-2xl text-sm text-zinc-500">
                     Doações caem na chave <strong className="text-zinc-300">principal</strong>.
-                    Comissão pix.tips ({overview.commissionRate}%) já descontada na doação. A taxa
-                    de saque diminui conforme seu nível.
+                    Comissão pix.tips (
+                    {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}) já
+                    descontada na doação. A taxa de saque é cobrada no momento do Saque.
                   </p>
                   {overview.woovi.withdrawBlocked && (
                     <p className="mt-2 text-sm text-amber-400">

@@ -85,7 +85,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Existe taxa por transação?",
         answer:
-          "Taxa fixa de 2% descontada de cada doação confirmada. Não há mensalidades nem planos pagos.",
+          "Taxa de 3% + R$ 0,50 descontada de cada doação confirmada. Não há mensalidades nem planos pagos.",
       },
     ],
   },

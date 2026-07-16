@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import {
   computeFee,
   computeNetAmount,
+  getCommissionFixedFee,
   getCommissionRate,
   computeWooviPayoutFee,
   maskPixKey,
@@ -156,6 +157,7 @@ export async function getFinanceOverview(
     totalFees,
     totalNet,
     commissionRate,
+    commissionFixedFee: getCommissionFixedFee(),
     monthGross,
     monthFees,
     monthNet,

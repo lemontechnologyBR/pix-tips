@@ -10,7 +10,7 @@ export interface GlobalAdminSettings {
 }
 
 const DEFAULTS: GlobalAdminSettings = {
-  commissionRate: 5,
+  commissionRate: 3,
   proPrice: 29.9,
   uploadLimitMb: 10,
   templateOverrides: {},
