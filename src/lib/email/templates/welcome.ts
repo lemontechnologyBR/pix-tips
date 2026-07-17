@@ -1,5 +1,14 @@
 import { dashboardUrl, tipPageUrl } from "@/lib/brand";
-import { emailButton, emailLayout } from "./layout";
+import {
+  EMAIL_BORDER,
+  EMAIL_BG,
+  EMAIL_MUTED,
+  EMAIL_PRIMARY_LIGHT,
+  EMAIL_TEXT,
+  emailButton,
+  emailLayout,
+  emailPanel,
+} from "./layout";
 
 export interface WelcomeEmailData {
   name: string;
@@ -10,14 +19,14 @@ export function welcomeEmail(data: WelcomeEmailData): { subject: string; html: s
   const tipUrl = tipPageUrl(data.username);
 
   const html = emailLayout(`
-    <h1 style="margin:0 0 12px;font-size:22px;color:#fff;">Bem-vindo, ${data.name}! 🎉</h1>
-    <p style="margin:0 0 20px;color:#a1a1aa;line-height:1.6;">
-      Sua conta pix.tips foi criada. Configure seus alertas e comece a receber doações na live.
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${EMAIL_TEXT};">Bem-vindo, ${data.name}</h1>
+    <p style="margin:0 0 20px;color:${EMAIL_MUTED};line-height:1.65;font-size:15px;">
+      Sua conta na pix.tips está pronta. Personalize alertas, conecte sua chave Pix e comece a receber doações na live.
     </p>
-    <p style="margin:0 0 8px;color:#d4d4d8;font-size:14px;">Sua página pública:</p>
-    <p style="margin:0 0 24px;padding:12px 16px;background:#09090b;border:1px solid #3f3f46;border-radius:8px;color:#67e8f9;font-family:monospace;font-size:13px;">${tipUrl}</p>
-    ${emailButton(dashboardUrl(), "Ir para o painel")}
+    <p style="margin:0 0 8px;color:${EMAIL_MUTED};font-size:13px;">Sua página pública</p>
+    ${emailPanel(`<a href="${tipUrl}" style="color:${EMAIL_PRIMARY_LIGHT};font-family:ui-monospace,monospace;font-size:13px;text-decoration:none;word-break:break-all;">${tipUrl}</a>`, `border-color:${EMAIL_BORDER};background:${EMAIL_BG};`)}
+    ${emailButton(dashboardUrl(), "Abrir painel", "24px")}
   `);
 
-  return { subject: "Bem-vindo ao pix.tips!", html };
+  return { subject: "Bem-vindo ao pix.tips", html };
 }

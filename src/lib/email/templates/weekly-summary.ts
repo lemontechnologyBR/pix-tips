@@ -1,5 +1,14 @@
 import { dashboardUrl } from "@/lib/brand";
-import { emailButton, emailLayout } from "./layout";
+import {
+  EMAIL_BG,
+  EMAIL_BORDER,
+  EMAIL_MUTED,
+  EMAIL_PRIMARY_LIGHT,
+  EMAIL_TEXT,
+  emailButton,
+  emailLayout,
+  emailPanel,
+} from "./layout";
 
 export interface WeeklySummaryEmailData {
   creatorName: string;
@@ -20,36 +29,31 @@ export function weeklySummaryEmail(
 
   const topDonorBlock =
     data.topDonor && data.topDonationAmount != null
-      ? `<p style="margin:16px 0 0;padding:12px 16px;background:#09090b;border:1px solid #3f3f46;border-radius:8px;color:#d4d4d8;">
-          Maior apoiador: <strong style="color:#fff;">${data.topDonor}</strong>
-          (${data.topDonationAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})
-        </p>`
+      ? `<div style="margin-top:12px;">${emailPanel(
+          `Maior apoiador: <strong style="color:${EMAIL_TEXT};">${data.topDonor}</strong>
+          (${data.topDonationAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`,
+          `color:${EMAIL_MUTED};`,
+        )}</div>`
       : "";
 
   const html = emailLayout(`
-    <h1 style="margin:0 0 12px;font-size:22px;color:#fff;">Seu resumo semanal 📊</h1>
-    <p style="margin:0 0 20px;color:#a1a1aa;line-height:1.6;">
-      Olá ${data.creatorName}, aqui está o resumo de ${data.periodLabel}:
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${EMAIL_TEXT};">Seu resumo semanal</h1>
+    <p style="margin:0 0 20px;color:${EMAIL_MUTED};line-height:1.65;font-size:15px;">
+      Olá ${data.creatorName}, resumo de ${data.periodLabel} na pix.tips:
     </p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
-      <tr>
-        <td style="padding:12px 16px;background:#09090b;border:1px solid #3f3f46;border-radius:8px 8px 0 0;">
-          <span style="font-size:13px;color:#71717a;">Total recebido</span><br/>
-          <strong style="font-size:22px;color:#67e8f9;">${totalFormatted}</strong>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:12px 16px;background:#09090b;border:1px solid #3f3f46;border-top:none;border-radius:0 0 8px 8px;">
-          <span style="font-size:13px;color:#71717a;">Doações confirmadas</span><br/>
-          <strong style="font-size:18px;color:#fff;">${data.donationCount}</strong>
-        </td>
-      </tr>
-    </table>
+    ${emailPanel(`
+      <span style="font-size:13px;color:${EMAIL_MUTED};">Total recebido</span><br/>
+      <strong style="font-size:24px;color:${EMAIL_PRIMARY_LIGHT};letter-spacing:-0.02em;">${totalFormatted}</strong>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid ${EMAIL_BORDER};">
+        <span style="font-size:13px;color:${EMAIL_MUTED};">Doações confirmadas</span><br/>
+        <strong style="font-size:18px;color:${EMAIL_TEXT};">${data.donationCount}</strong>
+      </div>
+    `, `background:${EMAIL_BG};`)}
     ${topDonorBlock}
     ${emailButton(dashboardUrl(), "Abrir painel", "24px")}
-    <p style="margin:24px 0 0;font-size:12px;color:#71717a;">
-      Você recebe este e-mail porque ativou o resumo semanal nas configurações.
-      <a href="${dashboardUrl("/settings")}" style="color:#67e8f9;">Gerenciar preferências</a>
+    <p style="margin:24px 0 0;font-size:12px;color:${EMAIL_MUTED};">
+      Você recebe este e-mail porque ativou o resumo semanal.
+      <a href="${dashboardUrl("/settings")}" style="color:${EMAIL_PRIMARY_LIGHT};">Gerenciar preferências</a>
     </p>
   `);
 

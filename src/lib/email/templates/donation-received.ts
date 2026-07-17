@@ -1,5 +1,13 @@
 import { dashboardUrl } from "@/lib/brand";
-import { EMAIL_PRIMARY, emailButton, emailLayout } from "./layout";
+import {
+  EMAIL_BG,
+  EMAIL_MUTED,
+  EMAIL_PRIMARY,
+  EMAIL_PRIMARY_LIGHT,
+  EMAIL_TEXT,
+  emailButton,
+  emailLayout,
+} from "./layout";
 
 export interface DonationReceivedEmailData {
   creatorName: string;
@@ -16,17 +24,17 @@ export function donationReceivedEmail(
     currency: "BRL",
   });
   const messageBlock = data.message?.trim()
-    ? `<p style="margin:16px 0 0;padding:12px 16px;background:#09090b;border-left:3px solid ${EMAIL_PRIMARY};border-radius:4px;color:#d4d4d8;font-style:italic;">"${data.message}"</p>`
+    ? `<p style="margin:16px 0 0;padding:12px 16px;background:${EMAIL_BG};border-left:3px solid ${EMAIL_PRIMARY};border-radius:0 8px 8px 0;color:#cbd5e1;font-style:italic;line-height:1.5;">"${data.message}"</p>`
     : "";
 
   const html = emailLayout(`
-    <h1 style="margin:0 0 12px;font-size:22px;color:#fff;">Nova doação recebida! 💜</h1>
-    <p style="margin:0;color:#a1a1aa;line-height:1.6;">
-      Olá ${data.creatorName}, <strong style="color:#fff;">${data.donorName}</strong> acabou de doar
-      <strong style="color:#67e8f9;">${formatted}</strong>.
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${EMAIL_TEXT};">Nova doação recebida</h1>
+    <p style="margin:0;color:${EMAIL_MUTED};line-height:1.65;font-size:15px;">
+      Olá ${data.creatorName}, <strong style="color:${EMAIL_TEXT};">${data.donorName}</strong> enviou
+      <strong style="color:${EMAIL_PRIMARY_LIGHT};">${formatted}</strong> via Pix.
     </p>
     ${messageBlock}
-    ${emailButton(dashboardUrl("/finance"), "Ver transações", "24px")}
+    ${emailButton(dashboardUrl("/finance"), "Ver no financeiro", "24px")}
   `);
 
   return { subject: `Nova doação de ${formatted} — pix.tips`, html };
