@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: chatwoot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - chatwoot_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - chatwoot_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  rails:
+    image: chatwoot/chatwoot:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      RAILS_ENV: production
+      INSTALLATION_ENV: docker
+    entrypoint: docker/entrypoints/rails.sh
+    command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+    volumes:
+      - chatwoot_storage:/app/storage
+    networks:
+      - internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=pix-tips_proxy"
+      - "traefik.http.routers.chatwoot.rule=Host(`chat.pix.tips`)"
+      - "traefik.http.routers.chatwoot.entrypoints=websecure"
+      - "traefik.http.routers.chatwoot.tls.certresolver=letsencrypt"
+      - "traefik.http.services.chatwoot.loadbalancer.server.port=3000"
+
+  sidekiq:
+    image: chatwoot/chatwoot:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      RAILS_ENV: production
+      INSTALLATION_ENV: docker
+    entrypoint: docker/entrypoints/rails.sh
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    volumes:
+      - chatwoot_storage:/app/storage
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: pix-tips_proxy
+
+volumes:
+  chatwoot_postgres:
+  chatwoot_redis:
+  chatwoot_storage:

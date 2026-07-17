@@ -6,7 +6,7 @@ export const ADMIN_NAV = [
   { href: "/admin/kyc", label: "Verificações KYC", icon: "🪪" },
   { href: "/admin/transactions", label: "Transações", icon: "💰" },
   { href: "/admin/payouts", label: "Saques", icon: "💸" },
-  { href: "/admin/templates", label: "Templates", icon: "🎨" },
+  { href: "/admin/support", label: "Suporte", icon: "💬" },
   { href: "/admin/settings", label: "Configurações", icon: "⚙️" },
 ] as const;
 
@@ -18,6 +18,7 @@ export const ADMIN_PAGE_TITLES: Record<string, string> = {
   "/admin/kyc": "Verificações KYC",
   "/admin/transactions": "Transações",
   "/admin/payouts": "Saques",
-  "/admin/templates": "Templates",
+  "/admin/support": "Suporte",
+  "/admin/templates": "Suporte",
   "/admin/settings": "Configurações",
 };
