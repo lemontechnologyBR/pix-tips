@@ -788,6 +788,11 @@ export async function createWooviSubaccount(input: {
 
   const raw = await res.text();
   if (!res.ok) {
+    // Chave já cadastrada nesta conta Woovi — tratar como sucesso.
+    const existing = await getWooviSubaccount(input.pixKey);
+    if (existing) {
+      return { name: existing.name || input.name, pixKey: existing.pixKey };
+    }
     throw new WooviApiError(
       parseWooviError(raw, "Falha ao configurar recebimentos Pix."),
       res.status,

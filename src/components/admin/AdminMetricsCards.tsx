@@ -31,7 +31,9 @@ export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
         <p className="mt-1 text-2xl font-bold text-emerald-400">
           {formatCurrency(overview.totalVolume)}
         </p>
-        <p className="mt-1 text-xs text-zinc-500">Todas confirmadas</p>
+        <p className="mt-1 text-xs text-zinc-500">
+          {overview.confirmedDonations} doações confirmadas
+        </p>
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -44,6 +46,18 @@ export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
             ? `${((overview.proSubscribers / overview.totalCreators) * 100).toFixed(0)}% da base`
             : "Sem criadores ainda"}
         </p>
+      </div>
+
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <p className="text-sm text-zinc-400">KYC pendente</p>
+        <p className="mt-1 text-2xl font-bold text-amber-300">{overview.pendingKyc}</p>
+        <p className="mt-1 text-xs text-zinc-500">Aguardando revisão / Didit</p>
+      </div>
+
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <p className="text-sm text-zinc-400">Chaves Pix</p>
+        <p className="mt-1 text-2xl font-bold">{overview.pixKeys}</p>
+        <p className="mt-1 text-xs text-zinc-500">Cadastradas na plataforma</p>
       </div>
     </div>
   );

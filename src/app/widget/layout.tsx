@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WidgetAnalytics } from "@/components/WidgetAnalytics";
 
 export const metadata: Metadata = {
   title: "Widget OBS",
@@ -13,6 +14,9 @@ export default function WidgetLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="widget-root min-h-screen bg-transparent">{children}</div>
+    <div className="widget-root min-h-screen bg-transparent">
+      <WidgetAnalytics />
+      {children}
+    </div>
   );
 }

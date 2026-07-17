@@ -19,6 +19,9 @@ export interface AdminOverview {
   totalVolume: number;
   proSubscribers: number;
   creatorsGrowth: number;
+  confirmedDonations: number;
+  pendingKyc: number;
+  pixKeys: number;
   chartData: { date: string; creators: number }[];
 }
 
@@ -27,7 +30,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-  const [totalCreators, proSubscribers, confirmedTx, creatorsThisMonth, creatorsPrevMonth] =
+  const [totalCreators, proSubscribers, confirmedTx, creatorsThisMonth, creatorsPrevMonth, pendingKyc, pixKeys] =
     await Promise.all([
       prisma.creator.count(),
       prisma.creator.count({ where: { plan: "pro" } }),
@@ -36,6 +39,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       prisma.creator.count({
         where: { createdAt: { gte: prevMonthStart, lt: monthStart } },
       }),
+      prisma.kycVerification.count({ where: { status: "pending" } }),
+      prisma.creatorWooviPixKey.count(),
     ]);
 
   const totalVolume = confirmedTx.reduce((s, t) => s + t.amount, 0);
@@ -67,6 +72,9 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     totalVolume,
     proSubscribers,
     creatorsGrowth,
+    confirmedDonations: confirmedTx.length,
+    pendingKyc,
+    pixKeys,
     chartData,
   };
 }

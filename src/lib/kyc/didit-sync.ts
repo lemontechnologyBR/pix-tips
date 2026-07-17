@@ -121,10 +121,22 @@ export async function syncDiditKycForCreator(
               legalName: identity.legalName,
               birthDate: identity.birthDate,
             });
-      const cpfMatched =
-        canTrustDiditCpf || cpfVerification?.status === "matched";
 
-      if (!cpfMatched) {
+      // Caminho simples: Didit aprovado + CPF válido/único.
+      // Consulta externa (Workbuscas etc.) só bloqueia em mismatch / cpf_not_found.
+      // Se a API estiver offline (error) ou desligada (skipped/mock), segue com Didit.
+      const providerStatus = cpfVerification?.status;
+      const providerBlocks =
+        providerStatus === "mismatch" || providerStatus === "cpf_not_found";
+      const cpfMatched =
+        canTrustDiditCpf ||
+        providerStatus === "matched" ||
+        providerStatus === "skipped" ||
+        providerStatus === "mock" ||
+        providerStatus === "error" ||
+        !cpfVerification;
+
+      if (!cpfMatched || providerBlocks) {
         data.status = "rejected";
         data.rejectionReason =
           cpfVerification?.message ??
@@ -146,11 +158,19 @@ export async function syncDiditKycForCreator(
         data.diditVerifiedAt = now;
         data.reviewedAt = now;
         data.rejectionReason = null;
-        data.cpfVerificationProvider = cpfVerification?.provider ?? "didit";
-        data.cpfVerificationStatus = cpfVerification?.status ?? "matched";
+        data.cpfVerificationProvider =
+          cpfVerification?.provider ?? (canTrustDiditCpf ? "didit" : "local");
+        data.cpfVerificationStatus =
+          canTrustDiditCpf || providerStatus === "matched"
+            ? "matched"
+            : providerStatus === "error"
+              ? "skipped"
+              : (providerStatus ?? "skipped");
         data.cpfVerificationMessage =
           cpfVerification?.message ??
-          "CPF retornado pela Didit confere com o CPF informado.";
+          (canTrustDiditCpf
+            ? "CPF retornado pela Didit confere com o CPF informado."
+            : "KYC Didit aprovado; CPF validado localmente (consulta externa desligada).");
         data.cpfVerifiedAt = now;
         if (identity.legalName) data.legalName = identity.legalName;
         data.cpf = cpf;

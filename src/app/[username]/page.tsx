@@ -1,3 +1,4 @@
+import { AnalyticsBeacon } from "@/components/AnalyticsBeacon";
 import { TipPageRenderer } from "@/components/tip/TipPageRenderer";
 import { CreatorNotFound } from "@/components/tip/CreatorNotFound";
 import { getCreatorByUsername, getRecentDonations } from "@/lib/store";
@@ -25,5 +26,14 @@ export default async function PublicTipPage({ params }: PageProps) {
     createdAt: t.createdAt,
   }));
 
-  return <TipPageRenderer creator={creator} recentDonations={recentDonations} />;
+  return (
+    <>
+      <AnalyticsBeacon
+        type="tip_page_view"
+        creatorId={creator.id}
+        path={`/${creator.username}`}
+      />
+      <TipPageRenderer creator={creator} recentDonations={recentDonations} />
+    </>
+  );
 }

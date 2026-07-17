@@ -233,3 +233,17 @@ model AdminSettings {
   templateOverrides String   @default("{}")
   updatedAt         DateTime @updatedAt
 }
+
+/// Contadores leves de visualização (tip page + widgets OBS).
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String   // tip_page_view | widget_view
+  creatorId String?
+  path      String?
+  widget    String?  // alert|goal|qrcode|...
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([creatorId, type, createdAt])
+  @@index([widget, createdAt])
+}

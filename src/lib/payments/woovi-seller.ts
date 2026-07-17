@@ -535,6 +535,53 @@ export async function disconnectWooviPixKey(creatorId: string): Promise<void> {
   await syncPrimaryToCreator(creatorId);
 }
 
+export async function ensureCreatorWooviSubaccounts(
+  creatorId?: string,
+): Promise<{ ensured: number; errors: string[] }> {
+  const db = getPrisma();
+
+  if (creatorId) {
+    await migrateLegacyPixKey(creatorId);
+  } else {
+    const creators = await db.creator.findMany({ select: { id: true } });
+    for (const c of creators) {
+      await migrateLegacyPixKey(c.id);
+    }
+  }
+
+  const rows = await db.creatorWooviPixKey.findMany({
+    where: creatorId ? { creatorId } : undefined,
+    include: { creator: { select: { username: true } } },
+  });
+
+  let ensured = 0;
+  const errors: string[] = [];
+
+  if (!isWooviEnvConfigured()) {
+    return { ensured: 0, errors: ["Woovi não configurado."] };
+  }
+
+  for (const row of rows) {
+    try {
+      const existing = await getWooviSubaccount(row.pixKey);
+      if (existing) {
+        ensured += 1;
+        continue;
+      }
+      const name =
+        row.subaccountName ||
+        subaccountNameForPixKey(row.creatorId, row.creator.username, row.pixKey);
+      await createWooviSubaccount({ name, pixKey: row.pixKey });
+      ensured += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "erro";
+      errors.push(`${row.creator.username}: ${message}`);
+    }
+  }
+
+  return { ensured, errors };
+}
+
 export async function isCreatorWooviConnected(creatorId: string): Promise<boolean> {
   await migrateLegacyPixKey(creatorId);
   const count = await getPrisma().creatorWooviPixKey.count({
