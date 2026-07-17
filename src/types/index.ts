@@ -387,11 +387,21 @@ export interface ChatBotCommand {
   builtin?: boolean;
 }
 
+/** Mensagem automática no chat, enviada a cada N segundos. */
+export interface ChatBotRotatingMessage {
+  id: string;
+  text: string;
+  /** Intervalo entre envios (segundos). Mínimo 60. */
+  intervalSeconds: number;
+  enabled: boolean;
+}
+
 export interface ChatBotSettings {
   enabled: boolean;
   prefix: string;
   twitchChannel: string | null;
   commands: ChatBotCommand[];
+  rotatingMessages: ChatBotRotatingMessage[];
 }
 
 export interface Creator {

@@ -40,5 +40,22 @@ export default async function DashboardLayout({
 
   const creator = mapDbCreatorToCreator(dbCreator);
 
-  return <DashboardShell creator={creator}>{children}</DashboardShell>;
+  const chatwootBaseUrl =
+    process.env.NEXT_PUBLIC_CHATWOOT_URL?.trim() ||
+    process.env.CHATWOOT_URL?.trim() ||
+    "https://chat.pix.tips";
+  const chatwootWebsiteToken =
+    process.env.CHATWOOT_WEBSITE_TOKEN?.trim() ||
+    process.env.NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN?.trim() ||
+    "";
+
+  return (
+    <DashboardShell
+      creator={creator}
+      chatwootBaseUrl={chatwootBaseUrl}
+      chatwootWebsiteToken={chatwootWebsiteToken}
+    >
+      {children}
+    </DashboardShell>
+  );
 }

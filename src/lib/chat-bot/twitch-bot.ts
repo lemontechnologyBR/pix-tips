@@ -2,6 +2,7 @@ import tmi from "tmi.js";
 import {
   findMatchingCommand,
   renderCommandResponse,
+  renderRotatingMessage,
 } from "@/lib/chat-bot/settings";
 import {
   getActiveChatBots,
@@ -19,6 +20,8 @@ class TwitchChatBotManager {
   private client: tmi.Client | null = null;
   private channels: ChannelMap = new Map();
   private cooldowns = new Map<string, number>();
+  private rotatingTimers = new Map<string, ReturnType<typeof setInterval>>();
+  private rotatingTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private reloadTimer: ReturnType<typeof setInterval> | null = null;
   private starting = false;
 
@@ -62,6 +65,64 @@ class TwitchChatBotManager {
     return true;
   }
 
+  private async say(channel: string, text: string): Promise<void> {
+    const client = this.client;
+    if (!client || !text.trim()) return;
+    try {
+      await client.say(channel, text.slice(0, TWITCH_MESSAGE_MAX));
+    } catch (err) {
+      console.error("[chat-bot] erro ao enviar mensagem:", err);
+    }
+  }
+
+  private clearRotatingTimers(): void {
+    for (const timer of this.rotatingTimers.values()) {
+      clearInterval(timer);
+    }
+    this.rotatingTimers.clear();
+    for (const timeout of this.rotatingTimeouts.values()) {
+      clearTimeout(timeout);
+    }
+    this.rotatingTimeouts.clear();
+  }
+
+  private scheduleRotatingMessages(): void {
+    this.clearRotatingTimers();
+    if (!this.client) return;
+
+    for (const [channelLogin, config] of this.channels) {
+      const channel = `#${channelLogin}`;
+
+      for (const msg of config.settings.rotatingMessages) {
+        if (!msg.enabled || !msg.text.trim()) continue;
+        const key = `${channelLogin}:${msg.id}`;
+        const ms = Math.max(60_000, msg.intervalSeconds * 1000);
+
+        const tick = () => {
+          const live = this.channels.get(channelLogin);
+          if (!live) return;
+          const current = live.settings.rotatingMessages.find((m) => m.id === msg.id);
+          if (!current?.enabled) return;
+          const text = renderRotatingMessage(current, {
+            username: live.username,
+            displayName: live.displayName,
+          });
+          void this.say(channel, text);
+        };
+
+        // Primeiro envio após 20s da conexão; depois no intervalo escolhido.
+        const kickoff = setTimeout(() => {
+          this.rotatingTimeouts.delete(key);
+          tick();
+          const timer = setInterval(tick, ms);
+          this.rotatingTimers.set(key, timer);
+        }, 20_000);
+
+        this.rotatingTimeouts.set(key, kickoff);
+      }
+    }
+  }
+
   private async handleMessage(
     channel: string,
     _tags: tmi.ChatUserstate,
@@ -83,18 +144,7 @@ class TwitchChatBotManager {
     });
 
     if (!reply) return;
-
-    const client = this.client;
-    if (!client) return;
-
-    try {
-      await client.say(
-        channel,
-        reply.slice(0, TWITCH_MESSAGE_MAX),
-      );
-    } catch (err) {
-      console.error("[chat-bot] erro ao responder:", err);
-    }
+    await this.say(channel, reply);
   }
 
   private buildClient(channelLogins: string[]): tmi.Client {
@@ -116,6 +166,7 @@ class TwitchChatBotManager {
   }
 
   private async disconnect(): Promise<void> {
+    this.clearRotatingTimers();
     if (!this.client) return;
     const old = this.client;
     this.client = null;
@@ -144,17 +195,22 @@ class TwitchChatBotManager {
         nextLogins.length === currentLogins.length &&
         nextLogins.every((ch, i) => ch === currentLogins[i]);
 
+      // Always refresh in-memory settings (commands + rotating)
       this.channels = nextChannels;
 
       if (nextLogins.length === 0) {
         if (this.client) {
           console.log("[chat-bot] nenhum canal ativo — desconectando.");
           await this.disconnect();
+        } else {
+          this.clearRotatingTimers();
         }
         return;
       }
 
       if (this.client && sameChannels) {
+        // reconnect not needed — just reschedule rotating with new texts/intervals
+        this.scheduleRotatingMessages();
         return;
       }
 
@@ -168,6 +224,7 @@ class TwitchChatBotManager {
         console.log(
           `[chat-bot] conectado em ${nextLogins.length} canal(is): ${nextLogins.join(", ")}`,
         );
+        this.scheduleRotatingMessages();
       });
 
       this.client = client;

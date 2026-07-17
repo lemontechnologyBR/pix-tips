@@ -8,6 +8,7 @@ import {
   extractWooviTransactionId,
   isWooviChargePaid,
   isWooviPaidWebhookEvent,
+  isWooviWebhookRegistrationProbe,
   normalizeWooviStatus,
   verifyWooviWebhook,
   type WooviWebhookBody,
@@ -18,6 +19,11 @@ import {
   getTransactionByWooviPaymentId,
 } from "@/lib/store";
 import { getPrisma } from "@/lib/db";
+
+/** Resposta exigida pela Woovi no cadastro/teste do webhook. */
+function wooviOkEmpty() {
+  return new NextResponse(null, { status: 200 });
+}
 
 async function resolveTransaction(body: WooviWebhookBody) {
   const correlationId = extractWooviCorrelationId(body);
@@ -38,11 +44,22 @@ export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
 
+    let body: WooviWebhookBody = {};
+    try {
+      body = rawBody ? (JSON.parse(rawBody) as WooviWebhookBody) : {};
+    } catch {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
+
+    // Cadastro na plataforma: probe sem cobrança real → 200 vazio.
+    if (isWooviWebhookRegistrationProbe(body)) {
+      return wooviOkEmpty();
+    }
+
     if (!verifyWooviWebhook(request, rawBody)) {
       return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
     }
 
-    const body = JSON.parse(rawBody) as WooviWebhookBody;
     const event = body.event;
     const rawChargeStatus = body.charge?.status ?? body.pix?.charge?.status ?? "";
     const chargeStatus = normalizeWooviStatus(rawChargeStatus);

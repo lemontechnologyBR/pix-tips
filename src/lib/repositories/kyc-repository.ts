@@ -351,6 +351,52 @@ export async function reviewKyc(
     if (await isCpfLinkedToAnotherAccount(cpf, creatorId)) {
       return { error: DUPLICATE_CPF_ERROR };
     }
+
+    const legalName = existing.legalName?.trim() ?? "";
+    const birthDate = existing.birthDate
+      ? existing.birthDate.toISOString().slice(0, 10)
+      : "";
+    if (!legalName || !birthDate) {
+      return {
+        error: "Nome e data de nascimento são obrigatórios para aprovar o KYC.",
+      };
+    }
+
+    const cpfVerification = await verifyCpfIdentity({
+      cpf,
+      legalName,
+      birthDate,
+    });
+    if (isCpfVerificationBlocking(cpfVerification)) {
+      return {
+        error:
+          cpfVerification.message ??
+          "CPF não conferido na base externa. Não é possível aprovar.",
+      };
+    }
+
+    const row = await prisma.kycVerification.update({
+      where: { creatorId },
+      data: {
+        status: "approved",
+        rejectionReason: null,
+        reviewedAt: new Date(),
+        reviewedByUserId: adminUserId,
+        cpfVerificationProvider: cpfVerification.provider,
+        cpfVerificationStatus: cpfVerification.status,
+        cpfVerificationMessage: cpfVerification.message ?? null,
+        cpfVerifiedAt: new Date(),
+      },
+      include: {
+        creator: {
+          include: {
+            user: { select: { email: true } },
+          },
+        },
+      },
+    });
+
+    return { row: mapAdminRow(row) };
   }
 
   const row = await prisma.kycVerification.update({

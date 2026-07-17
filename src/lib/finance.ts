@@ -1,5 +1,5 @@
 /** Comissão percentual da plataforma sobre cada doação recebida (%). */
-export const COMMISSION_RATE = 3;
+export const COMMISSION_RATE = 2.5;
 
 /**
  * Taxa fixa por doação (R$).
@@ -37,13 +37,14 @@ export function computeNetAmount(
   return Math.round((amount - computeFee(amount, commissionRate, fixedFee)) * 100) / 100;
 }
 
-/** Texto curto para UI: "3% + R$ 0,50". */
+/** Texto curto para UI: "2,5% + R$ 0,50". */
 export function formatCommissionLabel(
   rate: number = COMMISSION_RATE,
   fixedFee: number = COMMISSION_FIXED_FEE,
 ): string {
+  const rateLabel = String(rate).replace(".", ",");
   const fixed = fixedFee.toFixed(2).replace(".", ",");
-  return `${rate}% + R$ ${fixed}`;
+  return `${rateLabel}% + R$ ${fixed}`;
 }
 
 /**

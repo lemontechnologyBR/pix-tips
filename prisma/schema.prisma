@@ -227,7 +227,7 @@ model Notification {
 
 model AdminSettings {
   id                String   @id @default("global")
-  commissionRate    Float    @default(3.5)
+  commissionRate    Float    @default(2.5)
   proPrice          Float    @default(29.9)
   uploadLimitMb     Int      @default(10)
   templateOverrides String   @default("{}")

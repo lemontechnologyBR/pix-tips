@@ -67,7 +67,7 @@ export default function SobrePage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
             <p>
               A plataforma cobra{" "}
-              <span className="font-semibold text-white">3% + R$ 0,50</span> sobre cada doação
+              <span className="font-semibold text-white">2,5% + R$ 0,50</span> sobre cada doação
               confirmada. Não há mensalidade, plano pago ou taxa de adesão. Para saques, há
               uma taxa fixa de{" "}
               <span className="font-semibold text-white">R$ 2,50</span> por operação.

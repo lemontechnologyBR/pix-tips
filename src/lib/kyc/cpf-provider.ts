@@ -7,7 +7,9 @@ export type CpfProviderId =
   | "serpro-demo"
   | "serpro"
   | "cpfcnpj"
-  | "workbuscas";
+  | "workbuscas"
+  | "workapi"
+  | "hubdodesenvolvedor";
 
 export type CpfVerificationStatus =
   | "skipped"
@@ -49,7 +51,21 @@ export function resolveCpfProvider(): CpfProviderId {
   if (configured === "serpro") return "serpro";
   if (configured === "cpfcnpj") return "cpfcnpj";
   if (configured === "workbuscas") return "workbuscas";
+  if (configured === "workapi" || configured === "work-cpf") return "workapi";
+  if (
+    configured === "hubdodesenvolvedor" ||
+    configured === "hub" ||
+    configured === "cadastropf"
+  ) {
+    return "hubdodesenvolvedor";
+  }
 
+  if (process.env.HUB_DESENVOLVEDOR_TOKEN || process.env.HUBDODESENVOLVEDOR_TOKEN) {
+    return "hubdodesenvolvedor";
+  }
+  if (process.env.WORKAPI_API_KEY || process.env.WORKAPI_KEY) {
+    return "workapi";
+  }
   if (process.env.SERPRO_CONSUMER_KEY && process.env.SERPRO_CONSUMER_SECRET) {
     return "serpro";
   }
@@ -426,6 +442,264 @@ async function verifyWithWorkbuscas(
   }
 }
 
+interface WorkApiPerson {
+  cpf?: string;
+  name?: string;
+  birthDate?: string;
+}
+
+interface WorkApiEnvelope {
+  statusCode?: number;
+  error?: string;
+  message?: string;
+  data?: {
+    module?: string;
+    upstream?: boolean;
+    status?: number;
+    body?: {
+      status?: number;
+      data?: WorkApiPerson[];
+      // formatos alternativos
+      nome?: string;
+      nascimento?: string;
+      cpf?: string;
+    };
+  };
+}
+
+/**
+ * WorkAPI gateway — https://workapi.dev/docs/modules/work-cpf
+ * Header: x-api-key
+ */
+async function verifyWithWorkApi(
+  input: CpfVerificationInput,
+): Promise<CpfVerificationResult> {
+  const apiKey =
+    process.env.WORKAPI_API_KEY?.trim() ||
+    process.env.WORKAPI_KEY?.trim() ||
+    "";
+  if (!apiKey) {
+    return {
+      status: "error",
+      provider: "workapi",
+      message: "WorkAPI não configurada (WORKAPI_API_KEY).",
+    };
+  }
+
+  const cpf = normalizeCpf(input.cpf);
+  const base =
+    process.env.WORKAPI_BASE_URL?.trim().replace(/\/$/, "") ||
+    "https://api.workapi.dev/v1";
+  const url = `${base}/gateway/work-cpf?cpf=${encodeURIComponent(cpf)}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "x-api-key": apiKey,
+      },
+      next: { revalidate: 0 },
+    });
+
+    const raw = (await res.json().catch(() => ({}))) as WorkApiEnvelope;
+
+    if (res.status === 403) {
+      console.error("[kyc/cpf] WorkAPI forbidden:", raw.message ?? raw.error);
+      return {
+        status: "error",
+        provider: "workapi",
+        message:
+          "API key sem acesso ao módulo work-cpf. Libere o módulo em workapi.dev.",
+      };
+    }
+
+    if (res.status === 404 || raw.data?.status === 204) {
+      return {
+        status: "cpf_not_found",
+        provider: "workapi",
+        message: "CPF não encontrado.",
+        cpfRegular: false,
+      };
+    }
+
+    if (!res.ok) {
+      console.error("[kyc/cpf] WorkAPI HTTP", res.status, raw.message ?? raw.error);
+      return {
+        status: "error",
+        provider: "workapi",
+        message: "Falha ao consultar CPF na WorkAPI.",
+      };
+    }
+
+    const body = raw.data?.body;
+    const personFromList = Array.isArray(body?.data) ? body.data[0] : undefined;
+    const returnedCpf = normalizeCpf(personFromList?.cpf ?? body?.cpf ?? "");
+    const returnedName =
+      personFromList?.name?.trim() || body?.nome?.trim() || "";
+    const returnedBirthDate =
+      personFromList?.birthDate?.trim() || body?.nascimento?.trim() || "";
+
+    if (!returnedName || (returnedCpf && returnedCpf !== cpf)) {
+      return {
+        status: "cpf_not_found",
+        provider: "workapi",
+        message: "CPF não encontrado ou inválido.",
+        cpfRegular: false,
+      };
+    }
+
+    const nameMatch = namesMatch(input.legalName, returnedName);
+    const birthDateMatch = returnedBirthDate
+      ? birthDatesMatch(input.birthDate, returnedBirthDate)
+      : false;
+
+    if (nameMatch && birthDateMatch) {
+      return {
+        status: "matched",
+        provider: "workapi",
+        nameMatch: true,
+        birthDateMatch: true,
+        cpfRegular: true,
+        message: "Dados conferidos com a WorkAPI (work-cpf).",
+      };
+    }
+
+    const issues: string[] = [];
+    if (!nameMatch) issues.push("nome");
+    if (!birthDateMatch) issues.push("data de nascimento");
+
+    return {
+      status: "mismatch",
+      provider: "workapi",
+      nameMatch,
+      birthDateMatch,
+      cpfRegular: true,
+      message: `Dados não conferem: ${issues.join(", ")}.`,
+    };
+  } catch (error) {
+    console.error("[kyc/cpf] WorkAPI request failed:", error);
+    return {
+      status: "error",
+      provider: "workapi",
+      message: "Erro ao consultar WorkAPI.",
+    };
+  }
+}
+
+/**
+ * Hub do Desenvolvedor — cadastropf
+ * https://ws.hubdodesenvolvedor.com.br/v2/cadastropf/?cpf=...&token=...
+ */
+async function verifyWithHubDesenvolvedor(
+  input: CpfVerificationInput,
+): Promise<CpfVerificationResult> {
+  const token =
+    process.env.HUB_DESENVOLVEDOR_TOKEN?.trim() ||
+    process.env.HUBDODESENVOLVEDOR_TOKEN?.trim() ||
+    "";
+  if (!token) {
+    return {
+      status: "error",
+      provider: "hubdodesenvolvedor",
+      message: "Hub do Desenvolvedor não configurado (HUB_DESENVOLVEDOR_TOKEN).",
+    };
+  }
+
+  const cpf = normalizeCpf(input.cpf);
+  const base =
+    process.env.HUB_DESENVOLVEDOR_BASE_URL?.trim().replace(/\/$/, "") ||
+    "https://ws.hubdodesenvolvedor.com.br/v2/cadastropf";
+  const url = `${base}/?cpf=${encodeURIComponent(cpf)}&token=${encodeURIComponent(token)}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 0 },
+    });
+
+    const raw = (await res.json().catch(() => null)) as {
+      status?: boolean;
+      return?: string;
+      message?: string;
+      result?: {
+        codigoPessoa?: string;
+        nomeCompleto?: string;
+        dataDeNascimento?: string;
+        documento?: string;
+      };
+    } | null;
+
+    if (!res.ok) {
+      console.error("[kyc/cpf] Hub HTTP", res.status, raw?.message);
+      return {
+        status: "error",
+        provider: "hubdodesenvolvedor",
+        message: "Falha ao consultar CPF no Hub do Desenvolvedor.",
+      };
+    }
+
+    if (!raw || raw.status !== true || raw.return !== "OK" || !raw.result) {
+      return {
+        status: "cpf_not_found",
+        provider: "hubdodesenvolvedor",
+        message: raw?.message ?? "CPF não encontrado ou inválido.",
+        cpfRegular: false,
+      };
+    }
+
+    const returnedCpf = normalizeCpf(
+      raw.result.documento ?? raw.result.codigoPessoa ?? "",
+    );
+    const returnedName = raw.result.nomeCompleto?.trim() ?? "";
+    const returnedBirthDate = raw.result.dataDeNascimento?.trim() ?? "";
+
+    if (!returnedName || (returnedCpf && returnedCpf !== cpf)) {
+      return {
+        status: "cpf_not_found",
+        provider: "hubdodesenvolvedor",
+        message: "CPF não encontrado ou inválido.",
+        cpfRegular: false,
+      };
+    }
+
+    const nameMatch = namesMatch(input.legalName, returnedName);
+    const birthDateMatch = returnedBirthDate
+      ? birthDatesMatch(input.birthDate, returnedBirthDate)
+      : false;
+
+    if (nameMatch && birthDateMatch) {
+      return {
+        status: "matched",
+        provider: "hubdodesenvolvedor",
+        nameMatch: true,
+        birthDateMatch: true,
+        cpfRegular: true,
+        message: "Dados conferidos (nome e data de nascimento).",
+      };
+    }
+
+    const issues: string[] = [];
+    if (!nameMatch) issues.push("nome");
+    if (!birthDateMatch) issues.push("data de nascimento");
+
+    return {
+      status: "mismatch",
+      provider: "hubdodesenvolvedor",
+      nameMatch,
+      birthDateMatch,
+      cpfRegular: true,
+      message: `Dados não conferem: ${issues.join(", ")}.`,
+    };
+  } catch (error) {
+    console.error("[kyc/cpf] Hub request failed:", error);
+    return {
+      status: "error",
+      provider: "hubdodesenvolvedor",
+      message: "Erro ao consultar Hub do Desenvolvedor.",
+    };
+  }
+}
+
 export async function verifyCpfIdentity(
   input: CpfVerificationInput,
 ): Promise<CpfVerificationResult> {
@@ -455,6 +729,14 @@ export async function verifyCpfIdentity(
     return verifyWithSerpro(input, provider);
   }
 
+  if (provider === "hubdodesenvolvedor") {
+    return verifyWithHubDesenvolvedor(input);
+  }
+
+  if (provider === "workapi") {
+    return verifyWithWorkApi(input);
+  }
+
   if (provider === "workbuscas") {
     return verifyWithWorkbuscas(input);
   }
@@ -462,6 +744,12 @@ export async function verifyCpfIdentity(
   return verifyWithCpfCnpj(input);
 }
 
+/** Bloqueia KYC quando o CPF não foi confirmado de forma confiável. */
 export function isCpfVerificationBlocking(result: CpfVerificationResult): boolean {
-  return result.status === "mismatch" || result.status === "cpf_not_found";
+  return result.status !== "matched" && result.status !== "mock";
+}
+
+/** Em produção, só "matched" (ou mock em dev) libera aprovação. */
+export function isCpfVerificationApproved(result: CpfVerificationResult): boolean {
+  return result.status === "matched" || result.status === "mock";
 }

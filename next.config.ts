@@ -55,13 +55,14 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               isDev
-                ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-                : "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
+                ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://chat.pix.tips https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com"
+                : "script-src 'self' 'unsafe-inline' https://chat.pix.tips https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://chat.pix.tips",
+              "font-src 'self' https://fonts.gstatic.com https://chat.pix.tips data:",
               "img-src 'self' data: blob: https:",
               "media-src 'self' blob:",
-              "connect-src 'self' https://api.elevenlabs.io https://api.mercadopago.com wss:",
+              "connect-src 'self' https://api.elevenlabs.io https://api.mercadopago.com https://chat.pix.tips https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://googleads.g.doubleclick.net wss: wss://chat.pix.tips",
+              "frame-src 'self' https://chat.pix.tips https://www.googletagmanager.com https://td.doubleclick.net",
               "frame-ancestors 'none'",
             ].join("; "),
           },

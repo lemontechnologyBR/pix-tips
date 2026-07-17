@@ -7,20 +7,39 @@ import { useState } from "react";
 import { BrandLogo } from "@/components/shared/BrandLogo";
 import { DASHBOARD_NAV } from "@/lib/dashboard-data";
 import type { Creator } from "@/types";
+import { ChatwootWidget } from "./ChatwootWidget";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardNavIcon } from "./DashboardNavIcon";
 
 interface DashboardShellProps {
   creator: Creator;
+  chatwootBaseUrl?: string;
+  chatwootWebsiteToken?: string;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ creator, children }: DashboardShellProps) {
+export function DashboardShell({
+  creator,
+  chatwootBaseUrl = "https://chat.pix.tips",
+  chatwootWebsiteToken = "",
+  children,
+}: DashboardShellProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen text-white">
+      <ChatwootWidget
+        baseUrl={chatwootBaseUrl}
+        websiteToken={chatwootWebsiteToken}
+        user={{
+          id: creator.id,
+          email: creator.email,
+          name: creator.displayName || creator.username,
+          username: creator.username,
+          avatar: creator.avatar,
+        }}
+      />
       {sidebarOpen && (
         <button
           type="button"

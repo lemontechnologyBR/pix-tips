@@ -112,42 +112,47 @@ export async function syncDiditKycForCreator(
       if (identity.documentType) data.documentType = identity.documentType;
       if (!existing?.submittedAt) data.submittedAt = now;
     } else {
-      const canTrustDiditCpf = Boolean(diditCpf && diditCpf === cpf);
-      const cpfVerification =
-        canTrustDiditCpf || !identity.legalName || !identity.birthDate
-          ? null
-          : await verifyCpfIdentity({
-              cpf,
-              legalName: identity.legalName,
-              birthDate: identity.birthDate,
-            });
+      const legalName =
+        identity.legalName?.trim() || existing?.legalName?.trim() || "";
+      const birthDateIso =
+        identity.birthDate ||
+        (existing?.birthDate
+          ? existing.birthDate.toISOString().slice(0, 10)
+          : "");
 
-      // Caminho simples: Didit aprovado + CPF válido/único.
-      // Consulta externa (Workbuscas etc.) só bloqueia em mismatch / cpf_not_found.
-      // Se a API estiver offline (error) ou desligada (skipped/mock), segue com Didit.
+      // Só confia no CPF da Didit se ele veio do documento E bate com o informado.
+      const canTrustDiditCpf = Boolean(diditCpf && diditCpf === cpf);
+
+      let cpfVerification = null as Awaited<ReturnType<typeof verifyCpfIdentity>> | null;
+      if (legalName && birthDateIso) {
+        cpfVerification = await verifyCpfIdentity({
+          cpf,
+          legalName,
+          birthDate: birthDateIso,
+        });
+      }
+
       const providerStatus = cpfVerification?.status;
-      const providerBlocks =
-        providerStatus === "mismatch" || providerStatus === "cpf_not_found";
-      const cpfMatched =
+      const cpfConfirmed =
         canTrustDiditCpf ||
         providerStatus === "matched" ||
-        providerStatus === "skipped" ||
-        providerStatus === "mock" ||
-        providerStatus === "error" ||
-        !cpfVerification;
+        providerStatus === "mock";
 
-      if (!cpfMatched || providerBlocks) {
+      // Nunca aprovar com skipped/error/sem consulta — era o bug de "qualquer CPF".
+      if (!cpfConfirmed) {
         data.status = "rejected";
         data.rejectionReason =
           cpfVerification?.message ??
-          "Não foi possível confirmar que o CPF informado pertence ao documento enviado.";
+          (!legalName || !birthDateIso
+            ? "Não foi possível obter nome e data de nascimento para conferir o CPF."
+            : "Não foi possível confirmar que o CPF informado pertence ao documento enviado.");
         data.reviewedAt = now;
         data.diditVerifiedAt = null;
         data.cpfVerificationProvider = cpfVerification?.provider ?? "didit";
         data.cpfVerificationStatus = cpfVerification?.status ?? "mismatch";
         data.cpfVerificationMessage =
           cpfVerification?.message ??
-          "CPF informado não foi confirmado contra os dados do documento.";
+          "CPF informado não foi confirmado contra base externa.";
         data.cpfVerifiedAt = null;
         if (identity.legalName) data.legalName = identity.legalName;
         data.cpf = cpf;
@@ -161,16 +166,12 @@ export async function syncDiditKycForCreator(
         data.cpfVerificationProvider =
           cpfVerification?.provider ?? (canTrustDiditCpf ? "didit" : "local");
         data.cpfVerificationStatus =
-          canTrustDiditCpf || providerStatus === "matched"
-            ? "matched"
-            : providerStatus === "error"
-              ? "skipped"
-              : (providerStatus ?? "skipped");
+          canTrustDiditCpf || providerStatus === "matched" ? "matched" : "mock";
         data.cpfVerificationMessage =
           cpfVerification?.message ??
           (canTrustDiditCpf
             ? "CPF retornado pela Didit confere com o CPF informado."
-            : "KYC Didit aprovado; CPF validado localmente (consulta externa desligada).");
+            : "CPF conferido.");
         data.cpfVerifiedAt = now;
         if (identity.legalName) data.legalName = identity.legalName;
         data.cpf = cpf;

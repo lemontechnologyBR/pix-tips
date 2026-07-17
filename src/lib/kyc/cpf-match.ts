@@ -9,10 +9,11 @@ export function normalizePersonName(name: string): string {
 }
 
 export function parseBrazilianBirthDate(value: string): string | null {
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const trimmed = value.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[ T].*)?$/.exec(trimmed);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
 
-  const br = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  const br = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
   if (br) return `${br[3]}-${br[2]}-${br[1]}`;
 
   return null;

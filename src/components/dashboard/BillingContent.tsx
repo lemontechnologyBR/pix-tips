@@ -1,8 +1,7 @@
 "use client";
 
 import { PLATFORM_FEATURES } from "@/lib/landing-data";
-import { COMMISSION_RATE } from "@/lib/finance";
-import { computeWooviPayoutFee } from "@/lib/finance";
+import { formatCommissionLabel, computeWooviPayoutFee } from "@/lib/finance";
 
 export function BillingContent() {
   const payoutFee = computeWooviPayoutFee();
@@ -23,7 +22,9 @@ export function BillingContent() {
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Comissão por doação</p>
-            <p className="mt-1 text-3xl font-black text-white">{COMMISSION_RATE}%</p>
+            <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
+              {formatCommissionLabel()}
+            </p>
             <p className="mt-1 text-xs text-zinc-500">Descontado automaticamente de cada doação confirmada</p>
           </div>
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">

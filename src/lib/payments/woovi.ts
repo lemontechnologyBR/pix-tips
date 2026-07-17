@@ -704,6 +704,21 @@ export function extractWooviTransactionId(
   );
 }
 
+/**
+ * Probe enviado pela Woovi/OpenPix ao cadastrar o webhook.
+ * Corpo típico: `{ "data_criacao": "...", "event": "OPENPIX:CHARGE_COMPLETED" }`
+ * sem charge/pix — deve responder HTTP 200 com corpo vazio.
+ */
+export function isWooviWebhookRegistrationProbe(body: WooviWebhookBody): boolean {
+  const hasChargePayload = Boolean(
+    body.charge?.correlationID ||
+      body.charge?.transactionID ||
+      body.pix?.charge?.correlationID ||
+      body.pix?.charge?.transactionID,
+  );
+  return Boolean(body.event) && !hasChargePayload;
+}
+
 export function verifyWooviWebhookSignature(
   rawBody: string,
   signature: string | null,

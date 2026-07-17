@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Script from "next/script";
 import { WidgetAwareProviders } from "@/components/WidgetAwareProviders";
 import {
   BRAND_NAME,
@@ -7,6 +8,8 @@ import {
 import { jetbrainsMono, spaceGrotesk } from "@/lib/fonts";
 import type { Metadata } from "next";
 import "./globals.css";
+
+const GOOGLE_ADS_ID = "AW-18326325494";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -48,6 +51,18 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="web3-bg min-h-full flex flex-col text-white">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ADS_ID}');
+          `}
+        </Script>
         <Suspense fallback={null}>
           <WidgetAwareProviders>{children}</WidgetAwareProviders>
         </Suspense>

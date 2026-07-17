@@ -3,9 +3,18 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { tipPageUrl } from "@/lib/brand";
-import { renderCommandResponse } from "@/lib/chat-bot/settings";
+import {
+  DEFAULT_ROTATING_INTERVAL_SEC,
+  MAX_ROTATING,
+  MIN_ROTATING_INTERVAL_SEC,
+  renderCommandResponse,
+} from "@/lib/chat-bot/settings";
 import { ChatBotIcon, type ChatBotIconName } from "@/components/dashboard/ChatBotIcon";
-import type { ChatBotCommand, ChatBotSettings } from "@/types";
+import type {
+  ChatBotCommand,
+  ChatBotRotatingMessage,
+  ChatBotSettings,
+} from "@/types";
 
 interface ChatBotProfile {
   settings: ChatBotSettings;
@@ -32,6 +41,16 @@ const VARIABLES = ["{url}", "{nome}", "{usuario}"] as const;
 
 function newCommandId() {
   return `custom-${Date.now().toString(36)}`;
+}
+
+function newRotatingId() {
+  return `rot-${Date.now().toString(36)}`;
+}
+
+function formatIntervalLabel(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.round(seconds / 60);
+  return m === 1 ? "1 min" : `${m} min`;
 }
 
 function SectionHeading({
@@ -130,9 +149,16 @@ export function ChatBotEditor({
     [settings.commands],
   );
 
+  const rotatingMessages = settings.rotatingMessages ?? [];
+
   const activeCount = useMemo(
     () => settings.commands.filter((cmd) => cmd.enabled).length,
     [settings.commands],
+  );
+
+  const activeRotating = useMemo(
+    () => rotatingMessages.filter((m) => m.enabled).length,
+    [rotatingMessages],
   );
 
   const showToast = useCallback((message: string) => {
@@ -168,6 +194,41 @@ export function ChatBotEditor({
     setSettings((prev) => ({
       ...prev,
       commands: prev.commands.filter((cmd) => cmd.id !== id),
+    }));
+  }
+
+  function updateRotating(id: string, patch: Partial<ChatBotRotatingMessage>) {
+    setSettings((prev) => ({
+      ...prev,
+      rotatingMessages: (prev.rotatingMessages ?? []).map((m) =>
+        m.id === id ? { ...m, ...patch } : m,
+      ),
+    }));
+  }
+
+  function addRotatingMessage() {
+    setSettings((prev) => {
+      const list = prev.rotatingMessages ?? [];
+      if (list.length >= MAX_ROTATING) return prev;
+      return {
+        ...prev,
+        rotatingMessages: [
+          ...list,
+          {
+            id: newRotatingId(),
+            text: "Doe via Pix: {url}",
+            intervalSeconds: DEFAULT_ROTATING_INTERVAL_SEC,
+            enabled: true,
+          },
+        ],
+      };
+    });
+  }
+
+  function removeRotatingMessage(id: string) {
+    setSettings((prev) => ({
+      ...prev,
+      rotatingMessages: (prev.rotatingMessages ?? []).filter((m) => m.id !== id),
     }));
   }
 
@@ -281,7 +342,7 @@ export function ChatBotEditor({
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
           icon="twitch"
           label="Conta Twitch"
@@ -306,6 +367,12 @@ export function ChatBotEditor({
           icon="commands"
           label="Comandos ativos"
           value={`${activeCount} de ${settings.commands.length}`}
+          tone="neutral"
+        />
+        <StatCard
+          icon="chat"
+          label="Msgs rotativas"
+          value={`${activeRotating} ativas`}
           tone="neutral"
         />
         <StatCard
@@ -497,6 +564,106 @@ export function ChatBotEditor({
               >
                 <ChatBotIcon name="custom" className="h-4 w-4" />
                 Adicionar comando personalizado
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 sm:p-6">
+            <SectionHeading
+              icon="chat"
+              title="Mensagens rotativas"
+              description="O bot envia sozinho no chat a cada intervalo (mín. 1 min). Use {url}, {nome}, {usuario}."
+            />
+
+            <div className="mt-5 space-y-3">
+              {rotatingMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`rounded-xl border p-4 transition ${
+                    msg.enabled
+                      ? "border-cyan-500/20 bg-zinc-950/50"
+                      : "border-zinc-800/80 bg-zinc-950/20 opacity-70"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-xs text-zinc-500">
+                      A cada {formatIntervalLabel(msg.intervalSeconds)}
+                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className="text-xs text-zinc-500">
+                        {msg.enabled ? "Ativa" : "Off"}
+                      </span>
+                      <Toggle
+                        checked={msg.enabled}
+                        onChange={() =>
+                          updateRotating(msg.id, { enabled: !msg.enabled })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeRotatingMessage(msg.id)}
+                        className="text-xs text-red-400 hover:text-red-300"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={msg.text}
+                    onChange={(e) => updateRotating(msg.id, { text: e.target.value })}
+                    rows={2}
+                    maxLength={450}
+                    placeholder="Texto da mensagem automática…"
+                    className="mt-3 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600"
+                  />
+
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="text-xs text-zinc-500">Intervalo</label>
+                    <input
+                      type="number"
+                      min={MIN_ROTATING_INTERVAL_SEC}
+                      max={3600}
+                      step={30}
+                      value={msg.intervalSeconds}
+                      onChange={(e) =>
+                        updateRotating(msg.id, {
+                          intervalSeconds: Number(e.target.value) || DEFAULT_ROTATING_INTERVAL_SEC,
+                        })
+                      }
+                      className="w-24 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 font-mono text-sm text-white"
+                    />
+                    <span className="text-xs text-zinc-500">segundos</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[60, 180, 300, 600, 900].map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => updateRotating(msg.id, { intervalSeconds: sec })}
+                          className={`rounded-md border px-2 py-0.5 text-[11px] ${
+                            msg.intervalSeconds === sec
+                              ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
+                              : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                          }`}
+                        >
+                          {formatIntervalLabel(sec)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addRotatingMessage}
+                disabled={rotatingMessages.length >= MAX_ROTATING}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-3.5 text-sm text-zinc-400 transition hover:border-cyan-500/40 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChatBotIcon name="chat" className="h-4 w-4" />
+                {rotatingMessages.length >= MAX_ROTATING
+                  ? `Limite de ${MAX_ROTATING} mensagens`
+                  : "Adicionar mensagem rotativa"}
               </button>
             </div>
           </section>

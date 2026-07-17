@@ -1,10 +1,18 @@
 import { tipPageUrl } from "@/lib/brand";
-import type { ChatBotCommand, ChatBotSettings } from "@/types";
+import type {
+  ChatBotCommand,
+  ChatBotRotatingMessage,
+  ChatBotSettings,
+} from "@/types";
 
 const MAX_COMMANDS = 20;
 const MAX_TRIGGER_LEN = 32;
 const MAX_RESPONSE_LEN = 450;
 const MAX_PREFIX_LEN = 3;
+const MAX_ROTATING = 10;
+const MIN_ROTATING_INTERVAL_SEC = 60;
+const MAX_ROTATING_INTERVAL_SEC = 3600;
+const DEFAULT_ROTATING_INTERVAL_SEC = 300;
 
 export const BUILTIN_COMMANDS: ChatBotCommand[] = [
   {
@@ -36,6 +44,7 @@ export function defaultChatBotSettings(): ChatBotSettings {
     prefix: "!",
     twitchChannel: null,
     commands: BUILTIN_COMMANDS.map((cmd) => ({ ...cmd })),
+    rotatingMessages: [],
   };
 }
 
@@ -51,6 +60,15 @@ function sanitizeTrigger(raw: string): string {
 function sanitizePrefix(raw: string): string {
   const trimmed = raw.trim().slice(0, MAX_PREFIX_LEN);
   return trimmed || "!";
+}
+
+function clampIntervalSeconds(raw: unknown): number {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return DEFAULT_ROTATING_INTERVAL_SEC;
+  return Math.min(
+    MAX_ROTATING_INTERVAL_SEC,
+    Math.max(MIN_ROTATING_INTERVAL_SEC, Math.round(n)),
+  );
 }
 
 function mergeCommands(raw: ChatBotCommand[] | undefined): ChatBotCommand[] {
@@ -91,6 +109,27 @@ function mergeCommands(raw: ChatBotCommand[] | undefined): ChatBotCommand[] {
   return merged;
 }
 
+function mergeRotatingMessages(
+  raw: ChatBotRotatingMessage[] | undefined,
+): ChatBotRotatingMessage[] {
+  if (!Array.isArray(raw)) return [];
+
+  const out: ChatBotRotatingMessage[] = [];
+  for (const item of raw) {
+    if (!item?.id) continue;
+    const text = String(item.text ?? "").trim().slice(0, MAX_RESPONSE_LEN);
+    if (!text) continue;
+    out.push({
+      id: String(item.id).slice(0, 64),
+      text,
+      intervalSeconds: clampIntervalSeconds(item.intervalSeconds),
+      enabled: item.enabled !== false,
+    });
+    if (out.length >= MAX_ROTATING) break;
+  }
+  return out;
+}
+
 export function normalizeChatBotSettings(
   raw: Partial<ChatBotSettings> | null | undefined,
 ): ChatBotSettings {
@@ -107,6 +146,7 @@ export function normalizeChatBotSettings(
     prefix: sanitizePrefix(raw.prefix ?? base.prefix),
     twitchChannel: channel,
     commands: mergeCommands(raw.commands),
+    rotatingMessages: mergeRotatingMessages(raw.rotatingMessages),
   };
 }
 
@@ -130,6 +170,16 @@ export function buildHelpResponse(
   return `Comandos: ${triggers.join(" · ")}`;
 }
 
+function applyTemplate(text: string, ctx: ChatBotRenderContext): string {
+  const url = tipPageUrl(ctx.username);
+  return text
+    .replace(/\{url\}/gi, url)
+    .replace(/\{nome\}/gi, ctx.displayName)
+    .replace(/\{usuario\}/gi, ctx.username)
+    .trim()
+    .slice(0, MAX_RESPONSE_LEN);
+}
+
 export function renderCommandResponse(
   command: ChatBotCommand,
   settings: ChatBotSettings,
@@ -138,14 +188,14 @@ export function renderCommandResponse(
   if (command.trigger === "ajuda" && !command.response.trim()) {
     return buildHelpResponse(settings, settings.prefix);
   }
+  return applyTemplate(command.response, ctx);
+}
 
-  const url = tipPageUrl(ctx.username);
-  const text = command.response
-    .replace(/\{url\}/gi, url)
-    .replace(/\{nome\}/gi, ctx.displayName)
-    .replace(/\{usuario\}/gi, ctx.username);
-
-  return text.trim().slice(0, MAX_RESPONSE_LEN);
+export function renderRotatingMessage(
+  message: ChatBotRotatingMessage,
+  ctx: ChatBotRenderContext,
+): string {
+  return applyTemplate(message.text, ctx);
 }
 
 export function findMatchingCommand(
@@ -166,3 +216,10 @@ export function findMatchingCommand(
   );
   return command ?? null;
 }
+
+export {
+  MIN_ROTATING_INTERVAL_SEC,
+  MAX_ROTATING_INTERVAL_SEC,
+  DEFAULT_ROTATING_INTERVAL_SEC,
+  MAX_ROTATING,
+};
