@@ -1,18 +1,20 @@
-import { AdminSettingsForm } from "@/components/admin/AdminSettingsForm";
-import { getAdminSettings } from "@/lib/repositories/admin-settings-repository";
+import { AdminSettingsPanel } from "@/components/admin/AdminSettingsPanel";
+import { getAdminPlatformStatus } from "@/lib/repositories/admin-platform-status";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const settings = await getAdminSettings();
+  const status = getAdminPlatformStatus();
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold">Configurações globais</h2>
+        <h2 className="text-xl font-semibold">Configurações</h2>
         <p className="text-sm text-zinc-400">
-          Parâmetros da plataforma aplicados a todos os criadores.
+          Status operacional da plataforma: taxas, e-mail e integrações.
         </p>
       </div>
-      <AdminSettingsForm initialSettings={settings} />
+      <AdminSettingsPanel status={status} />
     </div>
   );
 }
