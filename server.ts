@@ -26,12 +26,22 @@ const hostname =
 const port = parseInt(process.env.PORT ?? "3000", 10);
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
-const REQUIRED_ENV = ["AUTH_SECRET", "DATABASE_URL", "NEXT_PUBLIC_APP_URL", "RESEND_API_KEY"];
+const REQUIRED_ENV = ["AUTH_SECRET", "DATABASE_URL", "NEXT_PUBLIC_APP_URL"];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     console.error(`[boot] Missing required env var: ${key}`);
     if (!dev) process.exit(1);
   }
+}
+
+const hasEmail =
+  Boolean(process.env.SMTP_HOST?.trim() && process.env.SMTP_USER?.trim() && process.env.SMTP_PASS?.trim()) ||
+  Boolean(process.env.RESEND_API_KEY?.trim());
+if (!hasEmail) {
+  console.error(
+    "[boot] Missing email provider: configure SMTP_HOST/SMTP_USER/SMTP_PASS (Hostinger) or RESEND_API_KEY",
+  );
+  if (!dev) process.exit(1);
 }
 
 const app = next({ dev, hostname, port, dir });
