@@ -9,6 +9,12 @@ import { emitDonationAlert } from "@/lib/emit-donation";
 import { computeFee, computeNetAmount, getCommissionRate } from "@/lib/finance";
 import { getCreatorWooviSubaccount } from "@/lib/payments/woovi-seller";
 import { createWooviCharge, isWooviConfigured } from "@/lib/payments/woovi";
+import {
+  createMercadoPagoPixPayment,
+  getActivePaymentProvider,
+  MercadoPagoApiError,
+  toStoredMpPaymentId,
+} from "@/lib/payments/mercadopago";
 import { TTS_VOICES } from "@/lib/tts-config";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -108,6 +114,36 @@ export async function POST(request: Request) {
     const commissionRate = getCommissionRate();
     const applicationFee = computeFee(Number(amount), commissionRate);
 
+    if (getActivePaymentProvider() === "mercadopago") {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+      const payment = await createMercadoPagoPixPayment({
+        amount: Number(amount),
+        description: `Doação para ${creator.displayName} via pix.tips`,
+        externalReference: transaction.id,
+        payerFirstName: donorName,
+        notificationUrl: appUrl ? `${appUrl}/api/webhooks/mercadopago` : undefined,
+        expiresInMinutes: 15,
+      });
+
+      await updateTransactionPayment(transaction.id, {
+        pixCode: payment.pixCode,
+        wooviPaymentId: toStoredMpPaymentId(payment.id),
+        splitPayment: false,
+        applicationFee,
+      });
+
+      return NextResponse.json({
+        transactionId: transaction.id,
+        status: transaction.status,
+        method: transaction.method,
+        pixCode: payment.pixCode,
+        paymentProvider: "mercadopago",
+        expiresIn: 900,
+        amount: transaction.amount,
+        mock: false,
+      });
+    }
+
       if (!isWooviConfigured()) {
         return NextResponse.json(
           { error: "Recebimentos Pix indisponíveis no momento." },
@@ -170,6 +206,9 @@ export async function POST(request: Request) {
       });
   } catch (error) {
     console.error("[donate]", error);
+    if (error instanceof MercadoPagoApiError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     return NextResponse.json(
       { error: "Erro ao processar doação. Tente novamente." },
       { status: 500 },

@@ -91,7 +91,7 @@ export function FinanceDashboard({
   const [withdrawOtpSending, setWithdrawOtpSending] = useState(false);
   const [pendingWithdraw, setPendingWithdraw] = useState<{
     amount: number;
-    pixKeyId: string;
+    pixKeyId?: string;
   } | null>(null);
   const [showAddKeyForm, setShowAddKeyForm] = useState(false);
   const [removingKeyId, setRemovingKeyId] = useState<string | null>(null);
@@ -102,6 +102,18 @@ export function FinanceDashboard({
       initialOverview.woovi.pixKeys[0]?.id ??
       null,
   );
+
+  const [payoutPixKey, setPayoutPixKey] = useState(
+    initialOverview.payoutSettings.pixKey ?? "",
+  );
+  const [payoutPixKeyType, setPayoutPixKeyType] = useState<PixKeyType>(
+    initialOverview.payoutSettings.pixKeyType ?? "email",
+  );
+  const [payoutHolderName, setPayoutHolderName] = useState(
+    initialOverview.payoutSettings.pixHolderName ?? "",
+  );
+  const [savingPayoutSettings, setSavingPayoutSettings] = useState(false);
+  const [editingPayoutSettings, setEditingPayoutSettings] = useState(false);
 
   const [extratoItems, setExtratoItems] = useState<Transaction[]>(
     initialOverview.recentTransactions,
@@ -213,8 +225,8 @@ export function FinanceDashboard({
   const withdrawPreview = useMemo(() => {
     const parsed = parseWithdrawAmount(withdrawAmount);
     if (parsed == null || parsed <= 0) return null;
-    return computeWooviWithdrawFees(parsed);
-  }, [withdrawAmount]);
+    return computeWooviWithdrawFees(parsed, overview.woovi.payoutFee);
+  }, [withdrawAmount, overview.woovi.payoutFee]);
 
   async function handleConnectWoovi(event: FormEvent) {
     event.preventDefault();
@@ -311,7 +323,10 @@ export function FinanceDashboard({
     setError(null);
     setWithdrawingWoovi(true);
     try {
-      const res = await fetch("/api/user/woovi/withdraw", {
+      const endpoint = mpMode
+        ? "/api/user/finance/withdraw"
+        : "/api/user/woovi/withdraw";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -321,7 +336,11 @@ export function FinanceDashboard({
           totpCode: withdrawTotpCode || undefined,
         }),
       });
-      const data = (await res.json()) as { error?: string; value?: number };
+      const data = (await res.json()) as {
+        error?: string;
+        value?: number;
+        message?: string;
+      };
       if (!res.ok) {
         setError(data.error ?? "Erro ao sacar saldo.");
         return;
@@ -331,11 +350,12 @@ export function FinanceDashboard({
       setWithdrawOtp("");
       setWithdrawTotpCode("");
       setToast(
-        data.value != null
-          ? `R$ ${data.value.toFixed(2).replace(".", ",")} enviados para sua chave Pix!`
-          : "Saque solicitado com sucesso!",
+        data.message ??
+          (data.value != null
+            ? `R$ ${data.value.toFixed(2).replace(".", ",")} enviados para sua chave Pix!`
+            : "Saque solicitado com sucesso!"),
       );
-      setTimeout(() => setToast(null), 5000);
+      setTimeout(() => setToast(null), 6000);
       setWithdrawAmount("");
       await refreshOverview();
       if (tab === "extrato" && extratoView === "saques") {
@@ -343,6 +363,97 @@ export function FinanceDashboard({
       }
     } finally {
       setWithdrawingWoovi(false);
+    }
+  }
+
+  async function handleSavePayoutSettings(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+
+    if (!payoutPixKey.trim() || !payoutHolderName.trim()) {
+      setError("Informe a chave Pix e o nome do titular.");
+      return;
+    }
+
+    setSavingPayoutSettings(true);
+    try {
+      const res = await fetch("/api/user/finance/payout-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pixKey: payoutPixKey,
+          pixKeyType: payoutPixKeyType,
+          pixHolderName: payoutHolderName,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Erro ao salvar chave Pix.");
+        return;
+      }
+      setEditingPayoutSettings(false);
+      setToast("Chave Pix de saque salva!");
+      setTimeout(() => setToast(null), 4000);
+      await refreshOverview();
+    } finally {
+      setSavingPayoutSettings(false);
+    }
+  }
+
+  async function handleRequestWithdrawMp() {
+    setError(null);
+    const parsed = parseWithdrawAmount(withdrawAmount);
+    if (parsed == null || parsed <= 0) {
+      setError("Informe um valor válido para saque.");
+      return;
+    }
+    if (parsed < MIN_WITHDRAW_AMOUNT) {
+      setError(
+        `Valor mínimo para saque: R$ ${MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}`,
+      );
+      return;
+    }
+    const fees = computeWooviWithdrawFees(parsed, overview.woovi.payoutFee);
+    if (fees.grossAmount > overview.availableBalance + 0.001) {
+      setError(
+        `Saldo insuficiente. Para receber ${formatCurrency(fees.netAmount)}, é necessário ter ${formatCurrency(fees.grossAmount)} incluindo a taxa.`,
+      );
+      return;
+    }
+    if (!overview.payoutSettings.configured) {
+      setError("Cadastre sua chave Pix de destino antes de solicitar o saque.");
+      return;
+    }
+
+    setWithdrawOtpSending(true);
+    try {
+      const res = await fetch("/api/user/finance/withdraw/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: parsed }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        totpEnabled?: boolean;
+        devCode?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Erro ao enviar código de verificação.");
+        return;
+      }
+
+      setPendingWithdraw({ amount: parsed });
+      setWithdrawTotpEnabled(Boolean(data.totpEnabled));
+      setWithdrawOtp("");
+      setWithdrawTotpCode("");
+      setWithdrawOtpOpen(true);
+
+      if (data.devCode) {
+        setToast(`[dev] Código de saque: ${data.devCode}`);
+        setTimeout(() => setToast(null), 15000);
+      }
+    } finally {
+      setWithdrawOtpSending(false);
     }
   }
 
@@ -449,8 +560,9 @@ export function FinanceDashboard({
     URL.revokeObjectURL(url);
   }
 
+  const mpMode = overview.paymentProvider === "mercadopago";
   const wooviConnected = overview.woovi.connected;
-  const wooviConfigured = overview.woovi.splitEnabled;
+  const wooviConfigured = !mpMode && overview.woovi.splitEnabled;
   const kycApproved = overview.kyc.canWithdraw;
   const pixKeys = overview.woovi.pixKeys;
   const maxPixKeys = overview.woovi.maxPixKeys;
@@ -482,9 +594,11 @@ export function FinanceDashboard({
     }
   }, [pixKeys, selectedWithdrawKeyId]);
 
-  const payoutSubtitle = wooviConfigured
-    ? "Receba doações Pix direto na sua chave cadastrada."
-    : "Configure os recebimentos Pix para habilitar doações.";
+  const payoutSubtitle = mpMode
+    ? "Doações caem no seu saldo. Solicite o saque quando quiser."
+    : wooviConfigured
+      ? "Receba doações Pix direto na sua chave cadastrada."
+      : "Configure os recebimentos Pix para habilitar doações.";
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -497,6 +611,238 @@ export function FinanceDashboard({
           Taxa {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}
         </span>
       </div>
+
+      {mpMode && (
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-white">Saque do saldo</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                Solicite o saque e o valor é enviado para sua chave Pix em até{" "}
+                <strong className="text-zinc-200">24h úteis</strong>.
+              </p>
+
+              <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  Saldo disponível
+                </p>
+                <p className="mt-1 text-3xl font-bold text-emerald-400">
+                  {formatCurrency(overview.availableBalance)}
+                </p>
+                {overview.pendingBalance > 0 && (
+                  <p className="mt-1 text-xs text-zinc-500">
+                    + {formatCurrency(overview.pendingBalance)} aguardando confirmação
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  Chave Pix de destino
+                </p>
+                {overview.payoutSettings.configured && !editingPayoutSettings ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-zinc-100">
+                        {overview.payoutSettings.pixKeyMasked}
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        {overview.payoutSettings.pixHolderName}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingPayoutSettings(true)}
+                      className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-200"
+                    >
+                      Alterar
+                    </button>
+                  </div>
+                ) : !kycApproved ? (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-100">
+                    <p>
+                      Antes de cadastrar a chave Pix, você precisa{" "}
+                      <strong>validar sua conta</strong> com verificação de identidade.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setTab("verificacao")}
+                      className="web3-btn-primary mt-3 inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Ir para verificação
+                    </button>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={handleSavePayoutSettings}
+                    className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4"
+                  >
+                    <div>
+                      <label
+                        htmlFor="payout-key-type"
+                        className="mb-1 block text-xs font-medium text-zinc-400"
+                      >
+                        Tipo de chave
+                      </label>
+                      <select
+                        id="payout-key-type"
+                        value={payoutPixKeyType}
+                        onChange={(e) => setPayoutPixKeyType(e.target.value as PixKeyType)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                      >
+                        {PIX_KEY_TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="payout-key"
+                        className="mb-1 block text-xs font-medium text-zinc-400"
+                      >
+                        Chave Pix
+                      </label>
+                      <input
+                        id="payout-key"
+                        type="text"
+                        value={payoutPixKey}
+                        onChange={(e) => setPayoutPixKey(e.target.value)}
+                        placeholder="ex.: seu@email.com"
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="payout-holder"
+                        className="mb-1 block text-xs font-medium text-zinc-400"
+                      >
+                        Nome do titular
+                      </label>
+                      <input
+                        id="payout-holder"
+                        type="text"
+                        value={payoutHolderName}
+                        onChange={(e) => setPayoutHolderName(e.target.value)}
+                        placeholder="Nome completo do dono da chave"
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={savingPayoutSettings}
+                        className="web3-btn-primary flex-1 rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                      >
+                        {savingPayoutSettings ? "Salvando…" : "Salvar chave Pix"}
+                      </button>
+                      {editingPayoutSettings && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingPayoutSettings(false)}
+                          className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300"
+                        >
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4 self-start">
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Solicitar saque
+              </p>
+              <label
+                htmlFor="withdraw-amount-mp"
+                className="mt-3 mb-1 block text-xs font-medium text-zinc-400"
+              >
+                Valor que você quer receber
+              </label>
+              <div className="flex gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-500">
+                    R$
+                  </span>
+                  <input
+                    id="withdraw-amount-mp"
+                    type="text"
+                    inputMode="decimal"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="0,00"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-white"
+                  />
+                </div>
+                {overview.availableBalance - overview.woovi.payoutFee > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setWithdrawAmount(
+                        Math.max(
+                          0,
+                          Math.round(
+                            (overview.availableBalance - overview.woovi.payoutFee) * 100,
+                          ) / 100,
+                        )
+                          .toFixed(2)
+                          .replace(".", ","),
+                      )
+                    }
+                    className="shrink-0 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                  >
+                    Máx.
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-zinc-500">
+                Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")} · taxa de{" "}
+                {formatCurrency(overview.woovi.payoutFee)} somada ao valor
+              </p>
+              {withdrawPreview && withdrawPreview.netAmount > 0 && (
+                <p className="mt-2 text-xs text-zinc-400">
+                  Você recebe{" "}
+                  <span className="font-medium text-emerald-300">
+                    {formatCurrency(withdrawPreview.netAmount)}
+                  </span>
+                  <span className="text-zinc-500">
+                    {" "}
+                    (debita {formatCurrency(withdrawPreview.grossAmount)} do saldo,
+                    incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
+                  </span>
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => void handleRequestWithdrawMp()}
+                disabled={
+                  withdrawOtpSending ||
+                  withdrawingWoovi ||
+                  !kycApproved ||
+                  overview.availableBalance <= 0 ||
+                  !withdrawAmount.trim() ||
+                  !overview.payoutSettings.configured
+                }
+                className="web3-btn-primary mt-3 w-full rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {withdrawOtpSending
+                  ? "Enviando código…"
+                  : withdrawingWoovi
+                    ? "Solicitando…"
+                    : "Solicitar saque"}
+              </button>
+              <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
+                Após a confirmação, o Pix é enviado para sua chave em até 24h úteis.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {wooviConfigured && (
         <section
@@ -1098,7 +1444,8 @@ export function FinanceDashboard({
           <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-zinc-100">Confirmar saque</h3>
             <p className="mt-2 text-sm text-zinc-400">
-              Enviamos um código para seu e-mail. Informe-o para sacar{" "}
+              Enviamos um código para seu e-mail. Informe-o para{" "}
+              {mpMode ? "solicitar o saque de" : "sacar"}{" "}
               <strong className="text-zinc-200">
                 {formatCurrency(pendingWithdraw.amount)}
               </strong>

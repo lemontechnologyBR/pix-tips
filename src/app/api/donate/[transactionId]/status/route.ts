@@ -9,6 +9,12 @@ import {
   getWooviChargeStatus,
   isWooviChargePaid,
 } from "@/lib/payments/woovi";
+import {
+  fromStoredMpPaymentId,
+  getMercadoPagoPayment,
+  isMercadoPagoPaymentApproved,
+  isMercadoPagoPaymentExpired,
+} from "@/lib/payments/mercadopago";
 import { getPrisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -58,6 +64,34 @@ export async function GET(
     if (transaction.wooviPaymentId) {
       if (transaction.wooviPaymentId.startsWith("mock_")) {
         return NextResponse.json({ status: transaction.status });
+      }
+
+      const mpPaymentId = fromStoredMpPaymentId(transaction.wooviPaymentId);
+      if (mpPaymentId) {
+        const payment = await getMercadoPagoPayment(mpPaymentId);
+        if (!payment) {
+          return NextResponse.json({ status: transaction.status });
+        }
+
+        if (isMercadoPagoPaymentApproved(payment.status)) {
+          const confirmed = await confirmTransaction(transactionId);
+          if (confirmed) {
+            try {
+              await emitDonationAlert(confirmed);
+            } catch {
+              // Socket pode não estar pronto
+            }
+            return NextResponse.json({ status: "confirmed" });
+          }
+          return NextResponse.json({ status: transaction.status });
+        }
+
+        if (isMercadoPagoPaymentExpired(payment.status)) {
+          await markExpired(transactionId);
+          return NextResponse.json({ status: "expired" });
+        }
+
+        return NextResponse.json({ status: "pending" });
       }
 
       const charge = await getWooviChargeStatus(transactionId);

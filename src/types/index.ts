@@ -599,6 +599,8 @@ export interface WooviConnectionInfo {
 }
 
 export interface FinanceOverview {
+  /** Provider ativo de recebimento Pix. */
+  paymentProvider: "mercadopago" | "woovi";
   availableBalance: number;
   pendingBalance: number;
   totalWithdrawn: number;

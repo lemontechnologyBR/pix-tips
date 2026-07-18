@@ -15,6 +15,7 @@ import {
   getWooviConnectionStatus,
   isWooviSplitConfigured,
 } from "@/lib/payments/woovi-seller";
+import { getActivePaymentProvider } from "@/lib/payments/mercadopago";
 import type { FinanceOverview, Payout, PixKeyType } from "@/types";
 
 const ACTIVE_PAYOUT_STATUSES = ["pending", "processing", "completed"];
@@ -147,9 +148,24 @@ export async function getFinanceOverview(
     return sum + tx.amount;
   }, 0);
   const kyc = await getKycProfile(creatorId);
-  const wooviStatus = await getWooviConnectionStatus(creatorId);
+  const paymentProvider = getActivePaymentProvider();
+  const wooviStatus =
+    paymentProvider === "woovi"
+      ? await getWooviConnectionStatus(creatorId)
+      : {
+          connected: false,
+          maxPixKeys: 0,
+          pixKeys: [],
+          pixKeyMasked: null,
+          pixKeyType: null,
+          subaccountName: null,
+          wooviSubaccountLabel: null,
+          subaccountBalance: 0,
+          withdrawBlocked: false,
+        };
 
   return {
+    paymentProvider,
     availableBalance: creator.availableBalance,
     pendingBalance,
     totalWithdrawn: creator.totalWithdrawn,
@@ -173,7 +189,7 @@ export async function getFinanceOverview(
       configured: Boolean(creator.pixKey && creator.pixHolderName),
     },
     woovi: {
-      splitEnabled: isWooviSplitConfigured(),
+      splitEnabled: paymentProvider === "woovi" && isWooviSplitConfigured(),
       connected: wooviStatus.connected,
       maxPixKeys: wooviStatus.maxPixKeys,
       pixKeys: wooviStatus.pixKeys,
@@ -252,17 +268,18 @@ export async function listPayouts(
 }
 
 /**
- * Cria um payout manual com status "pending" para processamento posterior.
+ * Solicitação de saque manual: cria um payout "pending" que debita
+ * (valor + taxa de saque) do saldo. O admin envia o Pix e marca como
+ * concluído no painel /admin/payouts.
  *
- * @deprecated Este fluxo de saque manual foi descontinuado. Use o saque
- * automático via Woovi Pix Out em `/api/user/woovi/withdraw`, que executa
- * o pagamento imediatamente via `recordWooviWithdrawal`. Esta função existe
- * apenas para manter compatibilidade com registros históricos.
+ * @param amount Valor líquido que o criador quer receber na chave Pix.
  */
 export async function requestWithdrawal(
   creatorId: string,
   amount: number,
 ): Promise<Payout> {
+  await syncCreatorBalance(creatorId);
+
   const creator = await prisma.creator.findUnique({ where: { id: creatorId } });
   if (!creator) throw new Error("Creator not found");
 
@@ -279,22 +296,26 @@ export async function requestWithdrawal(
     throw new Error(`Valor mínimo para saque: R$ ${MIN_WITHDRAW_AMOUNT.toFixed(2)}`);
   }
 
-  if (amount > creator.availableBalance) {
-    throw new Error("Saldo insuficiente");
+  const fee = computeWooviPayoutFee();
+  const grossAmount = Math.round((amount + fee) * 100) / 100;
+
+  if (grossAmount > creator.availableBalance + 0.001) {
+    throw new Error("Saldo insuficiente (valor + taxa de saque)");
   }
 
   const masked = maskPixKey(creator.pixKey, creator.pixKeyType);
 
   const payout = await prisma.$transaction(async (tx) => {
     const current = await tx.creator.findUnique({ where: { id: creatorId } });
-    if (!current || amount > current.availableBalance) {
-      throw new Error("Saldo insuficiente");
+    if (!current || grossAmount > current.availableBalance + 0.001) {
+      throw new Error("Saldo insuficiente (valor + taxa de saque)");
     }
 
     const row = await tx.payout.create({
       data: {
         creatorId,
-        amount,
+        amount: grossAmount,
+        fee,
         status: "pending",
         pixKey: masked,
       },
@@ -303,7 +324,7 @@ export async function requestWithdrawal(
     await tx.creator.update({
       where: { id: creatorId },
       data: {
-        availableBalance: { decrement: amount },
+        availableBalance: { decrement: grossAmount },
       },
     });
 
