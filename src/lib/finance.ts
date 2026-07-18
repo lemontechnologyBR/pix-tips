@@ -3,9 +3,9 @@ export const COMMISSION_RATE = 2.5;
 
 /**
  * Taxa fixa por doação (R$).
- * Cobre a taxa mínima de Pix in da Woovi (~R$ 0,50) e margem operacional.
+ * Modelo atual: apenas percentual — sem taxa fixa.
  */
-export const COMMISSION_FIXED_FEE = 0.5;
+export const COMMISSION_FIXED_FEE = 0;
 
 export const MIN_WITHDRAW_AMOUNT = 20;
 
@@ -17,7 +17,7 @@ export function getCommissionFixedFee(): number {
   return COMMISSION_FIXED_FEE;
 }
 
-/** Taxa total da plataforma: percentual + fixo. */
+/** Taxa total da plataforma: percentual + fixo (fixo pode ser 0). */
 export function computeFee(
   amount: number,
   commissionRate: number = COMMISSION_RATE,
@@ -37,22 +37,23 @@ export function computeNetAmount(
   return Math.round((amount - computeFee(amount, commissionRate, fixedFee)) * 100) / 100;
 }
 
-/** Texto curto para UI: "2,5% + R$ 0,50". */
+/** Texto curto para UI: "2,5%" ou "2,5% + R$ 0,50" se houver fixo. */
 export function formatCommissionLabel(
   rate: number = COMMISSION_RATE,
   fixedFee: number = COMMISSION_FIXED_FEE,
 ): string {
   const rateLabel = String(rate).replace(".", ",");
+  if (!fixedFee || fixedFee <= 0) return `${rateLabel}%`;
   const fixed = fixedFee.toFixed(2).replace(".", ",");
   return `${rateLabel}% + R$ ${fixed}`;
 }
 
 /**
- * Taxa fixa de saque para cobrir custos operacionais de transferência Pix.
- * Configurável via WOOVI_PAYOUT_FEE (padrão R$ 2,50).
+ * Taxa fixa de saque (R$).
+ * Configurável via WOOVI_PAYOUT_FEE (padrão 0 — saque gratuito).
  */
 export function computeWooviPayoutFee(): number {
-  return Number(process.env.WOOVI_PAYOUT_FEE ?? 2.5);
+  return Number(process.env.WOOVI_PAYOUT_FEE ?? 0);
 }
 
 /** Taxa por Pix recebido (referência; incluída na WOOVI_PAYOUT_FEE). */

@@ -11,7 +11,7 @@ export function PricingSection() {
   const [donationCount, setDonationCount] = useState(50);
 
   const gross = donationCount * AVG_DONATION;
-  // Taxa por doação × quantidade (2,5% + R$ 0,50 em cada uma)
+  // Taxa por doação × quantidade (2,5% em cada uma)
   const fee = donationCount * computeFee(AVG_DONATION);
   const net = gross - fee;
   const commissionLabel = formatCommissionLabel();

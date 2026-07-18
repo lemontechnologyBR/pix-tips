@@ -269,8 +269,8 @@ export async function listPayouts(
 
 /**
  * Solicitação de saque manual: cria um payout "pending" que debita
- * (valor + taxa de saque) do saldo. O admin envia o Pix e marca como
- * concluído no painel /admin/payouts.
+ * o valor (e a taxa de saque, se houver) do saldo. O admin envia o Pix
+ * e marca como concluído no painel /admin/payouts.
  *
  * @param amount Valor líquido que o criador quer receber na chave Pix.
  */
@@ -300,7 +300,11 @@ export async function requestWithdrawal(
   const grossAmount = Math.round((amount + fee) * 100) / 100;
 
   if (grossAmount > creator.availableBalance + 0.001) {
-    throw new Error("Saldo insuficiente (valor + taxa de saque)");
+    throw new Error(
+      fee > 0
+        ? "Saldo insuficiente (valor + taxa de saque)"
+        : "Saldo insuficiente",
+    );
   }
 
   const masked = maskPixKey(creator.pixKey, creator.pixKeyType);
@@ -308,7 +312,11 @@ export async function requestWithdrawal(
   const payout = await prisma.$transaction(async (tx) => {
     const current = await tx.creator.findUnique({ where: { id: creatorId } });
     if (!current || grossAmount > current.availableBalance + 0.001) {
-      throw new Error("Saldo insuficiente (valor + taxa de saque)");
+      throw new Error(
+        fee > 0
+          ? "Saldo insuficiente (valor + taxa de saque)"
+          : "Saldo insuficiente",
+      );
     }
 
     const row = await tx.payout.create({

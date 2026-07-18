@@ -801,8 +801,10 @@ export function FinanceDashboard({
                 )}
               </div>
               <p className="mt-1 text-xs text-zinc-500">
-                Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")} · taxa de{" "}
-                {formatCurrency(overview.woovi.payoutFee)} somada ao valor
+                Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}
+                {overview.woovi.payoutFee > 0
+                  ? ` · taxa de ${formatCurrency(overview.woovi.payoutFee)} somada ao valor`
+                  : " · saque gratuito"}
               </p>
               {withdrawPreview && withdrawPreview.netAmount > 0 && (
                 <p className="mt-2 text-xs text-zinc-400">
@@ -810,11 +812,15 @@ export function FinanceDashboard({
                   <span className="font-medium text-emerald-300">
                     {formatCurrency(withdrawPreview.netAmount)}
                   </span>
-                  <span className="text-zinc-500">
-                    {" "}
-                    (debita {formatCurrency(withdrawPreview.grossAmount)} do saldo,
-                    incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
-                  </span>
+                  {withdrawPreview.payoutFee > 0 ? (
+                    <span className="text-zinc-500">
+                      {" "}
+                      (debita {formatCurrency(withdrawPreview.grossAmount)} do saldo,
+                      incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500"> (sem taxa de saque)</span>
+                  )}
                 </p>
               )}
               <button
@@ -855,8 +861,8 @@ export function FinanceDashboard({
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-semibold text-white">Recebimentos Pix</h2>
-              <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300">
+              <div className="mt-4 flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-300">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -876,18 +882,14 @@ export function FinanceDashboard({
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-amber-300">
-                    Taxa de saque
+                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-300">
+                    Saque gratuito
                   </p>
                   <p className="mt-1 text-sm text-zinc-200">
-                    Taxa fixa de{" "}
-                    <span className="font-semibold text-amber-200">
-                      {formatCurrency(overview.woovi.payoutFee)}
-                    </span>{" "}
-                    por saque
+                    Sem taxa de saque — você recebe o valor integral solicitado.
                   </p>
                   <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                    Essa taxa cobre os custos de transferência Pix e ajuda a manter a plataforma gratuita para todos os criadores.
+                    A única taxa da plataforma é {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)} na doação.
                   </p>
                 </div>
               </div>
@@ -1052,10 +1054,15 @@ export function FinanceDashboard({
                             )}
                           </div>
                           <p className="mt-1 text-xs text-zinc-500">
-                            Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")} · taxa de {formatCurrency(overview.woovi.payoutFee)} somada ao valor
+                            Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}
+                            {overview.woovi.payoutFee > 0
+                              ? ` · taxa de ${formatCurrency(overview.woovi.payoutFee)} somada ao valor`
+                              : " · saque gratuito"}
                           </p>
                           <p className="mt-1.5 text-xs text-zinc-500 leading-relaxed">
-                            A taxa cobre os custos de transferência e ajuda a manter a plataforma gratuita.
+                            {overview.woovi.payoutFee > 0
+                              ? "A taxa cobre os custos de transferência e ajuda a manter a plataforma gratuita."
+                              : "Saque sem taxa adicional — você recebe o valor solicitado."}
                           </p>
                           {withdrawPreview && withdrawPreview.netAmount > 0 && (
                             <p className="mt-2 text-xs text-zinc-400">
@@ -1063,11 +1070,15 @@ export function FinanceDashboard({
                               <span className="font-medium text-emerald-300">
                                 {formatCurrency(withdrawPreview.netAmount)}
                               </span>
-                              <span className="text-zinc-500">
-                                {" "}
-                                (debita {formatCurrency(withdrawPreview.grossAmount)} da chave,
-                                incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
-                              </span>
+                              {withdrawPreview.payoutFee > 0 ? (
+                                <span className="text-zinc-500">
+                                  {" "}
+                                  (debita {formatCurrency(withdrawPreview.grossAmount)} da chave,
+                                  incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
+                                </span>
+                              ) : (
+                                <span className="text-zinc-500"> (sem taxa de saque)</span>
+                              )}
                             </p>
                           )}
                           <button
@@ -1097,7 +1108,10 @@ export function FinanceDashboard({
                     Doações caem na chave <strong className="text-zinc-300">principal</strong>.
                     Comissão pix.tips (
                     {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}) já
-                    descontada na doação. A taxa de saque é cobrada no momento do Saque.
+                    descontada na doação
+                    {overview.woovi.payoutFee > 0
+                      ? ". A taxa de saque é cobrada no momento do Saque."
+                      : ". Saque gratuito."}
                   </p>
                   {overview.woovi.withdrawBlocked && (
                     <p className="mt-2 text-sm text-amber-400">

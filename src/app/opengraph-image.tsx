@@ -39,7 +39,7 @@ export default async function Image() {
           Receba apoio do seu público via Pix
         </div>
         <div style={{ fontSize: 22, color: '#4ade80', marginTop: 32 }}>
-          Apenas 2,5% + R$ 0,50 • Saque imediato
+          Apenas 2,5% • Saque gratuito
         </div>
       </div>
     ),

@@ -75,7 +75,11 @@ export async function POST(request: Request) {
   const fee = computeWooviPayoutFee();
   if (amountReais + fee > creator.availableBalance + 0.001) {
     return NextResponse.json(
-      { error: "Saldo insuficiente para o valor solicitado (incluindo a taxa de saque)." },
+      {
+        error: fee > 0
+          ? "Saldo insuficiente para o valor solicitado (incluindo a taxa de saque)."
+          : "Saldo insuficiente para o valor solicitado.",
+      },
       { status: 400 },
     );
   }

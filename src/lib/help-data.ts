@@ -85,7 +85,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Existe taxa por transação?",
         answer:
-          "Taxa de 2,5% + R$ 0,50 descontada de cada doação confirmada. Não há mensalidades nem planos pagos.",
+          "Taxa de 2,5% descontada de cada doação confirmada. Não há mensalidades, taxa fixa por doação nem taxa de saque.",
       },
     ],
   },
@@ -101,7 +101,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Qual é o valor mínimo para sacar?",
         answer:
-          "R$ 20,00. Há uma taxa fixa de R$ 2,50 por saque para cobrir os custos do Pix Out e manutenção da plataforma.",
+          "R$ 20,00. O saque é gratuito — não há taxa adicional no momento do saque.",
       },
       {
         question: "Quanto tempo leva para o dinheiro chegar?",

@@ -127,12 +127,12 @@ export const FAQ_ITEMS = [
   {
     question: "Quanto custa usar a plataforma?",
     answer:
-      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos 2,5% + R$ 0,50 por doação recebida. Nada mais.",
+      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos apenas 2,5% por doação recebida. Nada mais.",
   },
   {
-    question: "Como funciona a taxa de 2,5% + R$ 0,50?",
+    question: "Como funciona a taxa de 2,5%?",
     answer:
-      "A taxa é descontada automaticamente de cada doação no momento em que ela é confirmada: 2,5% do valor + R$ 0,50 fixos. Se um fã enviar R$ 10,00, você recebe R$ 9,25 no seu saldo (R$ 0,25 + R$ 0,50 = R$ 0,75 de taxa). Não há mensalidade ou taxa de adesão.",
+      "A taxa é descontada automaticamente de cada doação no momento em que ela é confirmada: 2,5% do valor. Se um fã enviar R$ 10,00, você recebe R$ 9,75 no seu saldo. Não há mensalidade, taxa fixa por doação nem taxa de saque.",
   },
   {
     question: "Quanto tempo leva para receber o Pix?",
@@ -142,7 +142,7 @@ export const FAQ_ITEMS = [
   {
     question: "Como funciona o saque?",
     answer:
-      'No painel, clique em "Sacar", informe a chave Pix de destino e o valor. O dinheiro cai na sua conta em minutos via Pix Out. Há uma taxa fixa de R$ 2,50 por saque para cobrir os custos de transferência e ajudar a manter a plataforma gratuita para todos.',
+      'No painel Financeiro, cadastre sua chave Pix, informe o valor e solicite o saque. O valor é enviado para sua chave em até 24h úteis. O saque é gratuito — só cobramos 2,5% na doação.',
   },
   {
     question: "Preciso ter conta bancária específica?",
@@ -207,8 +207,8 @@ export const FAQ_ITEMS = [
 ] as const;
 
 export const PLATFORM_FEATURES = [
-  "2,5% + R$ 0,50 por doação recebida (sem mensalidade)",
-  "Saques imediatos via Pix Out com taxa fixa de R$ 2,50",
+  "Apenas 2,5% por doação recebida (sem mensalidade)",
+  "Saques gratuitos — solicite e receba em até 24h úteis",
   "30+ templates de alerta + sons exclusivos",
   "Widgets OBS completos (alerta, meta, QR, leaderboard, stats, viewers)",
   "50 uploads de mídia de alerta (até 20 MB)",

@@ -1,11 +1,9 @@
 "use client";
 
 import { PLATFORM_FEATURES } from "@/lib/landing-data";
-import { formatCommissionLabel, computeWooviPayoutFee } from "@/lib/finance";
+import { formatCommissionLabel } from "@/lib/finance";
 
 export function BillingContent() {
-  const payoutFee = computeWooviPayoutFee();
-
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-zinc-900/80 to-zinc-950 p-6 sm:p-8">
@@ -16,7 +14,7 @@ export function BillingContent() {
         </div>
         <h2 className="mt-4 text-2xl font-bold text-white">Plano único, sem mensalidade</h2>
         <p className="mt-2 text-sm text-zinc-400">
-          A pix.tips não cobra mensalidade. Você só paga quando recebe ou saca — simples assim.
+          A pix.tips não cobra mensalidade. Você só paga {formatCommissionLabel()} quando recebe — e o saque é gratuito.
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -29,10 +27,8 @@ export function BillingContent() {
           </div>
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>
-            <p className="mt-1 text-3xl font-black text-white">
-              R$ {payoutFee.toFixed(2).replace(".", ",")}
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">Taxa fixa por saque para cobrir custos do Pix Out</p>
+            <p className="mt-1 text-3xl font-black text-emerald-400">Grátis</p>
+            <p className="mt-1 text-xs text-zinc-500">Sem taxa adicional ao solicitar o saque</p>
           </div>
         </div>
       </div>
