@@ -140,7 +140,9 @@ export async function GET(request: Request, context: RouteContext) {
       onboardingCompleted: session.onboardingCompleted,
     };
 
-    const redirectPath = session.onboardingCompleted ? "/dashboard" : "/onboarding";
+    const redirectPath = session.onboardingCompleted
+      ? "/dashboard"
+      : "/onboarding?signup=1";
 
     if (session.totpEnabled) {
       const mfaToken = await createMfaPendingToken(sessionPayload);

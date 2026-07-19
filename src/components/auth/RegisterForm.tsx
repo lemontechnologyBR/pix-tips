@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { trackGoogleAdsSignupConversion } from "@/lib/analytics/google-ads";
 import { slugifyUsername } from "@/lib/auth/validators";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
@@ -83,6 +84,7 @@ export function RegisterForm() {
         return;
       }
 
+      trackGoogleAdsSignupConversion();
       router.push(data.redirect ?? "/onboarding");
       router.refresh();
     } catch {

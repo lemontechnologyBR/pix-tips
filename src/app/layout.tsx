@@ -5,11 +5,10 @@ import {
   BRAND_NAME,
   BRAND_TAGLINE,
 } from "@/lib/brand";
+import { GOOGLE_ADS_ID } from "@/lib/analytics/google-ads";
 import { jetbrainsMono, spaceGrotesk } from "@/lib/fonts";
 import type { Metadata } from "next";
 import "./globals.css";
-
-const GOOGLE_ADS_ID = "AW-18326325494";
 
 export const metadata: Metadata = {
   metadataBase: new URL(

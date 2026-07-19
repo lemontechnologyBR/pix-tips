@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { getSessionFromCookies } from "@/lib/auth/session";
@@ -21,10 +22,12 @@ export default async function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 py-10">
-      <OnboardingWizard
-        initialUsername={creator?.username ?? ""}
-        initialDisplayName={creator?.displayName ?? ""}
-      />
+      <Suspense fallback={null}>
+        <OnboardingWizard
+          initialUsername={creator?.username ?? ""}
+          initialDisplayName={creator?.displayName ?? ""}
+        />
+      </Suspense>
     </div>
   );
 }

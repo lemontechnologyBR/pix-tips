@@ -1,8 +1,9 @@
 "use client";
 
 import { tipPagePath } from "@/lib/brand";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { trackGoogleAdsSignupConversion } from "@/lib/analytics/google-ads";
 import { TEMPLATE_CATALOG, SOUND_CATALOG } from "@/lib/alert-catalog";
 import { playCatalogSound } from "@/lib/sounds";
 import { avatarUrlFromSeed } from "@/lib/avatar-presets";
@@ -22,6 +23,7 @@ export function OnboardingWizard({
   initialDisplayName = "",
 }: OnboardingWizardProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("welcome");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,6 +38,15 @@ export function OnboardingWizard({
     templateId: "slide-up" as AlertTemplateId,
     soundId: "ncs-correct",
   });
+
+  useEffect(() => {
+    if (searchParams.get("signup") !== "1") return;
+    // Aguarda o gtag carregar (afterInteractive)
+    const timer = window.setTimeout(() => {
+      trackGoogleAdsSignupConversion();
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [searchParams]);
 
   const stepIndex = STEPS.indexOf(step);
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
