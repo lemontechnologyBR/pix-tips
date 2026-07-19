@@ -4,17 +4,12 @@ import {
   computeNetAmount,
   getCommissionFixedFee,
   getCommissionRate,
-  computeWooviPayoutFee,
+  computePayoutFee,
   maskPixKey,
   MIN_WITHDRAW_AMOUNT,
 } from "@/lib/finance";
 import { getKycProfile } from "@/lib/repositories/kyc-repository";
-import { getAdminSettings } from "@/lib/repositories/admin-settings-repository";
 import { mapTransactionRow, type TransactionRow } from "@/lib/repositories/json-fields";
-import {
-  getWooviConnectionStatus,
-  isWooviSplitConfigured,
-} from "@/lib/payments/woovi-seller";
 import { getActivePaymentProvider } from "@/lib/payments/mercadopago";
 import type { FinanceOverview, Payout, PixKeyType } from "@/types";
 
@@ -48,9 +43,8 @@ function mapPayout(row: {
 }
 
 export async function syncCreatorBalance(creatorId: string): Promise<void> {
-  const [creator, adminSettings, confirmed, payouts] = await Promise.all([
+  const [creator, confirmed, payouts] = await Promise.all([
     prisma.creator.findUnique({ where: { id: creatorId } }),
-    getAdminSettings(),
     prisma.transaction.findMany({
       where: { creatorId, status: "confirmed" },
     }),
@@ -95,10 +89,9 @@ export async function getFinanceOverview(
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [creator, adminSettings, confirmed, pendingTx, payouts, recentTx] =
+  const [creator, confirmed, pendingTx, payouts, recentTx] =
     await Promise.all([
       prisma.creator.findUnique({ where: { id: creatorId } }),
-      getAdminSettings(),
       prisma.transaction.findMany({
         where: { creatorId, status: "confirmed" },
       }),
@@ -122,7 +115,7 @@ export async function getFinanceOverview(
   }
 
   const commissionRate = getCommissionRate();
-  const payoutFee = computeWooviPayoutFee();
+  const payoutFee = computePayoutFee();
 
   const totalGross = confirmed.reduce((sum, tx) => sum + tx.amount, 0);
   const totalFees = confirmed.reduce((sum, tx) => {
@@ -148,24 +141,9 @@ export async function getFinanceOverview(
     return sum + tx.amount;
   }, 0);
   const kyc = await getKycProfile(creatorId);
-  const paymentProvider = getActivePaymentProvider();
-  const wooviStatus =
-    paymentProvider === "woovi"
-      ? await getWooviConnectionStatus(creatorId)
-      : {
-          connected: false,
-          maxPixKeys: 0,
-          pixKeys: [],
-          pixKeyMasked: null,
-          pixKeyType: null,
-          subaccountName: null,
-          wooviSubaccountLabel: null,
-          subaccountBalance: 0,
-          withdrawBlocked: false,
-        };
 
   return {
-    paymentProvider,
+    paymentProvider: getActivePaymentProvider(),
     availableBalance: creator.availableBalance,
     pendingBalance,
     totalWithdrawn: creator.totalWithdrawn,
@@ -178,6 +156,7 @@ export async function getFinanceOverview(
     monthFees,
     monthNet,
     minWithdrawAmount: MIN_WITHDRAW_AMOUNT,
+    payoutFee,
     kyc,
     payoutSettings: {
       pixKey: creator.pixKey,
@@ -187,19 +166,6 @@ export async function getFinanceOverview(
         ? maskPixKey(creator.pixKey, creator.pixKeyType)
         : null,
       configured: Boolean(creator.pixKey && creator.pixHolderName),
-    },
-    woovi: {
-      splitEnabled: paymentProvider === "woovi" && isWooviSplitConfigured(),
-      connected: wooviStatus.connected,
-      maxPixKeys: wooviStatus.maxPixKeys,
-      pixKeys: wooviStatus.pixKeys,
-      pixKeyMasked: wooviStatus.pixKeyMasked,
-      pixKeyType: wooviStatus.pixKeyType,
-      subaccountName: wooviStatus.subaccountName,
-      wooviSubaccountLabel: wooviStatus.wooviSubaccountLabel,
-      subaccountBalance: wooviStatus.subaccountBalance,
-      withdrawBlocked: wooviStatus.withdrawBlocked,
-      payoutFee,
     },
     recentPayouts: payouts.map(mapPayout),
     recentTransactions: recentTx.map((r) =>
@@ -224,25 +190,6 @@ export async function updatePayoutSettings(
       pixHolderName: input.pixHolderName.trim(),
     },
   });
-}
-
-export async function recordWooviWithdrawal(
-  creatorId: string,
-  input: { grossAmount: number; fee: number; pixKeyMasked: string },
-): Promise<Payout> {
-  const row = await prisma.payout.create({
-    data: {
-      creatorId,
-      amount: input.grossAmount,
-      fee: input.fee,
-      status: "completed",
-      pixKey: input.pixKeyMasked,
-      completedAt: new Date(),
-    },
-  });
-
-  await syncCreatorBalance(creatorId);
-  return mapPayout(row);
 }
 
 export async function listPayouts(
@@ -296,7 +243,7 @@ export async function requestWithdrawal(
     throw new Error(`Valor mínimo para saque: R$ ${MIN_WITHDRAW_AMOUNT.toFixed(2)}`);
   }
 
-  const fee = computeWooviPayoutFee();
+  const fee = computePayoutFee();
   const grossAmount = Math.round((amount + fee) * 100) / 100;
 
   if (grossAmount > creator.availableBalance + 0.001) {

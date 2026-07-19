@@ -30,13 +30,9 @@ export function isMercadoPagoConfigured(): boolean {
   return Boolean(getAccessToken());
 }
 
-/** Provider ativo para recebimentos Pix. */
-export function getActivePaymentProvider(): "mercadopago" | "woovi" {
-  const configured = process.env.PAYMENT_PROVIDER?.trim().toLowerCase();
-  if (configured === "woovi") return "woovi";
-  if (configured === "mercadopago") return "mercadopago";
-  // Auto: prefere Mercado Pago quando o token está configurado.
-  return isMercadoPagoConfigured() ? "mercadopago" : "woovi";
+/** Provider ativo para recebimentos Pix (somente Mercado Pago). */
+export function getActivePaymentProvider(): "mercadopago" {
+  return "mercadopago";
 }
 
 export interface MercadoPagoPixPayment {

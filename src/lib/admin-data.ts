@@ -1,8 +1,8 @@
 export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
   { href: "/admin/ops", label: "Operações", icon: "🛠️" },
-  { href: "/admin/creators", label: "Criadores", icon: "👥" },
   { href: "/admin/users", label: "Usuários", icon: "🧑‍💻" },
+  { href: "/admin/subscriptions", label: "Assinaturas Pro", icon: "⭐" },
   { href: "/admin/kyc", label: "Verificações KYC", icon: "🪪" },
   { href: "/admin/transactions", label: "Transações", icon: "💰" },
   { href: "/admin/payouts", label: "Saques", icon: "💸" },
@@ -13,8 +13,8 @@ export const ADMIN_NAV = [
 export const ADMIN_PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/ops": "Operações",
-  "/admin/creators": "Criadores",
   "/admin/users": "Usuários",
+  "/admin/subscriptions": "Assinaturas Pro",
   "/admin/kyc": "Verificações KYC",
   "/admin/transactions": "Transações",
   "/admin/payouts": "Saques",

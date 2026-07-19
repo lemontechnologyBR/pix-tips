@@ -1,24 +1,18 @@
 import { NextResponse } from "next/server";
 import {
-  confirmTransaction,
   createTransaction,
   getCreatorById,
   updateTransactionPayment,
 } from "@/lib/store";
-import { emitDonationAlert } from "@/lib/emit-donation";
-import { computeFee, computeNetAmount, getCommissionRate } from "@/lib/finance";
-import { getCreatorWooviSubaccount } from "@/lib/payments/woovi-seller";
-import { createWooviCharge, isWooviConfigured } from "@/lib/payments/woovi";
+import { computeFee, getCommissionRate } from "@/lib/finance";
 import {
   createMercadoPagoPixPayment,
-  getActivePaymentProvider,
+  isMercadoPagoConfigured,
   MercadoPagoApiError,
   toStoredMpPaymentId,
 } from "@/lib/payments/mercadopago";
 import { TTS_VOICES } from "@/lib/tts-config";
 import { rateLimit } from "@/lib/rate-limit";
-
-const AUTO_CONFIRM_MS = 8000;
 
 export async function POST(request: Request) {
   const ip =
@@ -57,9 +51,9 @@ export async function POST(request: Request) {
     const message: string =
       typeof rawMessage === "string" ? rawMessage.slice(0, 300) : "";
 
-    if (!creatorId || !amount || amount < 10) {
+    if (!creatorId || !amount || Number(amount) < 1) {
       return NextResponse.json(
-        { error: "Dados inválidos. Valor mínimo: R$ 10,00" },
+        { error: "Dados inválidos. Valor mínimo: R$ 1,00" },
         { status: 400 },
       );
     }
@@ -79,7 +73,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validar valor mínimo configurado pelo criador
     const minDonation = creator.tipPageSettings?.minDonation ?? 1;
     if (Number(amount) < minDonation) {
       return NextResponse.json(
@@ -88,7 +81,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validar ttsVoiceId: só aceitar se TTS da tip page estiver ativo e a voz estiver na lista permitida
     const validTtsVoiceIds = TTS_VOICES.filter(v => v.id !== "off").map(v => v.id) as string[];
     const tipTtsEnabled = creator.tipPageSettings?.tipTtsEnabled ?? false;
     const tipTtsVoices: string[] = creator.tipPageSettings?.tipTtsVoices ?? [];
@@ -100,6 +92,13 @@ export async function POST(request: Request) {
       tipTtsVoices.includes(ttsVoiceId)
         ? ttsVoiceId
         : undefined;
+
+    if (!isMercadoPagoConfigured()) {
+      return NextResponse.json(
+        { error: "Recebimentos Pix indisponíveis no momento." },
+        { status: 503 },
+      );
+    }
 
     const transaction = await createTransaction({
       creatorId,
@@ -113,97 +112,34 @@ export async function POST(request: Request) {
 
     const commissionRate = getCommissionRate();
     const applicationFee = computeFee(Number(amount), commissionRate);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
-    if (getActivePaymentProvider() === "mercadopago") {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-      const payment = await createMercadoPagoPixPayment({
-        amount: Number(amount),
-        description: `Doação para ${creator.displayName} via pix.tips`,
-        externalReference: transaction.id,
-        payerFirstName: donorName,
-        notificationUrl: appUrl ? `${appUrl}/api/webhooks/mercadopago` : undefined,
-        expiresInMinutes: 15,
-      });
+    const payment = await createMercadoPagoPixPayment({
+      amount: Number(amount),
+      description: `Doação para ${creator.displayName} via pix.tips`,
+      externalReference: transaction.id,
+      payerFirstName: donorName,
+      notificationUrl: appUrl ? `${appUrl}/api/webhooks/mercadopago` : undefined,
+      expiresInMinutes: 15,
+    });
 
-      await updateTransactionPayment(transaction.id, {
-        pixCode: payment.pixCode,
-        wooviPaymentId: toStoredMpPaymentId(payment.id),
-        splitPayment: false,
-        applicationFee,
-      });
+    await updateTransactionPayment(transaction.id, {
+      pixCode: payment.pixCode,
+      wooviPaymentId: toStoredMpPaymentId(payment.id),
+      splitPayment: false,
+      applicationFee,
+    });
 
-      return NextResponse.json({
-        transactionId: transaction.id,
-        status: transaction.status,
-        method: transaction.method,
-        pixCode: payment.pixCode,
-        paymentProvider: "mercadopago",
-        expiresIn: 900,
-        amount: transaction.amount,
-        mock: false,
-      });
-    }
-
-      if (!isWooviConfigured()) {
-        return NextResponse.json(
-          { error: "Recebimentos Pix indisponíveis no momento." },
-          { status: 503 },
-        );
-      }
-
-      const wooviSubaccount = await getCreatorWooviSubaccount(creatorId);
-
-      if (!wooviSubaccount?.pixKey) {
-        return NextResponse.json(
-          {
-            error:
-              "Este criador ainda não cadastrou a chave Pix. Doações indisponíveis no momento.",
-          },
-          { status: 503 },
-        );
-      }
-
-      const creatorAmount = computeNetAmount(Number(amount), commissionRate);
-
-      const charge = await createWooviCharge({
-        correlationID: transaction.id,
-        amount: Number(amount),
-        comment: `Doação para ${creator.displayName}`,
-        creatorPixKey: wooviSubaccount.pixKey,
-        creatorAmount,
-      });
-
-      await updateTransactionPayment(transaction.id, {
-        pixCode: charge.pixCode,
-        wooviPaymentId: charge.id,
-        splitPayment: charge.splitApplied,
-        applicationFee: charge.splitApplied ? applicationFee : undefined,
-      });
-
-      if (charge.mock && process.env.NODE_ENV !== "production") {
-        setTimeout(async () => {
-          const confirmed = await confirmTransaction(transaction.id);
-          if (confirmed) {
-            try {
-              await emitDonationAlert(confirmed);
-            } catch {
-              // Socket pode não estar pronto em build estático
-            }
-          }
-        }, AUTO_CONFIRM_MS);
-      }
-
-      return NextResponse.json({
-        transactionId: transaction.id,
-        status: transaction.status,
-        method: transaction.method,
-        pixCode: charge.pixCode,
-        wooviPaymentId: charge.id,
-        paymentProvider: "woovi",
-        expiresIn: 900,
-        amount: transaction.amount,
-        mock: charge.mock,
-      });
+    return NextResponse.json({
+      transactionId: transaction.id,
+      status: transaction.status,
+      method: transaction.method,
+      pixCode: payment.pixCode,
+      paymentProvider: "mercadopago",
+      expiresIn: 900,
+      amount: transaction.amount,
+      mock: false,
+    });
   } catch (error) {
     console.error("[donate]", error);
     if (error instanceof MercadoPagoApiError) {

@@ -11,7 +11,7 @@ export default async function AdminOpsPage() {
       <div>
         <h2 className="text-xl font-semibold">Operações</h2>
         <p className="text-sm text-zinc-400">
-          Woovi, KYC/CPF, carteiras e detalhe de uso dos widgets OBS.
+          Mercado Pago, KYC/CPF e detalhe de uso dos widgets OBS.
         </p>
       </div>
       <AdminOpsPanel initial={structuredClone(snapshot)} />

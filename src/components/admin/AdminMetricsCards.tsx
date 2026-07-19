@@ -18,7 +18,7 @@ function ChangeBadge({ value }: { value: number }) {
 
 export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
         <p className="text-sm text-zinc-400">Total de criadores</p>
         <p className="mt-1 text-2xl font-bold">{overview.totalCreators}</p>
@@ -27,12 +27,33 @@ export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <p className="text-sm text-zinc-400">Volume de transações</p>
+        <p className="text-sm text-zinc-400">GMV total</p>
         <p className="mt-1 text-2xl font-bold text-emerald-400">
           {formatCurrency(overview.totalVolume)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
           {overview.confirmedDonations} doações confirmadas
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-5">
+        <p className="text-sm text-zinc-400">Receita da plataforma</p>
+        <p className="mt-1 text-2xl font-bold text-cyan-300">
+          {formatCurrency(overview.platformRevenue)}
+        </p>
+        <p className="mt-1 text-xs text-zinc-500">
+          Comissão cobrada nas doações
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
+        <p className="text-sm text-zinc-400">Lucro da plataforma</p>
+        <p className="mt-1 text-2xl font-bold text-emerald-300">
+          {formatCurrency(overview.platformProfit)}
+        </p>
+        <p className="mt-1 text-xs text-zinc-500">
+          Receita − {overview.mercadoPagoFeeRate}% Mercado Pago (
+          {formatCurrency(overview.mercadoPagoCost)})
         </p>
       </div>
 

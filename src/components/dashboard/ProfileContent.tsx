@@ -62,8 +62,9 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
       : profile.kyc.status === "pending"
         ? "warn"
         : "neutral";
-  const pixTone = profile.wooviPixConnected ? "ok" : "warn";
-  const payoutFee = financeOverview.woovi.payoutFee;
+  const pixConfigured = financeOverview.payoutSettings.configured;
+  const pixTone = pixConfigured ? "ok" : "warn";
+  const payoutFee = financeOverview.payoutFee;
 
   return (
     <div className="w-full space-y-8">
@@ -103,8 +104,8 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
           <StatusPill
             label="Chave Pix"
             value={
-              profile.wooviPixConnected
-                ? profile.wooviPixKeyMasked ?? "Cadastrada"
+              pixConfigured
+                ? financeOverview.payoutSettings.pixKeyMasked ?? "Cadastrada"
                 : "Não configurada"
             }
             tone={pixTone}
@@ -132,15 +133,21 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
               )}
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              Percentual + taxa fixa por doação confirmada
+              Descontado automaticamente em cada doação confirmada
             </p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>
-            <p className="mt-2 text-3xl font-black text-white">
-              R$ {payoutFee.toFixed(2).replace(".", ",")}
+            <p className="mt-2 text-3xl font-black text-emerald-400">
+              {payoutFee > 0
+                ? `R$ ${payoutFee.toFixed(2).replace(".", ",")}`
+                : "Grátis"}
             </p>
-            <p className="mt-1 text-xs text-zinc-500">Taxa fixa por saque (cobre custos Pix Out)</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {payoutFee > 0
+                ? "Taxa fixa por saque"
+                : "Sem taxa adicional ao solicitar o saque"}
+            </p>
           </div>
         </div>
       </section>
@@ -178,7 +185,11 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
               <ReadOnlyField label="KYC" value={kycStatusLabel(profile.kyc.status)} />
               <ReadOnlyField
                 label="Chave Pix"
-                value={profile.wooviPixConnected ? profile.wooviPixKeyMasked ?? "Cadastrada" : "Não configurada"}
+                value={
+                  pixConfigured
+                    ? financeOverview.payoutSettings.pixKeyMasked ?? "Cadastrada"
+                    : "Não configurada"
+                }
               />
               <Link
                 href="/dashboard/finance"

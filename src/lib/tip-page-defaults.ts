@@ -9,8 +9,8 @@ const VALID_LAYOUT_IDS = TIP_PAGE_LAYOUTS.map(l => l.id);
 
 export const DEFAULT_TIP_PAGE_SETTINGS: TipPageSettings = {
   goalTitle: "Meta da live",
-  presetAmounts: [10, 20, 50, 100],
-  minDonation: 10,
+  presetAmounts: [1, 5, 10, 20],
+  minDonation: 1,
   thankYouMessage: "Obrigado pelo apoio!",
   backgroundColor: "#09090b",
   backgroundStyle: "theme",

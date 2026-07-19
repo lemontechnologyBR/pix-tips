@@ -1,14 +1,14 @@
 import {
   COMMISSION_FIXED_FEE,
   COMMISSION_RATE,
-  computeWooviPayoutFee,
+  computePayoutFee,
   formatCommissionLabel,
   MIN_WITHDRAW_AMOUNT,
 } from "@/lib/finance";
 import { resolveCpfProvider } from "@/lib/kyc/cpf-provider";
 import { isDiditConfigured } from "@/lib/didit";
 import { isEmailConfigured } from "@/lib/email/email-client";
-import { isWooviConfigured } from "@/lib/payments/woovi";
+import { isMercadoPagoConfigured } from "@/lib/payments/mercadopago";
 
 export interface AdminPlatformStatus {
   appUrl: string;
@@ -27,7 +27,7 @@ export interface AdminPlatformStatus {
     minWithdraw: number;
   };
   integrations: {
-    woovi: boolean;
+    mercadoPago: boolean;
     didit: boolean;
     cpfProvider: string;
   };
@@ -52,11 +52,11 @@ export function getAdminPlatformStatus(): AdminPlatformStatus {
       commissionLabel: formatCommissionLabel(),
       commissionRate: COMMISSION_RATE,
       commissionFixedFee: COMMISSION_FIXED_FEE,
-      payoutFee: computeWooviPayoutFee(),
+      payoutFee: computePayoutFee(),
       minWithdraw: MIN_WITHDRAW_AMOUNT,
     },
     integrations: {
-      woovi: isWooviConfigured(),
+      mercadoPago: isMercadoPagoConfigured(),
       didit: isDiditConfigured(),
       cpfProvider: resolveCpfProvider(),
     },

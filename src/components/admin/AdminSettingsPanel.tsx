@@ -38,7 +38,7 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h3 className="text-base font-semibold">Taxas da plataforma</h3>
         <p className="mt-1 text-xs text-zinc-500">
-          Valores ativos no código (não editáveis por aqui — evite inconsistência com o split Woovi).
+          Valores ativos no código (não editáveis por aqui).
         </p>
         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
           <Info label="Comissão por doação" value={status.fees.commissionLabel} />
@@ -105,9 +105,9 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
         <h3 className="text-base font-semibold">Integrações</h3>
         <dl className="mt-4 grid gap-3 sm:grid-cols-3">
           <Info
-            label="Woovi / Pix"
-            value={status.integrations.woovi ? "conectado" : "off"}
-            tone={status.integrations.woovi ? "ok" : "warn"}
+            label="Mercado Pago / Pix"
+            value={status.integrations.mercadoPago ? "conectado" : "off"}
+            tone={status.integrations.mercadoPago ? "ok" : "warn"}
           />
           <Info
             label="Didit KYC"
@@ -121,7 +121,7 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
             href="/admin/ops"
             className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-300"
           >
-            Abrir Operações (carteiras / widgets)
+            Abrir Operações (widgets / KYC)
           </Link>
           <Link
             href="/admin/kyc"

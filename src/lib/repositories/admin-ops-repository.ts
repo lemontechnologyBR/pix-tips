@@ -1,12 +1,7 @@
 import { prisma } from "@/lib/db";
 import { resolveCpfProvider } from "@/lib/kyc/cpf-provider";
 import { isDiditConfigured } from "@/lib/didit";
-import {
-  getWooviMainAccountAvailable,
-  getWooviSubaccount,
-  isWooviConfigured,
-} from "@/lib/payments/woovi";
-import { maskPixKey } from "@/lib/finance";
+import { isMercadoPagoConfigured } from "@/lib/payments/mercadopago";
 
 export interface AdminOpsWidgetByType {
   widget: string;
@@ -30,19 +25,10 @@ export interface AdminOpsRecentWidget {
 }
 
 export interface AdminOpsSnapshot {
-  wooviConfigured: boolean;
-  wooviMainBalanceCents: number | null;
+  mercadoPagoConfigured: boolean;
   cpfProvider: string;
   diditConfigured: boolean;
   kyc: { status: string; count: number }[];
-  pixKeys: {
-    username: string;
-    pixKeyMasked: string;
-    isPrimary: boolean;
-    balanceCents: number | null;
-    withdrawBlocked: boolean | null;
-    remoteOk: boolean;
-  }[];
   analytics: {
     tipPageViews7d: number;
     widgetViews7d: number;
@@ -55,7 +41,7 @@ export interface AdminOpsSnapshot {
   };
   counts: {
     creators: number;
-    pixKeys: number;
+    payoutKeys: number;
     confirmedTx: number;
     pendingKyc: number;
   };
@@ -74,19 +60,18 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
   since7d.setDate(since7d.getDate() - 7);
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [kycGroups, keyRows, creators, confirmedTx, pendingKyc, tipEvents, widgetEvents] =
+  const [kycGroups, creators, confirmedTx, pendingKyc, payoutKeys, tipEvents, widgetEvents] =
     await Promise.all([
       prisma.kycVerification.groupBy({
         by: ["status"],
         _count: { _all: true },
       }),
-      prisma.creatorWooviPixKey.findMany({
-        include: { creator: { select: { username: true } } },
-        orderBy: { createdAt: "asc" },
-      }),
       prisma.creator.count(),
       prisma.transaction.count({ where: { status: "confirmed" } }),
       prisma.kycVerification.count({ where: { status: "pending" } }),
+      prisma.creator.count({
+        where: { pixKey: { not: null }, pixHolderName: { not: null } },
+      }),
       prisma.analyticsEvent
         .findMany({
           where: { type: "tip_page_view", createdAt: { gte: since7d } },
@@ -101,27 +86,6 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
         })
         .catch(() => [] as WidgetEvent[]),
     ]);
-
-  const wooviConfigured = isWooviConfigured();
-  const wooviMainBalanceCents = wooviConfigured
-    ? await getWooviMainAccountAvailable()
-    : null;
-
-  const pixKeys = await Promise.all(
-    keyRows.map(async (row) => {
-      const remote = wooviConfigured
-        ? await getWooviSubaccount(row.pixKey)
-        : null;
-      return {
-        username: row.creator.username,
-        pixKeyMasked: maskPixKey(row.pixKey, row.pixKeyType),
-        isPrimary: row.isPrimary,
-        balanceCents: remote?.balance ?? null,
-        withdrawBlocked: remote?.withdrawBlocked ?? null,
-        remoteOk: Boolean(remote),
-      };
-    }),
-  );
 
   const widgetTypeMap = new Map<string, { count: number; creators: Set<string> }>();
   const creatorWidgetMap = new Map<string, Map<string, number>>();
@@ -186,12 +150,10 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
   const shortId = (id: string) => id.slice(0, 8);
 
   return {
-    wooviConfigured,
-    wooviMainBalanceCents,
+    mercadoPagoConfigured: isMercadoPagoConfigured(),
     cpfProvider: resolveCpfProvider(),
     diditConfigured: isDiditConfigured(),
     kyc: kycGroups.map((g) => ({ status: g.status, count: g._count._all })),
-    pixKeys,
     analytics: {
       tipPageViews7d: tipEvents.length,
       widgetViews7d: widgetEvents.length,
@@ -232,7 +194,7 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
     },
     counts: {
       creators,
-      pixKeys: keyRows.length,
+      payoutKeys,
       confirmedTx,
       pendingKyc,
     },

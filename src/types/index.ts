@@ -495,8 +495,6 @@ export interface UserProfile {
   pixKeyMasked: string | null;
   pixKeyType: PixKeyType | null;
   pixHolderName: string | null;
-  wooviPixConnected: boolean;
-  wooviPixKeyMasked: string | null;
   connectedAccounts: { provider: string; createdAt: string }[];
   kyc: KycProfile;
 }
@@ -571,36 +569,9 @@ export interface FinancePayoutSettings {
   configured: boolean;
 }
 
-export interface CreatorWooviPixKeyInfo {
-  id: string;
-  pixKeyMasked: string;
-  pixKeyType: PixKeyType;
-  isPrimary: boolean;
-  balance: number;
-  withdrawBlocked: boolean;
-  wooviSubaccountLabel: string | null;
-  createdAt: string;
-}
-
-export interface WooviConnectionInfo {
-  splitEnabled: boolean;
-  connected: boolean;
-  maxPixKeys: number;
-  pixKeys: CreatorWooviPixKeyInfo[];
-  /** Chave principal (doações) — compatibilidade */
-  pixKeyMasked: string | null;
-  pixKeyType: PixKeyType | null;
-  subaccountName: string | null;
-  wooviSubaccountLabel: string | null;
-  /** Saldo total em todas as chaves (reais) */
-  subaccountBalance: number;
-  withdrawBlocked: boolean;
-  payoutFee: number;
-}
-
 export interface FinanceOverview {
   /** Provider ativo de recebimento Pix. */
-  paymentProvider: "mercadopago" | "woovi";
+  paymentProvider: "mercadopago";
   availableBalance: number;
   pendingBalance: number;
   totalWithdrawn: number;
@@ -613,9 +584,10 @@ export interface FinanceOverview {
   monthFees: number;
   monthNet: number;
   minWithdrawAmount: number;
+  /** Taxa fixa de saque (R$). */
+  payoutFee: number;
   kyc: KycProfile;
   payoutSettings: FinancePayoutSettings;
-  woovi: WooviConnectionInfo;
   recentPayouts: Payout[];
   recentTransactions: Transaction[];
 }

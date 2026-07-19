@@ -3,7 +3,7 @@ import { createWithdrawOtpChallenge } from "@/lib/auth/security-challenge";
 import { isSessionError, requireSession } from "@/lib/auth/require-session";
 import { sendEmail } from "@/lib/email/email-client";
 import { withdrawOtpEmail } from "@/lib/email/templates/withdraw-otp";
-import { computeWooviPayoutFee, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
+import { computePayoutFee, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
 import {
   getKycProfile,
   hasExclusiveApprovedKyc,
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const fee = computeWooviPayoutFee();
+  const fee = computePayoutFee();
   if (amountReais + fee > creator.availableBalance + 0.001) {
     return NextResponse.json(
       {

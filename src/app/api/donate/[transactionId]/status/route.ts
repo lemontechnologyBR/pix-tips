@@ -4,11 +4,6 @@ import {
   getTransaction,
 } from "@/lib/store";
 import { emitDonationAlert } from "@/lib/emit-donation";
-import { creditWooviSplitReserveAfterPayment } from "@/lib/payments/woovi-seller";
-import {
-  getWooviChargeStatus,
-  isWooviChargePaid,
-} from "@/lib/payments/woovi";
 import {
   fromStoredMpPaymentId,
   getMercadoPagoPayment,
@@ -18,7 +13,7 @@ import {
 import { getPrisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
-const EXPIRY_MS = 15 * 60 * 1000; // 15 minutos (mesmo valor da UI)
+const EXPIRY_MS = 15 * 60 * 1000;
 
 async function markExpired(transactionId: string): Promise<void> {
   await getPrisma().transaction.update({
@@ -52,7 +47,6 @@ export async function GET(
       return NextResponse.json({ status: "expired" });
     }
 
-    // Verifica expiração: pending há mais de 30 minutos
     if (
       transaction.status === "pending" &&
       Date.now() - new Date(transaction.createdAt).getTime() > EXPIRY_MS
@@ -61,52 +55,23 @@ export async function GET(
       return NextResponse.json({ status: "expired" });
     }
 
-    if (transaction.wooviPaymentId) {
-      if (transaction.wooviPaymentId.startsWith("mock_")) {
-        return NextResponse.json({ status: transaction.status });
-      }
+    if (!transaction.wooviPaymentId) {
+      return NextResponse.json({ status: transaction.status });
+    }
 
-      const mpPaymentId = fromStoredMpPaymentId(transaction.wooviPaymentId);
-      if (mpPaymentId) {
-        const payment = await getMercadoPagoPayment(mpPaymentId);
-        if (!payment) {
-          return NextResponse.json({ status: transaction.status });
-        }
+    const mpPaymentId = fromStoredMpPaymentId(transaction.wooviPaymentId);
+    if (!mpPaymentId) {
+      return NextResponse.json({ status: transaction.status });
+    }
 
-        if (isMercadoPagoPaymentApproved(payment.status)) {
-          const confirmed = await confirmTransaction(transactionId);
-          if (confirmed) {
-            try {
-              await emitDonationAlert(confirmed);
-            } catch {
-              // Socket pode não estar pronto
-            }
-            return NextResponse.json({ status: "confirmed" });
-          }
-          return NextResponse.json({ status: transaction.status });
-        }
+    const payment = await getMercadoPagoPayment(mpPaymentId);
+    if (!payment) {
+      return NextResponse.json({ status: transaction.status });
+    }
 
-        if (isMercadoPagoPaymentExpired(payment.status)) {
-          await markExpired(transactionId);
-          return NextResponse.json({ status: "expired" });
-        }
-
-        return NextResponse.json({ status: "pending" });
-      }
-
-      const charge = await getWooviChargeStatus(transactionId);
-
-      if (!isWooviChargePaid(charge.status)) {
-        return NextResponse.json({ status: charge.status.toLowerCase() });
-      }
-
+    if (isMercadoPagoPaymentApproved(payment.status)) {
       const confirmed = await confirmTransaction(transactionId);
       if (confirmed) {
-        await creditWooviSplitReserveAfterPayment(transaction.creatorId, {
-          id: transaction.id,
-          splitPayment: transaction.splitPayment,
-          applicationFee: transaction.applicationFee,
-        });
         try {
           await emitDonationAlert(confirmed);
         } catch {
@@ -114,11 +79,15 @@ export async function GET(
         }
         return NextResponse.json({ status: "confirmed" });
       }
-
       return NextResponse.json({ status: transaction.status });
     }
 
-    return NextResponse.json({ status: transaction.status });
+    if (isMercadoPagoPaymentExpired(payment.status)) {
+      await markExpired(transactionId);
+      return NextResponse.json({ status: "expired" });
+    }
+
+    return NextResponse.json({ status: "pending" });
   } catch (error) {
     console.error("[donate/status]", error);
     return NextResponse.json({ error: "Erro ao consultar pagamento" }, { status: 500 });

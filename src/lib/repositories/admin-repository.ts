@@ -1,22 +1,16 @@
 import { prisma } from "@/lib/db";
+import { computeFee } from "@/lib/finance";
 import { mapTransactionRow, type TransactionRow } from "@/lib/repositories/json-fields";
 import type { PlanType, Transaction, TransactionFilters } from "@/types";
 
-export interface AdminCreatorRow {
-  id: string;
-  username: string;
-  displayName: string;
-  email: string;
-  plan: string;
-  isSuspended: boolean;
-  raised: number;
-  createdAt: string;
-  transactionCount: number;
-}
-
 export interface AdminOverview {
   totalCreators: number;
+  /** GMV: soma bruta de todas as doações confirmadas. */
   totalVolume: number;
+  platformRevenue: number;
+  mercadoPagoCost: number;
+  platformProfit: number;
+  mercadoPagoFeeRate: number;
   proSubscribers: number;
   creatorsGrowth: number;
   confirmedDonations: number;
@@ -40,10 +34,28 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         where: { createdAt: { gte: prevMonthStart, lt: monthStart } },
       }),
       prisma.kycVerification.count({ where: { status: "pending" } }),
-      prisma.creatorWooviPixKey.count(),
+      prisma.creator.count({
+        where: { pixKey: { not: null }, pixHolderName: { not: null } },
+      }),
     ]);
 
   const totalVolume = confirmedTx.reduce((s, t) => s + t.amount, 0);
+  const platformRevenue = confirmedTx.reduce(
+    (sum, transaction) =>
+      sum +
+      (transaction.applicationFee != null
+        ? transaction.applicationFee
+        : computeFee(transaction.amount)),
+    0,
+  );
+  const mercadoPagoFeeRate = Number(
+    process.env.MERCADOPAGO_FEE_PERCENT ?? 1,
+  );
+  const mercadoPagoCost = confirmedTx.reduce((sum, transaction) => {
+    if (!transaction.wooviPaymentId?.startsWith("mp_")) return sum;
+    return sum + transaction.amount * (mercadoPagoFeeRate / 100);
+  }, 0);
+  const platformProfit = platformRevenue - mercadoPagoCost;
   const creatorsGrowth =
     creatorsPrevMonth > 0
       ? ((creatorsThisMonth - creatorsPrevMonth) / creatorsPrevMonth) * 100
@@ -70,6 +82,10 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   return {
     totalCreators,
     totalVolume,
+    platformRevenue: Math.round(platformRevenue * 100) / 100,
+    mercadoPagoCost: Math.round(mercadoPagoCost * 100) / 100,
+    platformProfit: Math.round(platformProfit * 100) / 100,
+    mercadoPagoFeeRate,
     proSubscribers,
     creatorsGrowth,
     confirmedDonations: confirmedTx.length,
@@ -77,41 +93,6 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     pixKeys,
     chartData,
   };
-}
-
-export async function listAllCreators(): Promise<AdminCreatorRow[]> {
-  const rows = await prisma.creator.findMany({
-    include: {
-      user: { select: { email: true } },
-      _count: { select: { transactions: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return rows.map((r) => ({
-    id: r.id,
-    username: r.username,
-    displayName: r.displayName,
-    email: r.user.email,
-    plan: r.plan,
-    isSuspended: r.isSuspended,
-    raised: r.raised,
-    createdAt: r.createdAt.toISOString(),
-    transactionCount: r._count.transactions,
-  }));
-}
-
-export async function setCreatorSuspended(
-  creatorId: string,
-  isSuspended: boolean,
-): Promise<boolean> {
-  const existing = await prisma.creator.findUnique({ where: { id: creatorId } });
-  if (!existing) return false;
-  await prisma.creator.update({
-    where: { id: creatorId },
-    data: { isSuspended },
-  });
-  return true;
 }
 
 export async function getAllTransactions(
@@ -306,6 +287,114 @@ export async function updateUser(
     totalRaised: updated.creator?.raised ?? null,
     creatorId: updated.creator?.id ?? null,
     username: updated.creator?.username ?? null,
+  };
+}
+
+// ─── Assinaturas Pro (admin) ─────────────────────────────────────────────────
+
+export interface AdminSubscriptionRow {
+  id: string;
+  creatorId: string;
+  username: string;
+  displayName: string;
+  planType: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  paidAt: string | null;
+  proExpiresAt: string | null;
+  currentPlan: string;
+}
+
+export interface AdminSubscriptionsSummary {
+  activePro: number;
+  expiringIn7d: number;
+  paidRevenue: number;
+  monthRevenue: number;
+  pendingPayments: number;
+}
+
+export async function getAdminSubscriptionsSummary(): Promise<AdminSubscriptionsSummary> {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const in7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const [activePro, expiringIn7d, paidPayments, pendingPayments] = await Promise.all([
+    prisma.creator.count({
+      where: { plan: "pro", OR: [{ proExpiresAt: null }, { proExpiresAt: { gt: now } }] },
+    }),
+    prisma.creator.count({
+      where: { plan: "pro", proExpiresAt: { gt: now, lte: in7d } },
+    }),
+    prisma.subscriptionPayment.findMany({
+      where: { status: "paid" },
+      select: { amount: true, paidAt: true, createdAt: true },
+    }),
+    prisma.subscriptionPayment.count({ where: { status: "pending" } }),
+  ]);
+
+  const paidRevenue = paidPayments.reduce((sum, p) => sum + p.amount, 0);
+  const monthRevenue = paidPayments.reduce((sum, p) => {
+    const ref = p.paidAt ?? p.createdAt;
+    return ref >= monthStart ? sum + p.amount : sum;
+  }, 0);
+
+  return {
+    activePro,
+    expiringIn7d,
+    paidRevenue: Math.round(paidRevenue * 100) / 100,
+    monthRevenue: Math.round(monthRevenue * 100) / 100,
+    pendingPayments,
+  };
+}
+
+export async function listAllSubscriptions(opts: {
+  status?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<{
+  items: AdminSubscriptionRow[];
+  total: number;
+  page: number;
+  totalPages: number;
+}> {
+  const { status = "all", page = 1, limit = 20 } = opts;
+
+  const where: { status?: string } = {};
+  if (status !== "all") where.status = status;
+
+  const [rows, total] = await Promise.all([
+    prisma.subscriptionPayment.findMany({
+      where,
+      include: {
+        creator: {
+          select: { username: true, displayName: true, plan: true, proExpiresAt: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.subscriptionPayment.count({ where }),
+  ]);
+
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      creatorId: r.creatorId,
+      username: r.creator.username,
+      displayName: r.creator.displayName,
+      planType: r.planType,
+      amount: r.amount,
+      status: r.status,
+      createdAt: r.createdAt.toISOString(),
+      paidAt: r.paidAt?.toISOString() ?? null,
+      proExpiresAt: r.creator.proExpiresAt?.toISOString() ?? null,
+      currentPlan: r.creator.plan,
+    })),
+    total,
+    page,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
   };
 }
 

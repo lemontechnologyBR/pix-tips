@@ -50,34 +50,16 @@ export function formatCommissionLabel(
 
 /**
  * Taxa fixa de saque (R$).
- * Configurável via WOOVI_PAYOUT_FEE (padrão 0 — saque gratuito).
+ * Configurável via PAYOUT_FEE (padrão 0 — saque gratuito).
  */
-export function computeWooviPayoutFee(): number {
-  return Number(process.env.WOOVI_PAYOUT_FEE ?? 0);
-}
-
-/** Taxa por Pix recebido (referência; incluída na WOOVI_PAYOUT_FEE). */
-export function computeWooviReceiveFee(amount: number): number {
-  const percent = Number(process.env.WOOVI_FEE_PERCENT ?? 0.8);
-  const minFee = Number(process.env.WOOVI_FEE_MIN ?? 0.5);
-  const maxFee = Number(process.env.WOOVI_FEE_MAX ?? 5);
-  const raw = amount * (percent / 100);
-  const fee = Math.max(minFee, Math.round(raw * 100) / 100);
-  return Math.min(maxFee, fee);
-}
-
-/** @deprecated Use computeWooviReceiveFee */
-export const computeWooviFee = computeWooviReceiveFee;
-
-/** Taxa real cobrada no Pix Out (saque → chave do criador). */
-export function computeWooviWithdrawFee(): number {
-  return Number(process.env.WOOVI_WITHDRAW_FEE ?? 1);
+export function computePayoutFee(): number {
+  return Number(process.env.PAYOUT_FEE ?? 0);
 }
 
 /** Taxa fixa cobrada além do valor que o criador deseja receber. */
-export function computeWooviWithdrawFees(
+export function computeWithdrawFees(
   netWithdrawAmount: number,
-  payoutFee = computeWooviPayoutFee(),
+  payoutFee = computePayoutFee(),
 ): {
   payoutFee: number;
   totalFees: number;
@@ -87,11 +69,6 @@ export function computeWooviWithdrawFees(
   const netAmount = Math.round(netWithdrawAmount * 100) / 100;
   const grossAmount = Math.round((netAmount + payoutFee) * 100) / 100;
   return { payoutFee, totalFees: payoutFee, grossAmount, netAmount };
-}
-
-/** Reserva na conta principal (centavos) para a taxa real de saque Pix Out. */
-export function computeWooviWithdrawReserveCents(): number {
-  return Math.round(computeWooviWithdrawFee() * 100);
 }
 
 export function maskPixKey(key: string, type?: string | null): string {

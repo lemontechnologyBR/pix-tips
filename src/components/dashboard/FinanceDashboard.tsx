@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { DiditKycVerification } from "@/components/dashboard/DiditKycVerification";
 import { KycVerificationForm } from "@/components/dashboard/KycVerificationForm";
-import { computeFee, computeNetAmount, computeWooviWithdrawFees, formatCommissionLabel, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
+import { computeFee, computeNetAmount, computeWithdrawFees, formatCommissionLabel, MIN_WITHDRAW_AMOUNT } from "@/lib/finance";
 import { formatCurrency } from "@/lib/format";
 import type {
   FinanceOverview,
@@ -79,10 +79,7 @@ export function FinanceDashboard({
   const [tab, setTab] = useState<TabId>("resumo");
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [wooviPixKey, setWooviPixKey] = useState("");
-  const [wooviPixKeyType, setWooviPixKeyType] = useState<PixKeyType>("email");
-  const [connectingWoovi, setConnectingWoovi] = useState(false);
-  const [withdrawingWoovi, setWithdrawingWoovi] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawOtpOpen, setWithdrawOtpOpen] = useState(false);
   const [withdrawOtp, setWithdrawOtp] = useState("");
@@ -91,17 +88,7 @@ export function FinanceDashboard({
   const [withdrawOtpSending, setWithdrawOtpSending] = useState(false);
   const [pendingWithdraw, setPendingWithdraw] = useState<{
     amount: number;
-    pixKeyId?: string;
   } | null>(null);
-  const [showAddKeyForm, setShowAddKeyForm] = useState(false);
-  const [removingKeyId, setRemovingKeyId] = useState<string | null>(null);
-  const [settingPrimaryKeyId, setSettingPrimaryKeyId] = useState<string | null>(null);
-  const [selectedWithdrawKeyId, setSelectedWithdrawKeyId] = useState<string | null>(
-    () =>
-      initialOverview.woovi.pixKeys.find((k) => k.isPrimary)?.id ??
-      initialOverview.woovi.pixKeys[0]?.id ??
-      null,
-  );
 
   const [payoutPixKey, setPayoutPixKey] = useState(
     initialOverview.payoutSettings.pixKey ?? "",
@@ -148,23 +135,6 @@ export function FinanceDashboard({
     }
   }, []);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("woovi_connected") === "1") {
-      setToast("Chave Pix cadastrada! Suas doações já aparecem aqui para saque.");
-      setTimeout(() => setToast(null), 5000);
-      window.history.replaceState({}, "", window.location.pathname);
-      void refreshOverview();
-    }
-    const wooviError = params.get("woovi_error");
-    if (wooviError) {
-      const wooviMessages: Record<string, string> = {
-        not_configured: "Recebimentos Pix ainda não disponíveis na plataforma.",
-      };
-      setError(wooviMessages[wooviError] ?? "Erro ao cadastrar chave Pix.");
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, [refreshOverview]);
 
   const loadExtrato = useCallback(async () => {
     setExtratoLoading(true);
@@ -225,113 +195,20 @@ export function FinanceDashboard({
   const withdrawPreview = useMemo(() => {
     const parsed = parseWithdrawAmount(withdrawAmount);
     if (parsed == null || parsed <= 0) return null;
-    return computeWooviWithdrawFees(parsed, overview.woovi.payoutFee);
-  }, [withdrawAmount, overview.woovi.payoutFee]);
-
-  async function handleConnectWoovi(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-
-    if (!wooviPixKey.trim()) {
-      setError("Informe sua chave Pix para cadastrar.");
-      return;
-    }
-
-    setConnectingWoovi(true);
-    try {
-      const res = await fetch("/api/user/woovi/connect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pixKey: wooviPixKey,
-          pixKeyType: wooviPixKeyType,
-        }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "Erro ao cadastrar chave Pix.");
-        return;
-      }
-      setWooviPixKey("");
-      setShowAddKeyForm(false);
-      setToast("Chave Pix cadastrada! Suas doações já aparecem aqui para saque.");
-      setTimeout(() => setToast(null), 5000);
-      await refreshOverview();
-    } finally {
-      setConnectingWoovi(false);
-    }
-  }
-
-  async function handleWithdrawWoovi() {
-    setError(null);
-    const parsed = parseWithdrawAmount(withdrawAmount);
-    if (parsed == null || parsed <= 0) {
-      setError("Informe um valor válido para saque.");
-      return;
-    }
-    if (parsed < MIN_WITHDRAW_AMOUNT) {
-      setError(`Valor mínimo para saque: R$ ${MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}`);
-      return;
-    }
-    const fees = computeWooviWithdrawFees(parsed);
-    if (fees.grossAmount > selectedKeyBalance) {
-      setError(
-        `Saldo insuficiente. Para receber ${formatCurrency(fees.netAmount)}, é necessário ter ${formatCurrency(fees.grossAmount)} incluindo a taxa.`,
-      );
-      return;
-    }
-    if (!selectedKey) {
-      setError("Selecione uma chave Pix para sacar.");
-      return;
-    }
-
-    setWithdrawOtpSending(true);
-    try {
-      const res = await fetch("/api/user/woovi/withdraw/request-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: parsed, pixKeyId: selectedKey.id }),
-      });
-      const data = (await res.json()) as {
-        error?: string;
-        totpEnabled?: boolean;
-        devCode?: string;
-      };
-      if (!res.ok) {
-        setError(data.error ?? "Erro ao enviar código de verificação.");
-        return;
-      }
-
-      setPendingWithdraw({ amount: parsed, pixKeyId: selectedKey.id });
-      setWithdrawTotpEnabled(Boolean(data.totpEnabled));
-      setWithdrawOtp("");
-      setWithdrawTotpCode("");
-      setWithdrawOtpOpen(true);
-
-      if (data.devCode) {
-        setToast(`[dev] Código de saque: ${data.devCode}`);
-        setTimeout(() => setToast(null), 15000);
-      }
-    } finally {
-      setWithdrawOtpSending(false);
-    }
-  }
+    return computeWithdrawFees(parsed, overview.payoutFee);
+  }, [withdrawAmount, overview.payoutFee]);
 
   async function handleConfirmWithdraw() {
     if (!pendingWithdraw) return;
 
     setError(null);
-    setWithdrawingWoovi(true);
+    setWithdrawing(true);
     try {
-      const endpoint = mpMode
-        ? "/api/user/finance/withdraw"
-        : "/api/user/woovi/withdraw";
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/user/finance/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: pendingWithdraw.amount,
-          pixKeyId: pendingWithdraw.pixKeyId,
           otp: withdrawOtp || undefined,
           totpCode: withdrawTotpCode || undefined,
         }),
@@ -362,7 +239,7 @@ export function FinanceDashboard({
         await loadExtrato();
       }
     } finally {
-      setWithdrawingWoovi(false);
+      setWithdrawing(false);
     }
   }
 
@@ -400,7 +277,7 @@ export function FinanceDashboard({
     }
   }
 
-  async function handleRequestWithdrawMp() {
+  async function handleRequestWithdraw() {
     setError(null);
     const parsed = parseWithdrawAmount(withdrawAmount);
     if (parsed == null || parsed <= 0) {
@@ -413,7 +290,7 @@ export function FinanceDashboard({
       );
       return;
     }
-    const fees = computeWooviWithdrawFees(parsed, overview.woovi.payoutFee);
+    const fees = computeWithdrawFees(parsed, overview.payoutFee);
     if (fees.grossAmount > overview.availableBalance + 0.001) {
       setError(
         `Saldo insuficiente. Para receber ${formatCurrency(fees.netAmount)}, é necessário ter ${formatCurrency(fees.grossAmount)} incluindo a taxa.`,
@@ -457,92 +334,6 @@ export function FinanceDashboard({
     }
   }
 
-  async function handleRemovePixKey(keyId: string) {
-    setError(null);
-    setRemovingKeyId(keyId);
-    try {
-      const res = await fetch(`/api/user/woovi/keys/${keyId}`, { method: "DELETE" });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "Erro ao remover chave Pix.");
-        return;
-      }
-      setToast("Chave Pix removida.");
-      setTimeout(() => setToast(null), 3000);
-      await refreshOverview();
-    } finally {
-      setRemovingKeyId(null);
-    }
-  }
-
-  async function handleSetPrimaryPixKey(keyId: string) {
-    setError(null);
-    setSettingPrimaryKeyId(keyId);
-    try {
-      const res = await fetch(`/api/user/woovi/keys/${keyId}/primary`, {
-        method: "PATCH",
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "Erro ao definir chave principal.");
-        return;
-      }
-      setToast("Chave principal atualizada — doações passam a cair nela.");
-      setTimeout(() => setToast(null), 4000);
-      await refreshOverview();
-    } finally {
-      setSettingPrimaryKeyId(null);
-    }
-  }
-
-  function renderAddPixKeyForm(submitLabel: string) {
-    return (
-      <form
-        onSubmit={handleConnectWoovi}
-        className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4"
-      >
-        <div>
-          <label htmlFor="pix-key-type" className="mb-1 block text-xs font-medium text-zinc-400">
-            Tipo de chave
-          </label>
-          <select
-            id="pix-key-type"
-            value={wooviPixKeyType}
-            onChange={(e) => setWooviPixKeyType(e.target.value as PixKeyType)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
-          >
-            {PIX_KEY_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="pix-key" className="mb-1 block text-xs font-medium text-zinc-400">
-            Chave Pix
-          </label>
-          <input
-            id="pix-key"
-            type="text"
-            value={wooviPixKey}
-            onChange={(e) => setWooviPixKey(e.target.value)}
-            placeholder="ex.: seu@email.com"
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={connectingWoovi || !wooviPixKey.trim()}
-          className="web3-btn-primary w-full rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-        >
-          {connectingWoovi ? "Cadastrando…" : submitLabel}
-        </button>
-      </form>
-    );
-  }
-
   function exportCsv() {
     const header = "Data,Doador,Bruto,Taxa,Líquido,Método,Status\n";
     const rows = extratoWithFees
@@ -560,60 +351,27 @@ export function FinanceDashboard({
     URL.revokeObjectURL(url);
   }
 
-  const mpMode = overview.paymentProvider === "mercadopago";
-  const wooviConnected = overview.woovi.connected;
-  const wooviConfigured = !mpMode && overview.woovi.splitEnabled;
   const kycApproved = overview.kyc.canWithdraw;
-  const pixKeys = overview.woovi.pixKeys;
-  const maxPixKeys = overview.woovi.maxPixKeys;
-
-  const selectedKey = useMemo(() => {
-    if (pixKeys.length === 0) return null;
-    return (
-      pixKeys.find((k) => k.id === selectedWithdrawKeyId) ??
-      pixKeys.find((k) => k.isPrimary) ??
-      pixKeys[0]
-    );
-  }, [pixKeys, selectedWithdrawKeyId]);
-
-  const selectedKeyBalance = selectedKey?.balance ?? 0;
   const maxWithdrawNetAmount = Math.max(
     0,
-    Math.round(
-      (selectedKeyBalance - overview.woovi.payoutFee) * 100,
-    ) / 100,
+    Math.round((overview.availableBalance - overview.payoutFee) * 100) / 100,
   );
-
-  useEffect(() => {
-    if (pixKeys.length === 0) {
-      setSelectedWithdrawKeyId(null);
-      return;
-    }
-    if (!selectedWithdrawKeyId || !pixKeys.some((k) => k.id === selectedWithdrawKeyId)) {
-      setSelectedWithdrawKeyId(pixKeys.find((k) => k.isPrimary)?.id ?? pixKeys[0].id);
-    }
-  }, [pixKeys, selectedWithdrawKeyId]);
-
-  const payoutSubtitle = mpMode
-    ? "Doações caem no seu saldo. Solicite o saque quando quiser."
-    : wooviConfigured
-      ? "Receba doações Pix direto na sua chave cadastrada."
-      : "Configure os recebimentos Pix para habilitar doações.";
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white">Financeiro</h1>
-          <p className="mt-1 text-sm text-zinc-400">{payoutSubtitle}</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            Doações caem no seu saldo. Solicite o saque quando quiser.
+          </p>
         </div>
         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
           Taxa {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}
         </span>
       </div>
 
-      {mpMode && (
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
+<section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Saque do saldo</h2>
@@ -779,19 +537,12 @@ export function FinanceDashboard({
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-white"
                   />
                 </div>
-                {overview.availableBalance - overview.woovi.payoutFee > 0 && (
+                {maxWithdrawNetAmount > 0 && (
                   <button
                     type="button"
                     onClick={() =>
                       setWithdrawAmount(
-                        Math.max(
-                          0,
-                          Math.round(
-                            (overview.availableBalance - overview.woovi.payoutFee) * 100,
-                          ) / 100,
-                        )
-                          .toFixed(2)
-                          .replace(".", ","),
+                        maxWithdrawNetAmount.toFixed(2).replace(".", ","),
                       )
                     }
                     className="shrink-0 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
@@ -802,8 +553,8 @@ export function FinanceDashboard({
               </div>
               <p className="mt-1 text-xs text-zinc-500">
                 Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}
-                {overview.woovi.payoutFee > 0
-                  ? ` · taxa de ${formatCurrency(overview.woovi.payoutFee)} somada ao valor`
+                {overview.payoutFee > 0
+                  ? ` · taxa de ${formatCurrency(overview.payoutFee)} somada ao valor`
                   : " · saque gratuito"}
               </p>
               {withdrawPreview && withdrawPreview.netAmount > 0 && (
@@ -825,10 +576,10 @@ export function FinanceDashboard({
               )}
               <button
                 type="button"
-                onClick={() => void handleRequestWithdrawMp()}
+                onClick={() => void handleRequestWithdraw()}
                 disabled={
                   withdrawOtpSending ||
-                  withdrawingWoovi ||
+                  withdrawing ||
                   !kycApproved ||
                   overview.availableBalance <= 0 ||
                   !withdrawAmount.trim() ||
@@ -838,7 +589,7 @@ export function FinanceDashboard({
               >
                 {withdrawOtpSending
                   ? "Enviando código…"
-                  : withdrawingWoovi
+                  : withdrawing
                     ? "Solicitando…"
                     : "Solicitar saque"}
               </button>
@@ -848,332 +599,7 @@ export function FinanceDashboard({
             </div>
           </div>
         </section>
-      )}
-
-      {wooviConfigured && (
-        <section
-          className={`rounded-2xl border p-6 ${
-            wooviConnected
-              ? "border-zinc-800 bg-zinc-900/50"
-              : "border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-zinc-900/50"
-          }`}
-        >
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold text-white">Recebimentos Pix</h2>
-              <div className="mt-4 flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-300">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                    aria-hidden="true"
-                  >
-                    <path d="M8 21h8" />
-                    <path d="M12 17v4" />
-                    <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
-                    <path d="M5 5H3v2a4 4 0 0 0 4 4" />
-                    <path d="M19 5h2v2a4 4 0 0 1-4 4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-300">
-                    Saque gratuito
-                  </p>
-                  <p className="mt-1 text-sm text-zinc-200">
-                    Sem taxa de saque — você recebe o valor integral solicitado.
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                    A única taxa da plataforma é {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)} na doação.
-                  </p>
-                </div>
-              </div>
-              {wooviConnected ? (
-                <>
-                  <p className="mt-1 flex items-center gap-2 text-sm text-emerald-300">
-                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
-                    {pixKeys.length === 1
-                      ? "1 chave cadastrada"
-                      : `${pixKeys.length} chaves cadastradas`}{" "}
-                    · até {maxPixKeys}
-                  </p>
-
-                  <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
-                    <div className="space-y-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                        Suas chaves Pix
-                      </p>
-                      {pixKeys.map((key) => (
-                        <div
-                          key={key.id}
-                          className={`rounded-xl border px-4 py-3 ${
-                            key.id === selectedKey?.id
-                              ? "border-cyan-500/40 bg-cyan-500/5"
-                              : "border-zinc-800 bg-zinc-950/60"
-                          }`}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="font-medium text-zinc-100">{key.pixKeyMasked}</p>
-                              <p className="mt-0.5 text-xs text-zinc-500">
-                                {PIX_KEY_TYPES.find((t) => t.value === key.pixKeyType)?.label ??
-                                  key.pixKeyType}
-                                {key.isPrimary && (
-                                  <span className="ml-2 rounded-full bg-cyan-500/20 px-2 py-0.5 text-cyan-300">
-                                    Principal · recebe doações
-                                  </span>
-                                )}
-                              </p>
-                              <p className="mt-1 text-sm font-semibold text-emerald-400">
-                                Saldo: {formatCurrency(key.balance)}
-                              </p>
-                            </div>
-                            <div className="flex shrink-0 flex-wrap gap-2">
-                              {!key.isPrimary && (
-                                <button
-                                  type="button"
-                                  onClick={() => void handleSetPrimaryPixKey(key.id)}
-                                  disabled={settingPrimaryKeyId === key.id}
-                                  className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-200 disabled:opacity-50"
-                                >
-                                  {settingPrimaryKeyId === key.id ? "…" : "Tornar principal"}
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => void handleRemovePixKey(key.id)}
-                                disabled={removingKeyId === key.id}
-                                className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-400 hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
-                              >
-                                {removingKeyId === key.id ? "…" : "Remover"}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                      {pixKeys.length < maxPixKeys && (
-                        <div className="pt-1">
-                          {!showAddKeyForm ? (
-                            <button
-                              type="button"
-                              onClick={() => setShowAddKeyForm(true)}
-                              className="rounded-lg border border-dashed border-zinc-700 px-4 py-2.5 text-sm text-zinc-400 hover:border-cyan-500/40 hover:text-cyan-200"
-                            >
-                              + Adicionar chave ({pixKeys.length}/{maxPixKeys})
-                            </button>
-                          ) : (
-                            <div className="space-y-2">
-                              {renderAddPixKeyForm("Adicionar chave Pix")}
-                              <button
-                                type="button"
-                                onClick={() => setShowAddKeyForm(false)}
-                                className="text-xs text-zinc-500 hover:text-zinc-300"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                        Saldo total
-                      </p>
-                      <p className="mt-1 text-3xl font-bold text-emerald-400">
-                        {formatCurrency(overview.woovi.subaccountBalance)}
-                      </p>
-
-                      {!overview.woovi.withdrawBlocked && selectedKey && (
-                        <div className="mt-4 border-t border-zinc-800 pt-4">
-                          {pixKeys.length > 1 && (
-                            <div className="mb-3">
-                              <label
-                                htmlFor="withdraw-key"
-                                className="mb-1 block text-xs font-medium text-zinc-400"
-                              >
-                                Sacar da chave
-                              </label>
-                              <select
-                                id="withdraw-key"
-                                value={selectedKey.id}
-                                onChange={(e) => {
-                                  setSelectedWithdrawKeyId(e.target.value);
-                                  setWithdrawAmount("");
-                                }}
-                                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
-                              >
-                                {pixKeys.map((key) => (
-                                  <option key={key.id} value={key.id}>
-                                    {key.pixKeyMasked} ({formatCurrency(key.balance)})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                          <label
-                            htmlFor="withdraw-amount"
-                            className="mb-1 block text-xs font-medium text-zinc-400"
-                          >
-                            Valor do saque
-                          </label>
-                          <div className="flex gap-2">
-                            <div className="relative min-w-0 flex-1">
-                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-500">
-                                R$
-                              </span>
-                              <input
-                                id="withdraw-amount"
-                                type="text"
-                                inputMode="decimal"
-                                value={withdrawAmount}
-                                onChange={(e) => setWithdrawAmount(e.target.value)}
-                                placeholder="0,00"
-                                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-white"
-                              />
-                            </div>
-                            {maxWithdrawNetAmount > 0 && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setWithdrawAmount(
-                                    maxWithdrawNetAmount.toFixed(2).replace(".", ","),
-                                  )
-                                }
-                                className="shrink-0 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-                              >
-                                Máx.
-                              </button>
-                            )}
-                          </div>
-                          <p className="mt-1 text-xs text-zinc-500">
-                            Mínimo de R$ {MIN_WITHDRAW_AMOUNT.toFixed(2).replace(".", ",")}
-                            {overview.woovi.payoutFee > 0
-                              ? ` · taxa de ${formatCurrency(overview.woovi.payoutFee)} somada ao valor`
-                              : " · saque gratuito"}
-                          </p>
-                          <p className="mt-1.5 text-xs text-zinc-500 leading-relaxed">
-                            {overview.woovi.payoutFee > 0
-                              ? "A taxa cobre os custos de transferência e ajuda a manter a plataforma gratuita."
-                              : "Saque sem taxa adicional — você recebe o valor solicitado."}
-                          </p>
-                          {withdrawPreview && withdrawPreview.netAmount > 0 && (
-                            <p className="mt-2 text-xs text-zinc-400">
-                              Você recebe{" "}
-                              <span className="font-medium text-emerald-300">
-                                {formatCurrency(withdrawPreview.netAmount)}
-                              </span>
-                              {withdrawPreview.payoutFee > 0 ? (
-                                <span className="text-zinc-500">
-                                  {" "}
-                                  (debita {formatCurrency(withdrawPreview.grossAmount)} da chave,
-                                  incluindo {formatCurrency(withdrawPreview.payoutFee)} de taxa)
-                                </span>
-                              ) : (
-                                <span className="text-zinc-500"> (sem taxa de saque)</span>
-                              )}
-                            </p>
-                          )}
-                          <button
-                            type="button"
-                            onClick={handleWithdrawWoovi}
-                            disabled={
-                              withdrawOtpSending ||
-                              withdrawingWoovi ||
-                              selectedKeyBalance <= 0 ||
-                              !withdrawAmount.trim() ||
-                              selectedKey.withdrawBlocked
-                            }
-                            className="web3-btn-primary mt-3 w-full rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-                          >
-                            {withdrawOtpSending
-                              ? "Enviando código…"
-                              : withdrawingWoovi
-                                ? "Sacando…"
-                                : "Sacar para minha chave Pix"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="mt-4 max-w-2xl text-sm text-zinc-500">
-                    Doações caem na chave <strong className="text-zinc-300">principal</strong>.
-                    Comissão pix.tips (
-                    {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}) já
-                    descontada na doação
-                    {overview.woovi.payoutFee > 0
-                      ? ". A taxa de saque é cobrada no momento do Saque."
-                      : ". Saque gratuito."}
-                  </p>
-                  {overview.woovi.withdrawBlocked && (
-                    <p className="mt-2 text-sm text-amber-400">
-                      Saque temporariamente bloqueado — verifique se suas chaves Pix são válidas.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="mt-1 text-sm text-amber-300">
-                    Cadastre sua chave Pix para começar a receber doações
-                  </p>
-
-                  {!kycApproved ? (
-                    <div className="mt-4 max-w-lg rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-100">
-                      <p>
-                        Antes de cadastrar a chave Pix, você precisa{" "}
-                        <strong>validar sua conta</strong> com verificação de identidade.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setTab("verificacao")}
-                        className="web3-btn-primary mt-3 inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
-                      >
-                        Ir para verificação
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="mt-3 max-w-lg text-sm text-zinc-400">
-                        Cadastre até {maxPixKeys} chaves Pix. A primeira será a principal para
-                        receber doações.
-                      </p>
-                      <div className="mt-4 max-w-md">
-                        {renderAddPixKeyForm("Cadastrar chave Pix")}
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-
-            {!wooviConnected && (
-              <div className="flex shrink-0 flex-col gap-2">
-                <p className="max-w-xs rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-3 text-xs text-zinc-400">
-                  Sua chave será validada antes de ativar os recebimentos.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {!wooviConnected && wooviConfigured && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          {kycApproved
-            ? "Suas doações Pix ficam indisponíveis até você verificar e cadastrar sua chave Pix."
-            : "Valide sua conta na aba Verificação antes de cadastrar a chave Pix."}
-        </div>
-      )}
-
-      <div className="flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1">
+            <div className="flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -1458,8 +884,7 @@ export function FinanceDashboard({
           <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-zinc-100">Confirmar saque</h3>
             <p className="mt-2 text-sm text-zinc-400">
-              Enviamos um código para seu e-mail. Informe-o para{" "}
-              {mpMode ? "solicitar o saque de" : "sacar"}{" "}
+              Enviamos um código para seu e-mail. Informe-o para solicitar o saque de{" "}
               <strong className="text-zinc-200">
                 {formatCurrency(pendingWithdraw.amount)}
               </strong>
@@ -1514,13 +939,13 @@ export function FinanceDashboard({
               <button
                 type="button"
                 disabled={
-                  withdrawingWoovi ||
+                  withdrawing ||
                   (withdrawOtp.length !== 6 && withdrawTotpCode.length !== 6)
                 }
                 onClick={handleConfirmWithdraw}
                 className="web3-btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
-                {withdrawingWoovi ? "Sacando…" : "Confirmar saque"}
+                {withdrawing ? "Solicitando…" : "Confirmar saque"}
               </button>
             </div>
           </div>

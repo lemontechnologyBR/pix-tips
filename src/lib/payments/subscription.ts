@@ -1,6 +1,6 @@
 import { getPrisma } from "@/lib/db";
 import { PRO_PRICES } from "@/lib/affiliate";
-import { createPixCharge } from "@/lib/payments/woovi";
+import { createMercadoPagoPixPayment } from "@/lib/payments/mercadopago";
 
 export type ProPlanType = "pro_monthly" | "pro_annual";
 
@@ -18,7 +18,7 @@ export interface ProCheckoutResult {
 }
 
 /**
- * Cria uma cobrança Pix para assinatura do plano Pro.
+ * Cria uma cobrança Pix (Mercado Pago) para assinatura do plano Pro.
  * O correlationID é prefixado com "sub_" para identificação no webhook.
  */
 export async function createProSubscriptionCharge(
@@ -27,11 +27,13 @@ export async function createProSubscriptionCharge(
 ): Promise<ProCheckoutResult> {
   const amount = planType === "pro_annual" ? PRO_PRICES.annual : PRO_PRICES.monthly;
   const correlationID = `sub_${creatorId}_${Date.now()}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
-  const charge = await createPixCharge({
+  const payment = await createMercadoPagoPixPayment({
     amount,
-    correlationID,
-    comment: `Assinatura pix.tips Pro ${planType === "pro_annual" ? "Anual" : "Mensal"}`,
+    description: `Assinatura pix.tips Pro ${planType === "pro_annual" ? "Anual" : "Mensal"}`,
+    externalReference: correlationID,
+    notificationUrl: appUrl ? `${appUrl}/api/webhooks/mercadopago` : undefined,
   });
 
   const db = getPrisma();
@@ -42,16 +44,16 @@ export async function createProSubscriptionCharge(
       amount,
       planType,
       status: "pending",
-      pixCode: charge.brCode,
+      pixCode: payment.pixCode,
     },
   });
 
   return {
     correlationID,
-    pixCode: charge.brCode,
+    pixCode: payment.pixCode,
     amount,
     planType,
-    mock: charge.mock ?? false,
+    mock: false,
   };
 }
 

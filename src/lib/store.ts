@@ -100,13 +100,6 @@ export async function requestWithdrawal(creatorId: string, amount: number) {
   return financeRepo.requestWithdrawal(creatorId, amount);
 }
 
-export async function recordWooviWithdrawal(
-  creatorId: string,
-  input: Parameters<typeof financeRepo.recordWooviWithdrawal>[1],
-) {
-  return financeRepo.recordWooviWithdrawal(creatorId, input);
-}
-
 export async function listPayouts(
   creatorId: string,
   filters: Parameters<typeof financeRepo.listPayouts>[1] = {},
@@ -162,8 +155,6 @@ export async function getUserProfile(creatorId: string): Promise<UserProfile> {
     pixKeyMasked: payout.pixKeyMasked,
     pixKeyType: payout.pixKeyType,
     pixHolderName: payout.pixHolderName,
-    wooviPixConnected: finance.woovi.connected,
-    wooviPixKeyMasked: finance.woovi.pixKeyMasked,
     connectedAccounts: oauthAccounts.map((a) => ({
       provider: a.provider,
       createdAt: a.createdAt.toISOString(),
