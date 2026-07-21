@@ -1,5 +1,6 @@
 export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
+  { href: "/admin/analytics", label: "Analytics", icon: "📈" },
   { href: "/admin/ops", label: "Operações", icon: "🛠️" },
   { href: "/admin/users", label: "Usuários", icon: "🧑‍💻" },
   { href: "/admin/subscriptions", label: "Assinaturas Pro", icon: "⭐" },
@@ -12,6 +13,7 @@ export const ADMIN_NAV = [
 
 export const ADMIN_PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
+  "/admin/analytics": "Analytics",
   "/admin/ops": "Operações",
   "/admin/users": "Usuários",
   "/admin/subscriptions": "Assinaturas Pro",

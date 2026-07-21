@@ -234,16 +234,23 @@ model AdminSettings {
   updatedAt         DateTime @updatedAt
 }
 
-/// Contadores leves de visualização (tip page + widgets OBS).
+/// Contadores leves de visualização (tip page + widgets OBS + tráfego do site).
 model AnalyticsEvent {
-  id        String   @id @default(cuid())
-  type      String   // tip_page_view | widget_view
-  creatorId String?
-  path      String?
-  widget    String?  // alert|goal|qrcode|...
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  type         String   // site_visit | tip_page_view | widget_view
+  creatorId    String?
+  path         String?
+  widget       String?  // alert|goal|qrcode|...
+  referrer     String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmTerm      String?
+  utmContent   String?
+  createdAt    DateTime @default(now())
 
   @@index([type, createdAt])
   @@index([creatorId, type, createdAt])
   @@index([widget, createdAt])
+  @@index([utmSource, createdAt])
 }

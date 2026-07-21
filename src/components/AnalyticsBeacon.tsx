@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { extractUtmFromSearchParams } from "@/lib/analytics/traffic";
 
 interface AnalyticsBeaconProps {
   type: "tip_page_view" | "widget_view";
@@ -16,7 +17,17 @@ export function AnalyticsBeacon({
   widget,
 }: AnalyticsBeaconProps) {
   useEffect(() => {
-    const payload = JSON.stringify({ type, creatorId, path, widget });
+    const params = new URLSearchParams(window.location.search);
+    const utm = extractUtmFromSearchParams(params);
+    const payload = JSON.stringify({
+      type,
+      creatorId,
+      path,
+      widget,
+      referrer: document.referrer || undefined,
+      ...utm,
+    });
+
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([payload], { type: "application/json" });
@@ -24,7 +35,7 @@ export function AnalyticsBeacon({
         return;
       }
     } catch {
-      // fallback below
+      // fallback abaixo
     }
     void fetch("/api/analytics/track", {
       method: "POST",
