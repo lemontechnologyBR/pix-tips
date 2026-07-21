@@ -10,6 +10,7 @@ import type {
 import { listOAuthAccounts } from "@/lib/auth/oauth";
 import { getPrisma } from "@/lib/db";
 import { deleteFile, deletePrivateFile } from "@/lib/storage";
+import { DEMO_CREATOR_ID, DEMO_USERNAME } from "@/lib/demo";
 import * as creatorRepo from "@/lib/repositories/creator-repository";
 import * as financeRepo from "@/lib/repositories/finance-repository";
 import * as transactionRepo from "@/lib/repositories/transaction-repository";
@@ -42,10 +43,16 @@ function extractStorageKey(url: string): string | null {
 export async function getCreatorByUsername(
   username: string,
 ): Promise<Creator | null> {
+  if (username === DEMO_USERNAME) {
+    return getDemoCreator();
+  }
   return creatorRepo.getByUsername(username);
 }
 
 export async function getCreatorById(id: string): Promise<Creator | null> {
+  if (id === DEMO_CREATOR_ID) {
+    return getDemoCreator();
+  }
   return creatorRepo.getById(id);
 }
 

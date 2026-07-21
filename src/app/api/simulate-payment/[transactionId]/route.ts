@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { confirmTransaction, getTransaction } from "@/lib/store";
 import { emitDonationAlert } from "@/lib/emit-donation";
+import { isDemoCreator } from "@/lib/demo";
 
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ transactionId: string }> },
 ) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { error: "Esta rota não está disponível em produção." },
-      { status: 403 },
-    );
-  }
-
   const { transactionId } = await params;
   const existing = await getTransaction(transactionId);
 
@@ -20,6 +14,12 @@ export async function POST(
     return NextResponse.json({ error: "Transação não encontrada" }, { status: 404 });
   }
 
+  if (process.env.NODE_ENV === "production" && !isDemoCreator(existing.creatorId)) {
+    return NextResponse.json(
+      { error: "Esta rota não está disponível em produção." },
+      { status: 403 },
+    );
+  }
   if (existing.status === "confirmed") {
     return NextResponse.json({ ok: true, transaction: existing });
   }

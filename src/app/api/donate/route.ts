@@ -12,7 +12,11 @@ import {
   toStoredMpPaymentId,
 } from "@/lib/payments/mercadopago";
 import { TTS_VOICES } from "@/lib/tts-config";
+import { isDemoCreator } from "@/lib/demo";
 import { rateLimit } from "@/lib/rate-limit";
+
+const DEMO_PIX_CODE =
+  "00020126580014BR.GOV.BCB.PIX0136demo-pix-tips-page5204000053039865802BR5913pix.tips Demo6009SAO PAULO62070503***6304DEMO";
 
 export async function POST(request: Request) {
   const ip =
@@ -92,6 +96,30 @@ export async function POST(request: Request) {
       tipTtsVoices.includes(ttsVoiceId)
         ? ttsVoiceId
         : undefined;
+
+    if (isDemoCreator(creator.id, creator.username)) {
+      const transaction = await createTransaction({
+        creatorId,
+        amount: Number(amount),
+        message,
+        anonymous: Boolean(anonymous),
+        donorName,
+        method: "pix",
+        donorTtsVoiceId: sanitizedTtsVoiceId,
+        pixCode: DEMO_PIX_CODE,
+      });
+
+      return NextResponse.json({
+        transactionId: transaction.id,
+        status: transaction.status,
+        method: transaction.method,
+        pixCode: DEMO_PIX_CODE,
+        paymentProvider: "mercadopago",
+        expiresIn: 900,
+        amount: transaction.amount,
+        mock: true,
+      });
+    }
 
     if (!isMercadoPagoConfigured()) {
       return NextResponse.json(

@@ -4,6 +4,12 @@ import {
   defaultAlertSettings,
   defaultTipPageSettings,
 } from "@/lib/repositories/json-fields";
+import {
+  DEMO_CREATOR_ID,
+  DEMO_EMAIL,
+  DEMO_USERNAME,
+  DEMO_WIDGET_TOKEN,
+} from "@/lib/demo";
 import * as creatorRepo from "@/lib/repositories/creator-repository";
 import {
   seedDemoPayouts,
@@ -14,8 +20,21 @@ import * as userRepo from "@/lib/repositories/user-repository";
 import { prisma } from "@/lib/db";
 
 const DEMO_USER_ID = "user-demo-001";
-const DEMO_CREATOR_ID = "creator-demo-001";
-const DEMO_EMAIL = "demo@pix.tips";
+
+function demoTipPageSettings() {
+  return {
+    ...defaultTipPageSettings(),
+    thankYouMessage: "Obrigado pelo apoio! Esta é uma página de demonstração.",
+    tipTtsEnabled: true,
+    tipTtsVoices: [
+      "helena-ia",
+      "rafael-ia",
+      "aurora-ia",
+      "ricardo-br",
+      "vitoria-br",
+    ],
+  };
+}
 
 async function seedDemoNotifications(creatorId: string): Promise<void> {
   const existing = await prisma.notification.count({ where: { creatorId } });
@@ -78,11 +97,16 @@ async function seedDemoKyc(creatorId: string): Promise<void> {
 
 
 export async function ensureDemoSeeded(): Promise<void> {
-  if (process.env.NODE_ENV === "production") return;
-
-  const existing = await creatorRepo.getByUsername("demo");
+  const existing = await creatorRepo.getByUsername(DEMO_USERNAME);
   if (existing) {
-    await creatorRepo.update(existing.id, { onboardingCompleted: true });
+    await creatorRepo.update(existing.id, {
+      onboardingCompleted: true,
+      bio: "Página de demonstração do pix.tips. Teste uma doação simulada — nenhum Pix real é cobrado.",
+      themeColor: "#06b6d4",
+      tipPageSettings: demoTipPageSettings(),
+      notifyEmailDonation: false,
+      notifyPanelDonation: false,
+    });
     await seedDemoTransactions(existing.id);
     await seedDemoPayouts(existing.id);
     await syncCreatorBalance(existing.id);
@@ -106,19 +130,19 @@ export async function ensureDemoSeeded(): Promise<void> {
   }
 
   const alertSettings = defaultAlertSettings();
-  const tipPageSettings = defaultTipPageSettings();
+  const tipPageSettings = demoTipPageSettings();
 
   await creatorRepo.create({
     id: DEMO_CREATOR_ID,
     userId: user.id,
-    username: "demo",
+    username: DEMO_USERNAME,
     displayName: "Streamer Demo",
-    bio: "Obrigado por apoiar a live! Cada doação aparece na tela em tempo real.",
+    bio: "Página de demonstração do pix.tips. Teste uma doação simulada — nenhum Pix real é cobrado.",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=demo",
     goal: 500,
-    themeColor: "#9146ff",
+    themeColor: "#06b6d4",
     plan: "free",
-    widgetToken: "demo-widget-token-abc123",
+    widgetToken: DEMO_WIDGET_TOKEN,
     paymentMethods: JSON.stringify(["pix"]),
     alertSettings: JSON.stringify(alertSettings),
     tipPageSettings: JSON.stringify(tipPageSettings),
@@ -129,6 +153,8 @@ export async function ensureDemoSeeded(): Promise<void> {
     await creatorRepo.update(DEMO_CREATOR_ID, {
       raised: 127.5,
       onboardingCompleted: true,
+      notifyEmailDonation: false,
+      notifyPanelDonation: false,
     });
     await seedDemoTransactions(DEMO_CREATOR_ID);
     await seedDemoPayouts(DEMO_CREATOR_ID);

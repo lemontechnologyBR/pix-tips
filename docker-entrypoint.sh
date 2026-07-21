@@ -21,5 +21,8 @@ fi
 echo "==> Sincronizando schema com o banco..."
 npx prisma db push
 
+echo "==> Garantindo página demo (@demo)..."
+npx tsx src/lib/seed.ts || echo "==> Aviso: seed demo falhou (app seguirá sem demo até próximo boot)"
+
 echo "==> Banco pronto. Iniciando aplicação..."
 exec npx tsx server.ts

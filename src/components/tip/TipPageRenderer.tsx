@@ -1,4 +1,5 @@
 import type { Creator } from "@/types";
+import { DEMO_USERNAME } from "@/lib/demo";
 import { DonationForm } from "./DonationForm";
 import { GoalProgressBar } from "./GoalProgressBar";
 import { SupporterWall } from "./SupporterWall";
@@ -789,5 +790,16 @@ const LAYOUT_MAP: Record<string, (props: TipPageRendererProps) => React.ReactNod
 export function TipPageRenderer(props: TipPageRendererProps) {
   const layoutId = props.creator.tipPageSettings.layoutId ?? "default";
   const render = LAYOUT_MAP[layoutId] ?? LAYOUT_MAP["default"];
-  return <>{render(props)}</>;
+  const isDemo = props.creator.username === DEMO_USERNAME;
+
+  return (
+    <>
+      {isDemo && (
+        <div className="border-b border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-center text-sm text-cyan-100">
+          Página de demonstração — use &quot;Simular pagamento&quot; para testar sem cobrar Pix real.
+        </div>
+      )}
+      {render(props)}
+    </>
+  );
 }

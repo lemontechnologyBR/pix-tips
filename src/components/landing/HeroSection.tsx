@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Web3Background } from "@/components/shared/Web3Background";
-import { VideoModal } from "./VideoModal";
+import { tipPagePath } from "@/lib/brand";
 
 const RECENT_DONATIONS = [
   { name: "João Victor", value: "R$ 20", message: "Vai que vai! 🔥", time: "agora" },
@@ -90,8 +89,6 @@ function PhoneMockup() {
 }
 
 export function HeroSection() {
-  const [videoOpen, setVideoOpen] = useState(false);
-
   return (
     <>
       <Web3Background className="overflow-hidden pb-20 pt-28 sm:pb-28 sm:pt-32">
@@ -138,9 +135,8 @@ export function HeroSection() {
                 >
                   Criar minha página grátis →
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setVideoOpen(true)}
+                <Link
+                  href={tipPagePath("demo")}
                   className="web3-glass group flex items-center justify-center gap-2.5 rounded-xl border border-cyan-500/20 px-7 py-3.5 font-semibold text-zinc-300 transition-all duration-200 hover:border-cyan-500/40 hover:text-white"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500/20 transition-colors group-hover:bg-cyan-500/30">
@@ -149,7 +145,7 @@ export function HeroSection() {
                     </svg>
                   </span>
                   Ver demo ao vivo
-                </button>
+                </Link>
               </div>
 
               {/* Trust signals */}
@@ -174,8 +170,6 @@ export function HeroSection() {
           </div>
         </section>
       </Web3Background>
-
-      <VideoModal isOpen={videoOpen} onClose={() => setVideoOpen(false)} />
     </>
   );
 }
