@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/db";
+import {
+  DEMO_CREATOR_ID,
+  excludeDemoCreatorFromMetrics,
+  excludeDemoTransactionsFromMetrics,
+} from "@/lib/demo";
 import { resolveCpfProvider } from "@/lib/kyc/cpf-provider";
 import { isDiditConfigured } from "@/lib/didit";
 import { isMercadoPagoConfigured } from "@/lib/payments/mercadopago";
@@ -66,21 +71,35 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
         by: ["status"],
         _count: { _all: true },
       }),
-      prisma.creator.count(),
-      prisma.transaction.count({ where: { status: "confirmed" } }),
+      prisma.creator.count({ where: excludeDemoCreatorFromMetrics }),
+      prisma.transaction.count({
+        where: { status: "confirmed", ...excludeDemoTransactionsFromMetrics },
+      }),
       prisma.kycVerification.count({ where: { status: "pending" } }),
       prisma.creator.count({
-        where: { pixKey: { not: null }, pixHolderName: { not: null } },
+        where: {
+          pixKey: { not: null },
+          pixHolderName: { not: null },
+          ...excludeDemoCreatorFromMetrics,
+        },
       }),
       prisma.analyticsEvent
         .findMany({
-          where: { type: "tip_page_view", createdAt: { gte: since7d } },
+          where: {
+            type: "tip_page_view",
+            createdAt: { gte: since7d },
+            NOT: { creatorId: DEMO_CREATOR_ID },
+          },
           select: { creatorId: true },
         })
         .catch(() => [] as TipEvent[]),
       prisma.analyticsEvent
         .findMany({
-          where: { type: "widget_view", createdAt: { gte: since7d } },
+          where: {
+            type: "widget_view",
+            createdAt: { gte: since7d },
+            NOT: { creatorId: DEMO_CREATOR_ID },
+          },
           select: { id: true, widget: true, creatorId: true, createdAt: true },
           orderBy: { createdAt: "desc" },
         })

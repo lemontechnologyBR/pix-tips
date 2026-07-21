@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/db";
+import {
+  excludeDemoCreatorFromMetrics,
+  excludeDemoTransactionsFromMetrics,
+} from "@/lib/demo";
 import { computeFee } from "@/lib/finance";
 import { mapTransactionRow, type TransactionRow } from "@/lib/repositories/json-fields";
 import type { PlanType, Transaction, TransactionFilters } from "@/types";
@@ -26,16 +30,29 @@ export async function getAdminOverview(): Promise<AdminOverview> {
 
   const [totalCreators, proSubscribers, confirmedTx, creatorsThisMonth, creatorsPrevMonth, pendingKyc, pixKeys] =
     await Promise.all([
-      prisma.creator.count(),
-      prisma.creator.count({ where: { plan: "pro" } }),
-      prisma.transaction.findMany({ where: { status: "confirmed" } }),
-      prisma.creator.count({ where: { createdAt: { gte: monthStart } } }),
+      prisma.creator.count({ where: excludeDemoCreatorFromMetrics }),
       prisma.creator.count({
-        where: { createdAt: { gte: prevMonthStart, lt: monthStart } },
+        where: { plan: "pro", ...excludeDemoCreatorFromMetrics },
+      }),
+      prisma.transaction.findMany({
+        where: { status: "confirmed", ...excludeDemoTransactionsFromMetrics },
+      }),
+      prisma.creator.count({
+        where: { createdAt: { gte: monthStart }, ...excludeDemoCreatorFromMetrics },
+      }),
+      prisma.creator.count({
+        where: {
+          createdAt: { gte: prevMonthStart, lt: monthStart },
+          ...excludeDemoCreatorFromMetrics,
+        },
       }),
       prisma.kycVerification.count({ where: { status: "pending" } }),
       prisma.creator.count({
-        where: { pixKey: { not: null }, pixHolderName: { not: null } },
+        where: {
+          pixKey: { not: null },
+          pixHolderName: { not: null },
+          ...excludeDemoCreatorFromMetrics,
+        },
       }),
     ]);
 
@@ -64,6 +81,7 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         : 0;
 
   const allCreators = await prisma.creator.findMany({
+    where: excludeDemoCreatorFromMetrics,
     select: { createdAt: true },
     orderBy: { createdAt: "asc" },
   });
@@ -120,9 +138,11 @@ export async function getAllTransactions(
     createdAt: { gte: Date };
     status?: string;
     method?: string;
+    creatorId?: { not: string };
     OR?: Array<{ donorName: { contains: string } } | { creator: { username: { contains: string } } }>;
   } = {
     createdAt: { gte: cutoff },
+    ...excludeDemoTransactionsFromMetrics,
   };
 
   if (status !== "all") where.status = status;
@@ -321,10 +341,18 @@ export async function getAdminSubscriptionsSummary(): Promise<AdminSubscriptions
 
   const [activePro, expiringIn7d, paidPayments, pendingPayments] = await Promise.all([
     prisma.creator.count({
-      where: { plan: "pro", OR: [{ proExpiresAt: null }, { proExpiresAt: { gt: now } }] },
+      where: {
+        plan: "pro",
+        OR: [{ proExpiresAt: null }, { proExpiresAt: { gt: now } }],
+        ...excludeDemoCreatorFromMetrics,
+      },
     }),
     prisma.creator.count({
-      where: { plan: "pro", proExpiresAt: { gt: now, lte: in7d } },
+      where: {
+        plan: "pro",
+        proExpiresAt: { gt: now, lte: in7d },
+        ...excludeDemoCreatorFromMetrics,
+      },
     }),
     prisma.subscriptionPayment.findMany({
       where: { status: "paid" },

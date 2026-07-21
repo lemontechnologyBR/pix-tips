@@ -6,3 +6,12 @@ export const DEMO_WIDGET_TOKEN = "demo-widget-token-abc123";
 export function isDemoCreator(creatorId: string, username?: string | null): boolean {
   return creatorId === DEMO_CREATOR_ID || username === DEMO_USERNAME;
 }
+
+/** Filtros Prisma para excluir o criador demo de métricas agregadas (GMV, receita, etc.). */
+export const excludeDemoCreatorFromMetrics = {
+  id: { not: DEMO_CREATOR_ID },
+} as const;
+
+export const excludeDemoTransactionsFromMetrics = {
+  creatorId: { not: DEMO_CREATOR_ID },
+} as const;
