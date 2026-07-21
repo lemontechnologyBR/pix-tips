@@ -222,12 +222,11 @@ async function playCatalogSoundInternal(
   await playSynthetic(soundId);
 }
 
-export async function playCatalogSound(
-  soundId: string | null,
-  customUrl?: string | null,
-) {
-  const run = () => playCatalogSoundInternal(soundId, customUrl);
-
+/**
+ * Executa `run` imediatamente se o áudio do widget já está desbloqueado;
+ * caso contrário, enfileira para tocar assim que o usuário desbloquear.
+ */
+export async function runWhenAudioUnlocked(run: () => Promise<void>): Promise<void> {
   if (!widgetAudioUnlocked) {
     const unlocked = await unlockWidgetAudio();
     if (!unlocked) {
@@ -237,6 +236,13 @@ export async function playCatalogSound(
   }
 
   await run();
+}
+
+export async function playCatalogSound(
+  soundId: string | null,
+  customUrl?: string | null,
+) {
+  await runWhenAudioUnlocked(() => playCatalogSoundInternal(soundId, customUrl));
 }
 
 export function preloadCatalogSound(soundId: string = DEFAULT_ALERT_SOUND_ID) {

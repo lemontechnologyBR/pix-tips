@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer } from "react";
 import { io, type Socket } from "socket.io-client";
 import type { DonationPayload, TextConfig } from "@/types";
 import { DEFAULT_TEXT_CONFIG } from "@/types";
-import { playCatalogSound } from "@/lib/sounds";
+import { playCatalogSound, runWhenAudioUnlocked } from "@/lib/sounds";
 import { speakText, resolveTtsTemplate } from "@/lib/tts";
 import { AlertRenderer } from "./AlertRenderer";
 import { WidgetAudioUnlock } from "./WidgetAudioUnlock";
@@ -84,8 +84,15 @@ export function AlertWidget({
         currentAlert.amount,
         currentAlert.message,
       );
-      // Pequeno delay para não sobrepor o som do alerta
-      const timer = setTimeout(() => void speakText(ttsText, currentAlert.ttsVoiceId!), 600);
+      // Pequeno delay para não sobrepor o som do alerta. Se o áudio ainda
+      // estiver bloqueado pelo navegador, a fala entra na fila de desbloqueio.
+      const timer = setTimeout(
+        () =>
+          void runWhenAudioUnlocked(() =>
+            speakText(ttsText, currentAlert.ttsVoiceId!),
+          ),
+        600,
+      );
       return () => clearTimeout(timer);
     }
   }, [alertKey, currentAlert]);

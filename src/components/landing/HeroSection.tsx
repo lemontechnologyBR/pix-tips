@@ -85,15 +85,6 @@ function PhoneMockup() {
         </div>
       </div>
 
-      {/* Floating notification — right side */}
-      <div className="absolute -right-5 top-1/4 animate-pulse-soft rounded-xl border border-cyan-500/30 bg-zinc-900/95 px-3 py-2 text-xs font-semibold text-cyan-200 shadow-xl shadow-cyan-500/10 backdrop-blur-sm">
-        <span className="mr-1">🔥</span>João doou R$ 20!
-      </div>
-
-      {/* Floating notification — left side */}
-      <div className="absolute -left-6 bottom-1/4 rounded-xl border border-purple-500/30 bg-zinc-900/95 px-3 py-2 text-xs font-semibold text-purple-200 shadow-xl shadow-purple-500/10 backdrop-blur-sm" style={{ animation: "pulse-soft 3s ease-in-out infinite 1.2s" }}>
-        <span className="mr-1">⭐</span>Pedro doou R$ 50!
-      </div>
     </div>
   );
 }
@@ -113,16 +104,6 @@ export function HeroSection() {
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
             {/* Left column */}
             <div className="animate-fade-in-up">
-              {/* Top badge */}
-              <div className="mb-5 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
-                  🇧🇷 Feito para streamers brasileiros
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-                  ✨ Grátis para começar
-                </span>
-              </div>
-
               {/* Headline */}
               <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
                 Receba doações via{" "}

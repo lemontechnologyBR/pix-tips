@@ -93,7 +93,10 @@ async function playElevenLabsAudio(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voiceId }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.warn(`[tts] /api/tts respondeu ${res.status} — usando voz do navegador`);
+      return false;
+    }
     const blob = await res.blob();
     if (!blob.size) return false;
 
@@ -113,15 +116,18 @@ async function playElevenLabsAudio(
         resolve(true);
       };
       audio.onerror = () => {
+        console.warn("[tts] erro ao reproduzir áudio da voz de IA");
         cleanup();
         resolve(false);
       };
-      audio.play().catch(() => {
+      audio.play().catch((err) => {
+        console.warn("[tts] reprodução bloqueada pelo navegador:", err?.name ?? err);
         cleanup();
         resolve(false);
       });
     });
-  } catch {
+  } catch (err) {
+    console.warn("[tts] falha ao buscar áudio da voz de IA:", err);
     return false;
   }
 }
