@@ -437,8 +437,18 @@ export interface AdminPayoutRow {
   fee: number | null;
   status: string;
   pixKey: string;
+  pixKeyType: string | null;
+  pixHolderName: string | null;
   createdAt: string;
   completedAt: string | null;
+}
+
+function resolveAdminPixKey(
+  payoutKey: string,
+  creatorKey: string | null | undefined,
+): string {
+  if (payoutKey.includes("•")) return creatorKey?.trim() || payoutKey;
+  return payoutKey;
 }
 
 export async function listAllPayouts(opts: {
@@ -454,7 +464,17 @@ export async function listAllPayouts(opts: {
   const [rows, total] = await Promise.all([
     prisma.payout.findMany({
       where,
-      include: { creator: { select: { username: true, displayName: true } } },
+      include: {
+        creator: {
+          select: {
+            username: true,
+            displayName: true,
+            pixKey: true,
+            pixKeyType: true,
+            pixHolderName: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
@@ -471,7 +491,9 @@ export async function listAllPayouts(opts: {
       amount: r.amount,
       fee: r.fee ?? null,
       status: r.status,
-      pixKey: r.pixKey,
+      pixKey: resolveAdminPixKey(r.pixKey, r.creator.pixKey),
+      pixKeyType: r.creator.pixKeyType,
+      pixHolderName: r.creator.pixHolderName,
       createdAt: r.createdAt.toISOString(),
       completedAt: r.completedAt?.toISOString() ?? null,
     })),
@@ -494,7 +516,17 @@ export async function updateAdminPayout(
   const updated = await prisma.payout.update({
     where: { id },
     data,
-    include: { creator: { select: { username: true, displayName: true } } },
+    include: {
+      creator: {
+        select: {
+          username: true,
+          displayName: true,
+          pixKey: true,
+          pixKeyType: true,
+          pixHolderName: true,
+        },
+      },
+    },
   });
 
   return {
@@ -505,7 +537,9 @@ export async function updateAdminPayout(
     amount: updated.amount,
     fee: updated.fee ?? null,
     status: updated.status,
-    pixKey: updated.pixKey,
+    pixKey: resolveAdminPixKey(updated.pixKey, updated.creator.pixKey),
+    pixKeyType: updated.creator.pixKeyType,
+    pixHolderName: updated.creator.pixHolderName,
     createdAt: updated.createdAt.toISOString(),
     completedAt: updated.completedAt?.toISOString() ?? null,
   };

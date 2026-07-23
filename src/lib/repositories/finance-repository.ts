@@ -36,7 +36,7 @@ function mapPayout(row: {
     fee,
     netAmount,
     status: row.status as Payout["status"],
-    pixKeyMasked: row.pixKey,
+    pixKeyMasked: maskPixKey(row.pixKey),
     createdAt: row.createdAt.toISOString(),
     completedAt: row.completedAt?.toISOString(),
   };
@@ -254,8 +254,6 @@ export async function requestWithdrawal(
     );
   }
 
-  const masked = maskPixKey(creator.pixKey, creator.pixKeyType);
-
   const payout = await prisma.$transaction(async (tx) => {
     const current = await tx.creator.findUnique({ where: { id: creatorId } });
     if (!current || grossAmount > current.availableBalance + 0.001) {
@@ -272,7 +270,7 @@ export async function requestWithdrawal(
         amount: grossAmount,
         fee,
         status: "pending",
-        pixKey: masked,
+        pixKey: creator.pixKey,
       },
     });
 

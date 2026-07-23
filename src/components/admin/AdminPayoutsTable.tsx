@@ -36,6 +36,26 @@ const STATUS_LABELS: Record<string, string> = {
   failed: "Falhou",
 };
 
+const PIX_TYPE_LABELS: Record<string, string> = {
+  email: "E-mail",
+  cpf: "CPF",
+  phone: "Telefone",
+  random: "Chave aleatória",
+};
+
+function pixTypeLabel(type: string | null | undefined): string {
+  if (!type) return "Pix";
+  return PIX_TYPE_LABELS[type] ?? type;
+}
+
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // ignore
+  }
+}
+
 export function AdminPayoutsTable({
   initialItems,
   initialTotal,
@@ -163,7 +183,12 @@ export function AdminPayoutsTable({
                     <td className="px-4 py-3 text-zinc-400">
                       {p.fee != null ? formatCurrency(p.fee) : "—"}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{p.pixKey}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-mono text-xs text-cyan-300">{p.pixKey}</p>
+                      {p.pixKeyType ? (
+                        <p className="text-[10px] text-zinc-600">{pixTypeLabel(p.pixKeyType)}</p>
+                      ) : null}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs ${
@@ -261,9 +286,27 @@ export function AdminPayoutsTable({
                   <span>{formatCurrency(selected.fee)}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Chave Pix</span>
-                <span className="font-mono text-xs">{selected.pixKey}</span>
+              <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-zinc-500">Chave Pix · {pixTypeLabel(selected.pixKeyType)}</p>
+                    <p className="mt-1 break-all font-mono text-sm text-cyan-300">
+                      {selected.pixKey}
+                    </p>
+                    {selected.pixHolderName ? (
+                      <p className="mt-1 text-xs text-zinc-400">
+                        Titular: {selected.pixHolderName}
+                      </p>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void copyText(selected.pixKey)}
+                    className="shrink-0 rounded-lg border border-zinc-700 px-2 py-1 text-xs hover:border-cyan-500/50"
+                  >
+                    Copiar
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-400">Status atual</span>
