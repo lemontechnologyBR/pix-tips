@@ -59,6 +59,8 @@ export interface OAuthUserInfo {
   email: string;
   name: string;
   avatar?: string;
+  /** Handle público do canal (twitch login, kick slug, @youtube, discord). */
+  username?: string;
 }
 
 function getRedirectBase(): string {
@@ -449,6 +451,28 @@ export async function exchangeCode(
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
 }
 
+async function fetchYoutubeChannelHandle(accessToken: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+      { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      items?: Array<{
+        id?: string;
+        snippet?: { customUrl?: string; title?: string };
+      }>;
+    };
+    const item = data.items?.[0];
+    const custom = item?.snippet?.customUrl?.replace(/^@/, "").trim();
+    if (custom) return custom;
+    return item?.id ?? item?.snippet?.title?.trim() ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getUserInfo(
   provider: OAuthProvider,
   tokens: OAuthTokens,
@@ -473,12 +497,19 @@ export async function getUserInfo(
       throw new Error("E-mail não disponível na conta Google.");
     }
 
-    return {
+    const info: OAuthUserInfo = {
       providerUserId: data.id,
       email: data.email.trim().toLowerCase(),
       name: data.name?.trim() || data.email.split("@")[0],
       avatar: data.picture,
     };
+
+    if (provider === "youtube") {
+      const channel = await fetchYoutubeChannelHandle(tokens.accessToken);
+      if (channel) info.username = channel;
+    }
+
+    return info;
   }
 
   if (provider === "twitch") {
@@ -518,6 +549,7 @@ export async function getUserInfo(
       email: profile.email.trim().toLowerCase(),
       name: profile.display_name.trim() || profile.login,
       avatar: profile.profile_image_url,
+      username: profile.login.trim().toLowerCase(),
     };
   }
 
@@ -552,6 +584,7 @@ export async function getUserInfo(
       email: data.email.trim().toLowerCase(),
       name: data.global_name?.trim() || data.username,
       avatar,
+      username: data.username.trim(),
     };
   }
 
@@ -583,6 +616,7 @@ export async function getUserInfo(
       email: profile.email.trim().toLowerCase(),
       name: profile.name?.trim() || profile.email.split("@")[0],
       avatar: profile.profile_picture,
+      username: profile.name?.trim() || undefined,
     };
   }
 
@@ -639,6 +673,7 @@ export async function getUserInfo(
       email: (data.email ?? `${data._id}@linked.streamelements`).trim().toLowerCase(),
       name: data.displayName?.trim() || data.username?.trim() || "StreamElements",
       avatar: data.avatar,
+      username: data.username?.trim() || undefined,
     };
   }
 
@@ -704,6 +739,7 @@ export async function findOrCreateOAuthUser(
       data: {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
+        username: userInfo.username ?? existingAccount.username,
       },
     });
 
@@ -757,6 +793,7 @@ export async function findOrCreateOAuthUser(
         create: {
           provider,
           providerAccountId: userInfo.providerUserId,
+          username: userInfo.username,
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
         },
@@ -806,6 +843,7 @@ export async function linkOAuthAccount(
       data: {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
+        username: userInfo.username ?? existingAccount.username,
       },
     });
     return;
@@ -816,6 +854,7 @@ export async function linkOAuthAccount(
       userId,
       provider,
       providerAccountId: userInfo.providerUserId,
+      username: userInfo.username,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     },
