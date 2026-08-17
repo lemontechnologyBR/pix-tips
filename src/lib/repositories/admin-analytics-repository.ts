@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import { DEMO_CREATOR_ID } from "@/lib/demo";
 import {
   buildTrafficMediumLabel,
-  normalizeReferrerLabel,
   resolveTrafficSource,
 } from "@/lib/analytics/traffic";
 
@@ -78,11 +77,18 @@ const SITE_PATHS = new Set([
 
 function isDemoPath(path: string | null): boolean {
   if (!path) return false;
-  return path === "/demo" || path.startsWith("/demo/");
+  return path === "/demo" || path.startsWith("/demo/") || path.startsWith("/demo?");
 }
 
 function firstPathSegment(path: string | null): string {
-  return path?.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+  const clean = path?.split("?")[0] ?? "";
+  return clean.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+}
+
+function rawReferrerLabel(referrer: string | null | undefined): string {
+  const raw = referrer?.trim();
+  if (!raw) return "Acesso direto";
+  return raw;
 }
 
 function shouldInclude(row: AnalyticsRow): boolean {
@@ -142,6 +148,7 @@ export async function getAdminTrafficAnalytics(
               { creatorId },
               { path: `/${creatorSlug}` },
               { path: { startsWith: `/${creatorSlug}/` } },
+              { path: { startsWith: `/${creatorSlug}?` } },
             ],
           }
         : {}),
@@ -178,8 +185,8 @@ export async function getAdminTrafficAnalytics(
 
   for (const row of visits) {
     const source = resolveTrafficSource(row.utmSource, row.referrer, row.userAgent);
-    const referrer = normalizeReferrerLabel(row.referrer);
-    const landing = row.path?.trim() || "/";
+    const referrer = rawReferrerLabel(row.referrer);
+    const landing = (row.path?.trim() || "/").split("?")[0];
     const dayKey = row.createdAt.toISOString().slice(0, 10);
 
     bump(sourceMap, source);
@@ -235,7 +242,7 @@ export async function getAdminTrafficAnalytics(
     type: row.type === "tip_page_view" ? "Tip page" : "Site",
     path: row.path,
     source: resolveTrafficSource(row.utmSource, row.referrer, row.userAgent),
-    referrer: normalizeReferrerLabel(row.referrer),
+    referrer: rawReferrerLabel(row.referrer),
     medium: buildTrafficMediumLabel(row.utmMedium, row.utmCampaign),
     createdAt: row.createdAt.toISOString(),
   }));
@@ -249,7 +256,7 @@ export async function getAdminTrafficAnalytics(
     visitsYesterday,
     byDay,
     bySource: toRows(sourceMap, totalVisits),
-    byReferrer: toRows(referrerMap, totalVisits),
+    byReferrer: toRows(referrerMap, totalVisits, 20),
     byLandingPage: toRows(landingMap, totalVisits, 15),
     byCreator: toRows(creatorMap, totalVisits, 15),
     byCampaign,

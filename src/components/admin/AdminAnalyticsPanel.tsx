@@ -58,6 +58,26 @@ function ShareBar({ share }: { share: number }) {
   );
 }
 
+function isHttpUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value);
+}
+
+function OriginLabel({ label }: { label: string }) {
+  if (isHttpUrl(label)) {
+    return (
+      <a
+        href={label}
+        target="_blank"
+        rel="noreferrer"
+        className="break-all font-mono text-xs text-cyan-300 hover:underline"
+      >
+        {label}
+      </a>
+    );
+  }
+  return <div className="font-medium text-zinc-200">{label}</div>;
+}
+
 function SourceTable({
   title,
   subtitle,
@@ -91,7 +111,7 @@ function SourceTable({
               {rows.map((row) => (
                 <tr key={row.label} className="border-t border-zinc-800/60">
                   <td className="py-2 pr-3">
-                    <div className="font-medium text-zinc-200">{row.label}</div>
+                    <OriginLabel label={row.label} />
                     <ShareBar share={row.share} />
                   </td>
                   <td className="py-2 pr-3 font-mono text-cyan-300">{row.count}</td>
@@ -268,7 +288,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
         />
         <SourceTable
           title="Referrers"
-          subtitle="De onde o visitante veio antes de entrar"
+          subtitle="Link de origem (clique para abrir). TikTok só envia tiktok.com, sem o vídeo."
           rows={data.byReferrer}
         />
       </div>
@@ -401,8 +421,8 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
                       {row.path ?? "—"}
                     </td>
                     <td className="py-2 pr-3">{row.source}</td>
-                    <td className="py-2 text-zinc-400">
-                      {row.referrer}
+                    <td className="py-2">
+                      <OriginLabel label={row.referrer} />
                       {row.medium !== "—" ? (
                         <span className="block text-xs text-zinc-600">
                           {row.medium}

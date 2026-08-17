@@ -56,7 +56,7 @@ export function SiteVisitTracker() {
     const utm = extractUtmFromSearchParams(searchParams);
     void sendTraffic({
       type: "site_visit",
-      path: pathname,
+      path: query ? `${pathname}?${query}` : pathname,
       referrer: typeof document !== "undefined" ? document.referrer : undefined,
       ...utm,
     });

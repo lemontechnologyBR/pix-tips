@@ -14,7 +14,7 @@ function clean(value: unknown, max: number): string | null {
 
 function pathUsername(path: string | null): string | null {
   if (!path) return null;
-  const first = path.split("/").filter(Boolean)[0]?.toLowerCase();
+  const first = path.split("?")[0].split("/").filter(Boolean)[0]?.toLowerCase();
   if (!first || !isUsernameAvailableSlug(first)) return null;
   return first;
 }
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tipo inválido." }, { status: 400 });
     }
 
-    const path = clean(body.path, 200);
+    const path = clean(body.path, 400);
     let creatorId = clean(body.creatorId, 64);
 
     if (!creatorId) {

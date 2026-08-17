@@ -19,10 +19,12 @@ export function AnalyticsBeacon({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const utm = extractUtmFromSearchParams(params);
+    const search = window.location.search;
+    const fullPath = `${path ?? window.location.pathname}${search}`;
     const payload = JSON.stringify({
       type,
       creatorId,
-      path,
+      path: fullPath,
       widget,
       referrer: document.referrer || undefined,
       ...utm,
