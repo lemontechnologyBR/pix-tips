@@ -8,8 +8,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAnalyticsPage() {
-  const initial = await getAdminTrafficAnalytics(30);
+export default async function AdminAnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ creator?: string }>;
+}) {
+  const params = await searchParams;
+  const creator = params.creator?.trim() || undefined;
+  const initial = await getAdminTrafficAnalytics(30, { creator });
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

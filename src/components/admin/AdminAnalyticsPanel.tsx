@@ -109,13 +109,18 @@ function SourceTable({
 export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
   const [data, setData] = useState(initial);
   const [periodDays, setPeriodDays] = useState(initial.periodDays);
+  const [creator, setCreator] = useState(initial.creator ?? "");
+  const [creatorInput, setCreatorInput] = useState(initial.creator ?? "");
   const [loading, setLoading] = useState(false);
 
-  const loadPeriod = useCallback(async (days: number) => {
+  const load = useCallback(async (days: number, creatorSlug: string) => {
     setLoading(true);
     setPeriodDays(days);
+    setCreator(creatorSlug);
     try {
-      const res = await fetch(`/api/admin/analytics?days=${days}`);
+      const params = new URLSearchParams({ days: String(days) });
+      if (creatorSlug) params.set("creator", creatorSlug);
+      const res = await fetch(`/api/admin/analytics?${params.toString()}`);
       if (res.ok) {
         const json = (await res.json()) as AdminTrafficAnalytics;
         setData(json);
@@ -124,6 +129,12 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
       setLoading(false);
     }
   }, []);
+
+  function applyCreator(raw: string) {
+    const slug = raw.trim().replace(/^@/, "").toLowerCase();
+    setCreatorInput(slug);
+    void load(periodDays, slug);
+  }
 
   const maxDay = Math.max(...data.byDay.map((d) => d.count), 1);
   const dayDelta =
@@ -139,16 +150,48 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-zinc-400">
-          Visitas ao site e tip pages · demo excluído
-        </p>
+        <form
+          className="flex flex-wrap items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            applyCreator(creatorInput);
+          }}
+        >
+          <input
+            type="search"
+            value={creatorInput}
+            onChange={(e) => setCreatorInput(e.target.value)}
+            placeholder="Filtrar por @criador"
+            className="w-52 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-cyan-500/50 disabled:opacity-50"
+          >
+            Ver origem
+          </button>
+          {creator ? (
+            <button
+              type="button"
+              onClick={() => applyCreator("")}
+              className="text-xs text-zinc-500 hover:text-white"
+            >
+              limpar @{creator}
+            </button>
+          ) : (
+            <p className="text-sm text-zinc-400">
+              Visitas ao site e tip pages · demo excluído
+            </p>
+          )}
+        </form>
         <div className="flex gap-1 rounded-lg bg-zinc-800 p-1">
           {PERIODS.map((p) => (
             <button
               key={p.days}
               type="button"
               disabled={loading}
-              onClick={() => void loadPeriod(p.days)}
+              onClick={() => void load(p.days, creator)}
               className={`rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50 ${
                 periodDays === p.days
                   ? "bg-cyan-600 text-white"
@@ -220,7 +263,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <SourceTable
           title="Origem do tráfego"
-          subtitle="UTM source ou domínio do referrer"
+          subtitle="UTM, referrer, Google Ads ou app (Twitch/Kick/Discord)"
           rows={data.bySource}
         />
         <SourceTable
@@ -233,7 +276,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
       <div className="grid gap-6 lg:grid-cols-2">
         <SourceTable
           title="Páginas de entrada"
-          subtitle="Primeira URL visitada na sessão"
+          subtitle="URL visitada"
           rows={data.byLandingPage}
           valueLabel="Visitas"
         />
@@ -283,6 +326,50 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
           )}
         </section>
       </div>
+
+      {!creator ? (
+        <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <div className="mb-4">
+            <h3 className="font-semibold">Tip pages mais acessadas</h3>
+            <p className="text-xs text-zinc-500">
+              Clique no criador para ver de onde vieram os acessos
+            </p>
+          </div>
+          {data.byCreator.length === 0 ? (
+            <p className="text-sm text-zinc-500">Sem tip pages no período.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-zinc-500">
+                  <tr>
+                    <th className="py-1.5 pr-3">Criador</th>
+                    <th className="py-1.5 pr-3">Acessos</th>
+                    <th className="py-1.5 w-28">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.byCreator.map((row) => (
+                    <tr key={row.label} className="border-t border-zinc-800/60">
+                      <td className="py-2 pr-3">
+                        <button
+                          type="button"
+                          onClick={() => applyCreator(row.label)}
+                          className="font-medium text-cyan-300 hover:underline"
+                        >
+                          {row.label}
+                        </button>
+                        <ShareBar share={row.share} />
+                      </td>
+                      <td className="py-2 pr-3 font-mono text-cyan-300">{row.count}</td>
+                      <td className="py-2 text-zinc-400">{row.share}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
         <div className="mb-4">

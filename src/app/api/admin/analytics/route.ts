@@ -11,7 +11,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const days = Number(searchParams.get("days") ?? "30");
+  const creator = searchParams.get("creator") ?? "";
 
-  const data = await getAdminTrafficAnalytics(days);
+  const data = await getAdminTrafficAnalytics(days, { creator });
   return NextResponse.json(data);
 }

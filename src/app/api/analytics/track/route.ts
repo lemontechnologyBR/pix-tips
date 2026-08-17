@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { isUsernameAvailableSlug } from "@/lib/auth/validators";
 
 const ALLOWED_TYPES = new Set(["site_visit", "tip_page_view", "widget_view"]);
 
@@ -9,6 +10,13 @@ function clean(value: unknown, max: number): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   return trimmed.slice(0, max);
+}
+
+function pathUsername(path: string | null): string | null {
+  if (!path) return null;
+  const first = path.split("/").filter(Boolean)[0]?.toLowerCase();
+  if (!first || !isUsernameAvailableSlug(first)) return null;
+  return first;
 }
 
 export async function POST(request: Request) {
@@ -38,11 +46,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tipo inválido." }, { status: 400 });
     }
 
+    const path = clean(body.path, 200);
+    let creatorId = clean(body.creatorId, 64);
+
+    if (!creatorId) {
+      const username = pathUsername(path);
+      if (username) {
+        const creator = await prisma.creator.findUnique({
+          where: { username },
+          select: { id: true },
+        });
+        creatorId = creator?.id ?? null;
+      }
+    }
+
     await prisma.analyticsEvent.create({
       data: {
         type,
-        creatorId: clean(body.creatorId, 64),
-        path: clean(body.path, 200),
+        creatorId,
+        path,
         widget: clean(body.widget, 40),
         referrer: clean(body.referrer, 500),
         utmSource: clean(body.utmSource, 120),
@@ -50,6 +72,7 @@ export async function POST(request: Request) {
         utmCampaign: clean(body.utmCampaign, 120),
         utmTerm: clean(body.utmTerm, 120),
         utmContent: clean(body.utmContent, 120),
+        userAgent: clean(request.headers.get("user-agent"), 300),
       },
     });
 

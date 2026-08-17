@@ -249,6 +249,7 @@ model AnalyticsEvent {
   utmCampaign  String?
   utmTerm      String?
   utmContent   String?
+  userAgent    String?
   createdAt    DateTime @default(now())
 
   @@index([type, createdAt])

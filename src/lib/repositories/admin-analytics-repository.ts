@@ -14,6 +14,7 @@ export interface TrafficRow {
 
 export interface AdminTrafficAnalytics {
   periodDays: number;
+  creator: string | null;
   totalVisits: number;
   uniqueLandingPages: number;
   visitsToday: number;
@@ -22,6 +23,7 @@ export interface AdminTrafficAnalytics {
   bySource: TrafficRow[];
   byReferrer: TrafficRow[];
   byLandingPage: TrafficRow[];
+  byCreator: TrafficRow[];
   byCampaign: Array<{
     source: string;
     medium: string;
@@ -48,19 +50,47 @@ type AnalyticsRow = {
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
+  userAgent: string | null;
   creatorId: string | null;
   createdAt: Date;
 };
+
+const SITE_PATHS = new Set([
+  "",
+  "blog",
+  "login",
+  "register",
+  "contato",
+  "cookies",
+  "developers",
+  "examples",
+  "forgot-password",
+  "help",
+  "sobre",
+  "status",
+  "termos",
+  "privacidade",
+  "verify-email",
+  "reset-password",
+  "maintenance",
+  "onboarding",
+]);
 
 function isDemoPath(path: string | null): boolean {
   if (!path) return false;
   return path === "/demo" || path.startsWith("/demo/");
 }
 
+function firstPathSegment(path: string | null): string {
+  return path?.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+}
+
 function shouldInclude(row: AnalyticsRow): boolean {
   if (row.creatorId === DEMO_CREATOR_ID) return false;
   if (isDemoPath(row.path)) return false;
-  return row.type === "site_visit" || row.type === "tip_page_view";
+  if (row.type === "tip_page_view") return true;
+  if (row.type !== "site_visit") return false;
+  return SITE_PATHS.has(firstPathSegment(row.path));
 }
 
 function bump(map: Map<string, number>, key: string, amount = 1) {
@@ -80,8 +110,10 @@ function toRows(map: Map<string, number>, total: number, limit = 12): TrafficRow
 
 export async function getAdminTrafficAnalytics(
   periodDays: number,
+  opts: { creator?: string } = {},
 ): Promise<AdminTrafficAnalytics> {
   const days = Math.min(90, Math.max(1, periodDays));
+  const creatorSlug = opts.creator?.trim().replace(/^@/, "").toLowerCase() || null;
   const since = new Date();
   since.setDate(since.getDate() - days);
   since.setHours(0, 0, 0, 0);
@@ -91,10 +123,28 @@ export async function getAdminTrafficAnalytics(
   const yesterdayStart = new Date(todayStart);
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
+  let creatorId: string | null = null;
+  if (creatorSlug) {
+    const found = await prisma.creator.findUnique({
+      where: { username: creatorSlug },
+      select: { id: true },
+    });
+    creatorId = found?.id ?? "__none__";
+  }
+
   const rows = await prisma.analyticsEvent.findMany({
     where: {
       createdAt: { gte: since },
-      type: { in: ["site_visit", "tip_page_view", "widget_view"] },
+      type: { in: ["site_visit", "tip_page_view"] },
+      ...(creatorId
+        ? {
+            OR: [
+              { creatorId },
+              { path: `/${creatorSlug}` },
+              { path: { startsWith: `/${creatorSlug}/` } },
+            ],
+          }
+        : {}),
     },
     select: {
       id: true,
@@ -104,11 +154,12 @@ export async function getAdminTrafficAnalytics(
       utmSource: true,
       utmMedium: true,
       utmCampaign: true,
+      userAgent: true,
       creatorId: true,
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
-    take: 5000,
+    take: 8000,
   });
 
   const visits = rows.filter(shouldInclude);
@@ -117,6 +168,7 @@ export async function getAdminTrafficAnalytics(
   const sourceMap = new Map<string, number>();
   const referrerMap = new Map<string, number>();
   const landingMap = new Map<string, number>();
+  const creatorMap = new Map<string, number>();
   const campaignMap = new Map<string, number>();
   const dayMap = new Map<string, number>();
   const landingSet = new Set<string>();
@@ -125,7 +177,7 @@ export async function getAdminTrafficAnalytics(
   let visitsYesterday = 0;
 
   for (const row of visits) {
-    const source = resolveTrafficSource(row.utmSource, row.referrer);
+    const source = resolveTrafficSource(row.utmSource, row.referrer, row.userAgent);
     const referrer = normalizeReferrerLabel(row.referrer);
     const landing = row.path?.trim() || "/";
     const dayKey = row.createdAt.toISOString().slice(0, 10);
@@ -135,6 +187,11 @@ export async function getAdminTrafficAnalytics(
     bump(landingMap, landing);
     bump(dayMap, dayKey);
     landingSet.add(landing);
+
+    const creatorLabel = firstPathSegment(row.path);
+    if (creatorLabel && !SITE_PATHS.has(creatorLabel)) {
+      bump(creatorMap, `@${creatorLabel}`);
+    }
 
     if (row.utmSource || row.utmCampaign || row.utmMedium) {
       const campaignKey = [
@@ -177,7 +234,7 @@ export async function getAdminTrafficAnalytics(
     id: row.id,
     type: row.type === "tip_page_view" ? "Tip page" : "Site",
     path: row.path,
-    source: resolveTrafficSource(row.utmSource, row.referrer),
+    source: resolveTrafficSource(row.utmSource, row.referrer, row.userAgent),
     referrer: normalizeReferrerLabel(row.referrer),
     medium: buildTrafficMediumLabel(row.utmMedium, row.utmCampaign),
     createdAt: row.createdAt.toISOString(),
@@ -185,6 +242,7 @@ export async function getAdminTrafficAnalytics(
 
   return {
     periodDays: days,
+    creator: creatorSlug,
     totalVisits,
     uniqueLandingPages: landingSet.size,
     visitsToday,
@@ -193,6 +251,7 @@ export async function getAdminTrafficAnalytics(
     bySource: toRows(sourceMap, totalVisits),
     byReferrer: toRows(referrerMap, totalVisits),
     byLandingPage: toRows(landingMap, totalVisits, 15),
+    byCreator: toRows(creatorMap, totalVisits, 15),
     byCampaign,
     recentVisits,
   };
