@@ -16,6 +16,8 @@ const TWITCH_MESSAGE_MAX = 490;
 
 type ChannelMap = Map<string, ActiveChatBot>;
 
+const AUTH_RETRY_MS = 10 * 60_000;
+
 class TwitchChatBotManager {
   private client: tmi.Client | null = null;
   private channels: ChannelMap = new Map();
@@ -24,6 +26,8 @@ class TwitchChatBotManager {
   private rotatingTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private reloadTimer: ReturnType<typeof setInterval> | null = null;
   private starting = false;
+  private authBlockedUntil = 0;
+  private authFailLogged = false;
 
   configured(): boolean {
     return isChatBotConfigured();
@@ -149,7 +153,9 @@ class TwitchChatBotManager {
 
   private buildClient(channelLogins: string[]): tmi.Client {
     const username = process.env.TWITCH_BOT_USERNAME!.trim();
-    const password = process.env.TWITCH_BOT_OAUTH_TOKEN!.trim();
+    const raw = process.env.TWITCH_BOT_OAUTH_TOKEN!.trim();
+    const token = raw.replace(/^oauth:/i, "");
+    const password = `oauth:${token}`;
 
     return new tmi.Client({
       options: { debug: process.env.NODE_ENV !== "production" },
@@ -179,6 +185,7 @@ class TwitchChatBotManager {
 
   async reload(): Promise<void> {
     if (!this.configured() || this.starting) return;
+    if (Date.now() < this.authBlockedUntil) return;
     this.starting = true;
 
     try {
@@ -221,6 +228,8 @@ class TwitchChatBotManager {
         void this.handleMessage(channel, tags, message, self);
       });
       client.on("connected", () => {
+        this.authBlockedUntil = 0;
+        this.authFailLogged = false;
         console.log(
           `[chat-bot] conectado em ${nextLogins.length} canal(is): ${nextLogins.join(", ")}`,
         );
@@ -230,7 +239,19 @@ class TwitchChatBotManager {
       this.client = client;
       await client.connect();
     } catch (err) {
-      console.error("[chat-bot] falha ao recarregar:", err);
+      const message = err instanceof Error ? err.message : String(err);
+      const authFailed = /login authentication failed/i.test(message);
+      if (authFailed) {
+        this.authBlockedUntil = Date.now() + AUTH_RETRY_MS;
+        if (!this.authFailLogged) {
+          this.authFailLogged = true;
+          console.error(
+            "[chat-bot] token Twitch inválido ou expirado. Gere um novo em https://twitchtokengenerator.com com os scopes chat:read e chat:edit (conta do bot), no formato oauth:xxxxx, e atualize TWITCH_BOT_OAUTH_TOKEN no .env.",
+          );
+        }
+      } else {
+        console.error("[chat-bot] falha ao recarregar:", err);
+      }
       await this.disconnect();
     } finally {
       this.starting = false;
