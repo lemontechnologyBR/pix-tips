@@ -17,6 +17,9 @@ function ChangeBadge({ value }: { value: number }) {
 }
 
 export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
+  const gatewayCost = overview.gatewayCost ?? overview.mercadoPagoCost;
+  const gatewayLabel = overview.gatewayFeeLabel ?? `MP ${overview.mercadoPagoFeeRate}%`;
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -42,30 +45,17 @@ export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
           {formatCurrency(overview.platformRevenue)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          Comissão cobrada nas doações
+          Taxa fixa R$ 0,99 nas doações (+ saques)
         </p>
       </div>
 
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
-        <p className="text-sm text-zinc-400">Lucro da plataforma</p>
+        <p className="text-sm text-zinc-400">Lucro estimado</p>
         <p className="mt-1 text-2xl font-bold text-emerald-300">
           {formatCurrency(overview.platformProfit)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          Receita − {overview.mercadoPagoFeeRate}% Mercado Pago (
-          {formatCurrency(overview.mercadoPagoCost)})
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <p className="text-sm text-zinc-400">Assinantes Pro</p>
-        <p className="mt-1 text-2xl font-bold text-cyan-400">
-          {overview.proSubscribers}
-        </p>
-        <p className="mt-1 text-xs text-zinc-500">
-          {overview.totalCreators > 0
-            ? `${((overview.proSubscribers / overview.totalCreators) * 100).toFixed(0)}% da base`
-            : "Sem criadores ainda"}
+          Receita − gateway ({gatewayLabel}: {formatCurrency(gatewayCost)})
         </p>
       </div>
 

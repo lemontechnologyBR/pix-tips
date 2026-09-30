@@ -85,7 +85,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         question: "Existe taxa por transação?",
         answer:
-          "Taxa de 2,5% descontada de cada doação confirmada. Não há mensalidades, taxa fixa por doação nem taxa de saque.",
+          "Taxa fixa de R$ 0,99 por doação confirmada e R$ 2,49 por saque. Não há mensalidade.",
       },
     ],
   },

@@ -4,16 +4,23 @@ import {
   getCreatorById,
   updateTransactionPayment,
 } from "@/lib/store";
-import { computeFee, getCommissionRate } from "@/lib/finance";
 import {
-  createMercadoPagoPixPayment,
-  isMercadoPagoConfigured,
-  MercadoPagoApiError,
-  toStoredMpPaymentId,
-} from "@/lib/payments/mercadopago";
+  computeFee,
+  computeNetAmount,
+  getCommissionFixedFee,
+  getCommissionRate,
+  MIN_DONATION_AMOUNT,
+} from "@/lib/finance";
+import {
+  createWooviPixCharge,
+  isWooviConfigured,
+  WooviApiError,
+} from "@/lib/payments/woovi";
+import { shouldUseWooviSplit } from "@/lib/payments/payout-mode";
 import { TTS_VOICES } from "@/lib/tts-config";
 import { isDemoCreator } from "@/lib/demo";
 import { rateLimit } from "@/lib/rate-limit";
+import { getPrisma } from "@/lib/db";
 
 const DEMO_PIX_CODE =
   "00020126580014BR.GOV.BCB.PIX0136demo-pix-tips-page5204000053039865802BR5913pix.tips Demo6009SAO PAULO62070503***6304DEMO";
@@ -55,9 +62,11 @@ export async function POST(request: Request) {
     const message: string =
       typeof rawMessage === "string" ? rawMessage.slice(0, 300) : "";
 
-    if (!creatorId || !amount || Number(amount) < 1) {
+    if (!creatorId || !amount || Number(amount) < MIN_DONATION_AMOUNT) {
       return NextResponse.json(
-        { error: "Dados inválidos. Valor mínimo: R$ 1,00" },
+        {
+          error: `Dados inválidos. Valor mínimo: R$ ${MIN_DONATION_AMOUNT.toFixed(2).replace(".", ",")}`,
+        },
         { status: 400 },
       );
     }
@@ -77,10 +86,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const minDonation = creator.tipPageSettings?.minDonation ?? 1;
+    const tipMin = creator.tipPageSettings?.minDonation ?? MIN_DONATION_AMOUNT;
+    const minDonation = Math.max(MIN_DONATION_AMOUNT, tipMin);
     if (Number(amount) < minDonation) {
       return NextResponse.json(
-        { error: `Valor mínimo de doação: R$ ${minDonation.toFixed(2).replace(".", ",")}` },
+        {
+          error: `Valor mínimo de doação: R$ ${minDonation.toFixed(2).replace(".", ",")}`,
+        },
         { status: 400 },
       );
     }
@@ -114,14 +126,14 @@ export async function POST(request: Request) {
         status: transaction.status,
         method: transaction.method,
         pixCode: DEMO_PIX_CODE,
-        paymentProvider: "mercadopago",
+        paymentProvider: "woovi",
         expiresIn: 900,
         amount: transaction.amount,
         mock: true,
       });
     }
 
-    if (!isMercadoPagoConfigured()) {
+    if (!isWooviConfigured()) {
       return NextResponse.json(
         { error: "Recebimentos Pix indisponíveis no momento." },
         { status: 503 },
@@ -139,22 +151,43 @@ export async function POST(request: Request) {
     });
 
     const commissionRate = getCommissionRate();
-    const applicationFee = computeFee(Number(amount), commissionRate);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    const fixedFee = getCommissionFixedFee();
+    const applicationFee = computeFee(Number(amount), commissionRate, fixedFee);
+    const netAmount = computeNetAmount(Number(amount), commissionRate, fixedFee);
 
-    const payment = await createMercadoPagoPixPayment({
+    const payoutCtx = await getPrisma().creator.findUnique({
+      where: { id: creator.id },
+      select: {
+        availableBalance: true,
+        wooviSubaccountName: true,
+        wooviPixKey: true,
+        pixKey: true,
+      },
+    });
+
+    const useSplit = shouldUseWooviSplit({
+      availableBalance: payoutCtx?.availableBalance ?? 0,
+      wooviSubaccountName: payoutCtx?.wooviSubaccountName,
+      pixKey: payoutCtx?.pixKey,
+    });
+
+    const splitPixKey = useSplit
+      ? (payoutCtx?.wooviPixKey || payoutCtx?.pixKey || undefined)
+      : undefined;
+
+    const charge = await createWooviPixCharge({
       amount: Number(amount),
-      description: `Doação para ${creator.displayName} via pix.tips`,
-      externalReference: transaction.id,
-      payerFirstName: donorName,
-      notificationUrl: appUrl ? `${appUrl}/api/webhooks/mercadopago` : undefined,
-      expiresInMinutes: 15,
+      correlationID: transaction.id,
+      comment: `Doação para ${creator.displayName} via pix.tips`,
+      expiresInSeconds: 900,
+      splitPixKey: splitPixKey || undefined,
+      splitAmount: splitPixKey ? netAmount : undefined,
     });
 
     await updateTransactionPayment(transaction.id, {
-      pixCode: payment.pixCode,
-      wooviPaymentId: toStoredMpPaymentId(payment.id),
-      splitPayment: false,
+      pixCode: charge.pixCode,
+      wooviPaymentId: charge.correlationID,
+      splitPayment: Boolean(splitPixKey),
       applicationFee,
     });
 
@@ -162,15 +195,16 @@ export async function POST(request: Request) {
       transactionId: transaction.id,
       status: transaction.status,
       method: transaction.method,
-      pixCode: payment.pixCode,
-      paymentProvider: "mercadopago",
+      pixCode: charge.pixCode,
+      paymentProvider: "woovi",
       expiresIn: 900,
       amount: transaction.amount,
       mock: false,
+      splitPayment: Boolean(splitPixKey),
     });
   } catch (error) {
     console.error("[donate]", error);
-    if (error instanceof MercadoPagoApiError) {
+    if (error instanceof WooviApiError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     return NextResponse.json(

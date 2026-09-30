@@ -11,7 +11,7 @@ export function PricingSection() {
   const [donationCount, setDonationCount] = useState(50);
 
   const gross = donationCount * AVG_DONATION;
-  // Taxa por doação × quantidade (2,5% em cada uma)
+  // Taxa fixa por doação × quantidade
   const fee = donationCount * computeFee(AVG_DONATION);
   const net = gross - fee;
   const commissionLabel = formatCommissionLabel();
@@ -56,7 +56,7 @@ export function PricingSection() {
               <span className="mb-1.5 text-base text-zinc-500">/mês</span>
             </div>
             <p className="mt-2 text-sm font-medium text-cyan-400">
-              Apenas {commissionLabel} sobre cada doação recebida
+              {commissionLabel} por doação + taxa de saque
             </p>
 
             {/* Divider */}

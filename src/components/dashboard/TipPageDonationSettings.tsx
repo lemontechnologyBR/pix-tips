@@ -264,8 +264,8 @@ export function TipPageDonationSettings({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                disabled={minDonation <= 1}
-                onClick={() => onMinDonationChange(Math.max(1, minDonation - 1))}
+                disabled={minDonation <= 5}
+                onClick={() => onMinDonationChange(Math.max(5, minDonation - 1))}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-cyan-500 hover:text-white disabled:opacity-30"
               >
                 −
@@ -285,7 +285,7 @@ export function TipPageDonationSettings({
           </div>
           <input
             type="range"
-            min={1}
+            min={5}
             max={100}
             value={minDonation}
             onChange={(e) => onMinDonationChange(Number(e.target.value))}

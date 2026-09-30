@@ -295,7 +295,7 @@ interface PaymentData {
   expiresIn: number;
   amount: number;
   mock?: boolean;
-  paymentProvider?: "mercadopago";
+  paymentProvider?: "woovi";
 }
 
 export function DonationForm({ creator, layoutId }: DonationFormProps) {

@@ -10,7 +10,15 @@ import {
 } from "@/lib/finance";
 import { getKycProfile } from "@/lib/repositories/kyc-repository";
 import { mapTransactionRow, type TransactionRow } from "@/lib/repositories/json-fields";
-import { getActivePaymentProvider } from "@/lib/payments/mercadopago";
+import {
+  ensureWooviSubaccount,
+  getActivePaymentProvider,
+  isWooviConfigured,
+} from "@/lib/payments/woovi";
+import {
+  migrationBannerMessage,
+  resolvePayoutMode,
+} from "@/lib/payments/payout-mode";
 import type { FinanceOverview, Payout, PixKeyType } from "@/types";
 
 const ACTIVE_PAYOUT_STATUSES = ["pending", "processing", "completed"];
@@ -142,8 +150,20 @@ export async function getFinanceOverview(
   }, 0);
   const kyc = await getKycProfile(creatorId);
 
+  const payoutMode = resolvePayoutMode({
+    availableBalance: creator.availableBalance,
+    wooviSubaccountName: creator.wooviSubaccountName,
+    pixKey: creator.pixKey,
+  });
+
   return {
     paymentProvider: getActivePaymentProvider(),
+    payoutMode,
+    migrationBanner: migrationBannerMessage({
+      availableBalance: creator.availableBalance,
+      wooviSubaccountName: creator.wooviSubaccountName,
+      pixKey: creator.pixKey,
+    }),
     availableBalance: creator.availableBalance,
     pendingBalance,
     totalWithdrawn: creator.totalWithdrawn,
@@ -166,6 +186,7 @@ export async function getFinanceOverview(
         ? maskPixKey(creator.pixKey, creator.pixKeyType)
         : null,
       configured: Boolean(creator.pixKey && creator.pixHolderName),
+      wooviSubaccountName: creator.wooviSubaccountName,
     },
     recentPayouts: payouts.map(mapPayout),
     recentTransactions: recentTx.map((r) =>
@@ -182,12 +203,35 @@ export async function updatePayoutSettings(
     pixHolderName: string;
   },
 ): Promise<void> {
+  const pixKey = input.pixKey.trim();
+  const pixHolderName = input.pixHolderName.trim();
+
+  let wooviSubaccountName: string | null = null;
+  let wooviPixKey: string | null = null;
+
+  if (isWooviConfigured() && pixKey) {
+    try {
+      const sub = await ensureWooviSubaccount({
+        name: pixHolderName || `creator-${creatorId.slice(0, 8)}`,
+        pixKey,
+      });
+      wooviSubaccountName = sub.name;
+      wooviPixKey = sub.pixKey;
+    } catch (error) {
+      console.error("[finance] ensureWooviSubaccount", error);
+      // Continua salvando a chave localmente; split ativa quando a subconta existir.
+    }
+  }
+
   await prisma.creator.update({
     where: { id: creatorId },
     data: {
-      pixKey: input.pixKey.trim(),
+      pixKey,
       pixKeyType: input.pixKeyType,
-      pixHolderName: input.pixHolderName.trim(),
+      pixHolderName,
+      ...(wooviSubaccountName
+        ? { wooviSubaccountName, wooviPixKey: wooviPixKey || pixKey, wooviPixKeyType: input.pixKeyType }
+        : {}),
     },
   });
 }

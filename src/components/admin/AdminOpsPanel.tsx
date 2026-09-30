@@ -26,9 +26,14 @@ export function AdminOpsPanel({ initial }: AdminOpsPanelProps) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
-          label="Mercado Pago"
-          value={data.mercadoPagoConfigured ? "conectado" : "off"}
+          label="Woovi"
+          value={data.wooviConfigured ? "conectado" : "off"}
           hint={`${data.counts.payoutKeys} chaves Pix de saque cadastradas`}
+        />
+        <Metric
+          label="Mercado Pago (legado)"
+          value={data.mercadoPagoConfigured ? "conectado" : "off"}
+          hint="Só reconsulta cobranças antigas"
         />
         <Metric
           label="CPF provider"

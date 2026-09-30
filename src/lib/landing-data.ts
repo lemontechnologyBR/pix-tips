@@ -80,7 +80,7 @@ export const FEATURES = [
   {
     title: "Grátis para começar",
     description:
-      "Você só paga uma pequena comissão sobre o que receber.",
+      "Sem mensalidade. Você só paga R$ 0,99 por doação recebida.",
     icon: "check",
   },
 ] as const;
@@ -127,22 +127,22 @@ export const FAQ_ITEMS = [
   {
     question: "Quanto custa usar a plataforma?",
     answer:
-      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos apenas 2,5% por doação recebida. Nada mais.",
+      "Criar sua página é 100% grátis, sem mensalidade nem plano pago. Cobramos R$ 0,99 por doação recebida e R$ 2,49 por saque. Nada mais.",
   },
   {
-    question: "Como funciona a taxa de 2,5%?",
+    question: "Como funciona a taxa de R$ 0,99?",
     answer:
-      "A taxa é descontada automaticamente de cada doação no momento em que ela é confirmada: 2,5% do valor. Se um fã enviar R$ 10,00, você recebe R$ 9,75 no seu saldo. Não há mensalidade, taxa fixa por doação nem taxa de saque.",
+      "A taxa é fixa e descontada automaticamente de cada doação confirmada. Se um fã enviar R$ 10,00, você recebe R$ 9,01. Não há mensalidade nem percentual sobre o valor.",
   },
   {
     question: "Quanto tempo leva para receber o Pix?",
     answer:
-      "O Pix é instantâneo. Assim que seu fã confirma o pagamento, o valor já aparece no seu saldo dentro do painel. Em geral leva menos de 10 segundos para ser processado.",
+      "O Pix é instantâneo. Assim que seu fã confirma o pagamento, o valor já é creditado (no saldo da plataforma ou na sua subconta Woovi, conforme sua migração). Em geral leva menos de 10 segundos.",
   },
   {
     question: "Como funciona o saque?",
     answer:
-      'No painel Financeiro, cadastre sua chave Pix, informe o valor e solicite o saque. O valor é enviado para sua chave em até 24h úteis. O saque é gratuito — só cobramos 2,5% na doação.',
+      "No painel Financeiro, cadastre sua chave Pix, informe o valor e solicite o saque. Há uma taxa fixa de R$ 2,49 por saque. O valor líquido é enviado para sua chave em até 24h úteis (saques legados) ou via Woovi quando sua conta já estiver migrada.",
   },
   {
     question: "Preciso ter conta bancária específica?",
@@ -177,7 +177,7 @@ export const FAQ_ITEMS = [
   {
     question: "Existe limite mínimo ou máximo de doação?",
     answer:
-      "O valor mínimo de doação é R$ 1,00. Não há limite máximo — seu fã pode enviar o quanto quiser. Você pode definir um valor mínimo maior na sua página se preferir.",
+      "O valor mínimo de doação é R$ 5,00. Não há limite máximo — seu fã pode enviar o quanto quiser. Você pode definir um valor mínimo maior na sua página se preferir.",
   },
   {
     question: "Meus dados estão seguros?",
@@ -207,8 +207,9 @@ export const FAQ_ITEMS = [
 ] as const;
 
 export const PLATFORM_FEATURES = [
-  "Apenas 2,5% por doação recebida (sem mensalidade)",
-  "Saques gratuitos — solicite e receba em até 24h úteis",
+  "R$ 0,99 por doação recebida (sem mensalidade)",
+  "Saque com taxa fixa de R$ 2,49",
+  "Doação mínima R$ 5,00",
   "30+ templates de alerta + sons exclusivos",
   "Widgets OBS completos (alerta, meta, QR, leaderboard, stats, viewers)",
   "50 uploads de mídia de alerta (até 20 MB)",

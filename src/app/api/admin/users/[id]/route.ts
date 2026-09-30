@@ -16,10 +16,9 @@ export async function PATCH(
   const body = (await request.json()) as {
     isSuspended?: boolean;
     role?: "admin" | "user";
-    plan?: "free" | "pro";
   };
 
-  const patch: { isSuspended?: boolean; role?: string; plan?: string } = {};
+  const patch: { isSuspended?: boolean; role?: string } = {};
 
   if (body.isSuspended != null) {
     if (typeof body.isSuspended !== "boolean") {
@@ -33,13 +32,6 @@ export async function PATCH(
       return NextResponse.json({ error: "role deve ser 'admin' ou 'user'" }, { status: 400 });
     }
     patch.role = body.role;
-  }
-
-  if (body.plan != null) {
-    if (body.plan !== "free" && body.plan !== "pro") {
-      return NextResponse.json({ error: "plan deve ser 'free' ou 'pro'" }, { status: 400 });
-    }
-    patch.plan = body.plan;
   }
 
   if (Object.keys(patch).length === 0) {

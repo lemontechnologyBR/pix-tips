@@ -1,13 +1,19 @@
 /** Comissão percentual da plataforma sobre cada doação recebida (%). */
-export const COMMISSION_RATE = 2.5;
+export const COMMISSION_RATE = 0;
 
 /**
  * Taxa fixa por doação (R$).
- * Modelo atual: apenas percentual — sem taxa fixa.
+ * Modelo MVP: R$ 0,99 fixos por doação (sem percentual).
  */
-export const COMMISSION_FIXED_FEE = 0;
+export const COMMISSION_FIXED_FEE = 0.99;
+
+/** Valor mínimo de doação na plataforma (R$). */
+export const MIN_DONATION_AMOUNT = 5;
 
 export const MIN_WITHDRAW_AMOUNT = 20;
+
+/** Taxa fixa de saque padrão (R$). Sobrescreve via PAYOUT_FEE. */
+export const DEFAULT_PAYOUT_FEE = 2.49;
 
 export function getCommissionRate(): number {
   return COMMISSION_RATE;
@@ -37,23 +43,35 @@ export function computeNetAmount(
   return Math.round((amount - computeFee(amount, commissionRate, fixedFee)) * 100) / 100;
 }
 
-/** Texto curto para UI: "2,5%" ou "2,5% + R$ 0,50" se houver fixo. */
+/** Texto curto para UI: "R$ 0,99" ou "2,5%" ou "2,5% + R$ 0,50". */
 export function formatCommissionLabel(
   rate: number = COMMISSION_RATE,
   fixedFee: number = COMMISSION_FIXED_FEE,
 ): string {
-  const rateLabel = String(rate).replace(".", ",");
-  if (!fixedFee || fixedFee <= 0) return `${rateLabel}%`;
-  const fixed = fixedFee.toFixed(2).replace(".", ",");
-  return `${rateLabel}% + R$ ${fixed}`;
+  const hasRate = rate > 0;
+  const hasFixed = fixedFee > 0;
+  const fixedLabel = `R$ ${fixedFee.toFixed(2).replace(".", ",")}`;
+  if (hasFixed && !hasRate) return fixedLabel;
+  if (hasRate && !hasFixed) return `${String(rate).replace(".", ",")}%`;
+  if (hasRate && hasFixed) {
+    return `${String(rate).replace(".", ",")}% + ${fixedLabel}`;
+  }
+  return "R$ 0,00";
+}
+
+export function formatPayoutFeeLabel(fee: number = computePayoutFee()): string {
+  return `R$ ${fee.toFixed(2).replace(".", ",")}`;
 }
 
 /**
  * Taxa fixa de saque (R$).
- * Configurável via PAYOUT_FEE (padrão 0 — saque gratuito).
+ * Configurável via PAYOUT_FEE (padrão R$ 2,49).
  */
 export function computePayoutFee(): number {
-  return Number(process.env.PAYOUT_FEE ?? 0);
+  const raw = process.env.PAYOUT_FEE;
+  if (raw == null || raw.trim() === "") return DEFAULT_PAYOUT_FEE;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_PAYOUT_FEE;
 }
 
 /** Taxa fixa cobrada além do valor que o criador deseja receber. */

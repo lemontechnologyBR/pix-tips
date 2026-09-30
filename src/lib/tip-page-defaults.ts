@@ -3,14 +3,15 @@ import { DEFAULT_QR_CODE_SETTINGS, normalizeQrCodeSettings } from "@/lib/qr-code
 import { normalizeBackgroundStyle } from "@/lib/tip-page-background";
 import { TTS_VOICES } from "@/lib/tts-config";
 import { TIP_PAGE_LAYOUTS } from "@/lib/tip-page-layout-presets";
+import { MIN_DONATION_AMOUNT } from "@/lib/finance";
 
 const VALID_VOICE_IDS = TTS_VOICES.filter(v => v.id !== "off").map(v => v.id) as string[];
 const VALID_LAYOUT_IDS = TIP_PAGE_LAYOUTS.map(l => l.id);
 
 export const DEFAULT_TIP_PAGE_SETTINGS: TipPageSettings = {
   goalTitle: "Meta da live",
-  presetAmounts: [1, 5, 10, 20],
-  minDonation: 1,
+  presetAmounts: [5, 10, 20, 50],
+  minDonation: MIN_DONATION_AMOUNT,
   thankYouMessage: "Obrigado pelo apoio!",
   backgroundColor: "#09090b",
   backgroundStyle: "theme",
@@ -31,8 +32,16 @@ export const DEFAULT_TIP_PAGE_SETTINGS: TipPageSettings = {
 
 export function normalizeTipPageSettings(raw: Partial<TipPageSettings>): TipPageSettings {
   const merged = { ...DEFAULT_TIP_PAGE_SETTINGS, ...raw };
+  const minDonation = Math.max(
+    MIN_DONATION_AMOUNT,
+    Number(merged.minDonation) || MIN_DONATION_AMOUNT,
+  );
   return {
     ...merged,
+    minDonation,
+    presetAmounts: Array.isArray(merged.presetAmounts)
+      ? merged.presetAmounts.map((a) => Math.max(MIN_DONATION_AMOUNT, Number(a) || MIN_DONATION_AMOUNT))
+      : DEFAULT_TIP_PAGE_SETTINGS.presetAmounts,
     backgroundStyle: normalizeBackgroundStyle(merged.backgroundStyle),
     backgroundImageUrl: merged.backgroundImageUrl?.trim() || null,
     backgroundImageOverlay: Math.min(

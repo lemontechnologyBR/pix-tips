@@ -5,6 +5,11 @@ import {
 } from "@/lib/store";
 import { emitDonationAlert } from "@/lib/emit-donation";
 import {
+  getWooviCharge,
+  isWooviChargeExpired,
+  isWooviChargePaid,
+} from "@/lib/payments/woovi";
+import {
   fromStoredMpPaymentId,
   getMercadoPagoPayment,
   isMercadoPagoPaymentApproved,
@@ -59,17 +64,40 @@ export async function GET(
       return NextResponse.json({ status: transaction.status });
     }
 
+    // Pagamentos legados Mercado Pago (prefixo mp_)
     const mpPaymentId = fromStoredMpPaymentId(transaction.wooviPaymentId);
-    if (!mpPaymentId) {
+    if (mpPaymentId) {
+      const payment = await getMercadoPagoPayment(mpPaymentId);
+      if (!payment) {
+        return NextResponse.json({ status: transaction.status });
+      }
+      if (isMercadoPagoPaymentApproved(payment.status)) {
+        const confirmed = await confirmTransaction(transactionId);
+        if (confirmed) {
+          try {
+            await emitDonationAlert(confirmed);
+          } catch {
+            // Socket pode não estar pronto
+          }
+          return NextResponse.json({ status: "confirmed" });
+        }
+        return NextResponse.json({ status: transaction.status });
+      }
+      if (isMercadoPagoPaymentExpired(payment.status)) {
+        await markExpired(transactionId);
+        return NextResponse.json({ status: "expired" });
+      }
+      return NextResponse.json({ status: "pending" });
+    }
+
+    // Woovi: correlationID = transaction id (ou valor armazenado)
+    const correlationID = transaction.wooviPaymentId || transactionId;
+    const charge = await getWooviCharge(correlationID);
+    if (!charge) {
       return NextResponse.json({ status: transaction.status });
     }
 
-    const payment = await getMercadoPagoPayment(mpPaymentId);
-    if (!payment) {
-      return NextResponse.json({ status: transaction.status });
-    }
-
-    if (isMercadoPagoPaymentApproved(payment.status)) {
+    if (isWooviChargePaid(charge.status)) {
       const confirmed = await confirmTransaction(transactionId);
       if (confirmed) {
         try {
@@ -82,7 +110,7 @@ export async function GET(
       return NextResponse.json({ status: transaction.status });
     }
 
-    if (isMercadoPagoPaymentExpired(payment.status)) {
+    if (isWooviChargeExpired(charge.status)) {
       await markExpired(transactionId);
       return NextResponse.json({ status: "expired" });
     }

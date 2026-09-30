@@ -103,9 +103,14 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h3 className="text-base font-semibold">Integrações</h3>
-        <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Info
-            label="Mercado Pago / Pix"
+            label="Woovi / Pix"
+            value={status.integrations.woovi ? "conectado" : "off"}
+            tone={status.integrations.woovi ? "ok" : "warn"}
+          />
+          <Info
+            label="Mercado Pago (legado)"
             value={status.integrations.mercadoPago ? "conectado" : "off"}
             tone={status.integrations.mercadoPago ? "ok" : "warn"}
           />

@@ -13,7 +13,6 @@ interface AdminUsersTableProps {
 }
 
 const ROLE_LABELS: Record<string, string> = { admin: "Admin", user: "Usuário" };
-const PLAN_LABELS: Record<string, string> = { pro: "Pro", free: "Free" };
 
 export function AdminUsersTable({
   initialItems,
@@ -31,7 +30,6 @@ export function AdminUsersTable({
   const [fetching, setFetching] = useState(false);
   const [selected, setSelected] = useState<AdminUserRow | null>(null);
   const [editRole, setEditRole] = useState<"admin" | "user">("user");
-  const [editPlan, setEditPlan] = useState<"free" | "pro">("free");
   const [editSuspended, setEditSuspended] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +65,6 @@ export function AdminUsersTable({
   function openEdit(user: AdminUserRow) {
     setSelected(user);
     setEditRole((user.role as "admin" | "user") ?? "user");
-    setEditPlan((user.plan as "free" | "pro") ?? "free");
     setEditSuspended(user.isSuspended ?? false);
     setError(null);
   }
@@ -77,10 +74,9 @@ export function AdminUsersTable({
     setSaving(true);
     setError(null);
     try {
-      const body: { role?: "admin" | "user"; plan?: "free" | "pro"; isSuspended?: boolean } = {};
+      const body: { role?: "admin" | "user"; isSuspended?: boolean } = {};
       if (editRole !== selected.role) body.role = editRole;
       if (selected.creatorId) {
-        if (editPlan !== selected.plan) body.plan = editPlan;
         if (editSuspended !== selected.isSuspended) body.isSuspended = editSuspended;
       }
       if (Object.keys(body).length === 0) {
@@ -161,7 +157,6 @@ export function AdminUsersTable({
                 <tr>
                   <th className="px-4 py-3">Usuário</th>
                   <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Doações</th>
                   <th className="px-4 py-3">Saldo</th>
@@ -189,21 +184,6 @@ export function AdminUsersTable({
                       >
                         {ROLE_LABELS[u.role] ?? u.role}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {u.plan != null ? (
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs ${
-                            u.plan === "pro"
-                              ? "bg-cyan-500/15 text-cyan-400"
-                              : "bg-zinc-700/50 text-zinc-400"
-                          }`}
-                        >
-                          {PLAN_LABELS[u.plan] ?? u.plan}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-zinc-600">—</span>
-                      )}
                     </td>
                     <td className="px-4 py-3">
                       {u.creatorId ? (
@@ -329,18 +309,6 @@ export function AdminUsersTable({
 
               {selected.creatorId && (
                 <>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-400">Plano</label>
-                    <select
-                      value={editPlan}
-                      onChange={(e) => setEditPlan(e.target.value as "free" | "pro")}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
-                    >
-                      <option value="free">Free</option>
-                      <option value="pro">Pro</option>
-                    </select>
-                  </div>
-
                   <div className="flex items-center justify-between rounded-lg border border-zinc-700 px-4 py-3">
                     <span className="text-sm">Conta suspensa</span>
                     <button

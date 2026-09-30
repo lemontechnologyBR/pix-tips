@@ -363,13 +363,21 @@ export function FinanceDashboard({
         <div>
           <h1 className="text-xl font-bold text-white">Financeiro</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            Doações caem no seu saldo. Solicite o saque quando quiser.
+            {overview.payoutMode === "woovi"
+              ? "Novas doações vão direto para sua subconta Woovi. Saques do saldo legado (se houver) continuam neste painel."
+              : "Doações creditam seu saldo na pix.tips. Solicite o saque quando quiser (taxa de R$ 2,49)."}
           </p>
         </div>
         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
           Taxa {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}
         </span>
       </div>
+
+      {overview.migrationBanner && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {overview.migrationBanner}
+        </div>
+      )}
 
 <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">

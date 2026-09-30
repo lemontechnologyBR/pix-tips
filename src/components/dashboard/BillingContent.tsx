@@ -1,7 +1,7 @@
 "use client";
 
 import { PLATFORM_FEATURES } from "@/lib/landing-data";
-import { formatCommissionLabel } from "@/lib/finance";
+import { formatCommissionLabel, formatPayoutFeeLabel } from "@/lib/finance";
 
 export function BillingContent() {
   return (
@@ -14,21 +14,22 @@ export function BillingContent() {
         </div>
         <h2 className="mt-4 text-2xl font-bold text-white">Plano único, sem mensalidade</h2>
         <p className="mt-2 text-sm text-zinc-400">
-          A pix.tips não cobra mensalidade. Você só paga {formatCommissionLabel()} quando recebe — e o saque é gratuito.
+          A pix.tips não cobra mensalidade. Você paga {formatCommissionLabel()} por doação
+          recebida e {formatPayoutFeeLabel()} por saque.
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Comissão por doação</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa por doação</p>
             <p className="mt-1 text-2xl font-black text-white sm:text-3xl">
               {formatCommissionLabel()}
             </p>
-            <p className="mt-1 text-xs text-zinc-500">Descontado automaticamente de cada doação confirmada</p>
+            <p className="mt-1 text-xs text-zinc-500">Valor fixo em cada doação confirmada</p>
           </div>
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>
-            <p className="mt-1 text-3xl font-black text-emerald-400">Grátis</p>
-            <p className="mt-1 text-xs text-zinc-500">Sem taxa adicional ao solicitar o saque</p>
+            <p className="mt-1 text-3xl font-black text-cyan-400">{formatPayoutFeeLabel()}</p>
+            <p className="mt-1 text-xs text-zinc-500">Taxa fixa em todo saque solicitado</p>
           </div>
         </div>
       </div>

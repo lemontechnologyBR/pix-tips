@@ -7,6 +7,7 @@ import {
 import { resolveCpfProvider } from "@/lib/kyc/cpf-provider";
 import { isDiditConfigured } from "@/lib/didit";
 import { isMercadoPagoConfigured } from "@/lib/payments/mercadopago";
+import { isWooviConfigured } from "@/lib/payments/woovi";
 
 export interface AdminOpsWidgetByType {
   widget: string;
@@ -30,6 +31,7 @@ export interface AdminOpsRecentWidget {
 }
 
 export interface AdminOpsSnapshot {
+  wooviConfigured: boolean;
   mercadoPagoConfigured: boolean;
   cpfProvider: string;
   diditConfigured: boolean;
@@ -170,6 +172,7 @@ export async function getAdminOpsSnapshot(): Promise<AdminOpsSnapshot> {
 
   return {
     mercadoPagoConfigured: isMercadoPagoConfigured(),
+    wooviConfigured: isWooviConfigured(),
     cpfProvider: resolveCpfProvider(),
     diditConfigured: isDiditConfigured(),
     kyc: kycGroups.map((g) => ({ status: g.status, count: g._count._all })),

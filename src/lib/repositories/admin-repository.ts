@@ -15,6 +15,8 @@ export interface AdminOverview {
   mercadoPagoCost: number;
   platformProfit: number;
   mercadoPagoFeeRate: number;
+  gatewayCost: number;
+  gatewayFeeLabel: string;
   proSubscribers: number;
   creatorsGrowth: number;
   confirmedDonations: number;
@@ -65,14 +67,27 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         : computeFee(transaction.amount)),
     0,
   );
-  const mercadoPagoFeeRate = Number(
-    process.env.MERCADOPAGO_FEE_PERCENT ?? 1,
-  );
+  const mercadoPagoFeeRate = Number(process.env.MERCADOPAGO_FEE_PERCENT ?? 1);
+  const wooviFeePercent = Number(process.env.WOOVI_FEE_PERCENT ?? 0.8);
+  const wooviFeeMin = Number(process.env.WOOVI_FEE_MIN ?? 0.5);
+  const wooviFeeMax = Number(process.env.WOOVI_FEE_MAX ?? 5);
+
   const mercadoPagoCost = confirmedTx.reduce((sum, transaction) => {
     if (!transaction.wooviPaymentId?.startsWith("mp_")) return sum;
     return sum + transaction.amount * (mercadoPagoFeeRate / 100);
   }, 0);
-  const platformProfit = platformRevenue - mercadoPagoCost;
+
+  const wooviCost = confirmedTx.reduce((sum, transaction) => {
+    if (!transaction.wooviPaymentId || transaction.wooviPaymentId.startsWith("mp_")) {
+      return sum;
+    }
+    const pct = transaction.amount * (wooviFeePercent / 100);
+    const fee = Math.min(wooviFeeMax, Math.max(wooviFeeMin, pct));
+    return sum + fee;
+  }, 0);
+
+  const gatewayCost = mercadoPagoCost + wooviCost;
+  const platformProfit = platformRevenue - gatewayCost;
   const creatorsGrowth =
     creatorsPrevMonth > 0
       ? ((creatorsThisMonth - creatorsPrevMonth) / creatorsPrevMonth) * 100
@@ -102,6 +117,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     totalVolume,
     platformRevenue: Math.round(platformRevenue * 100) / 100,
     mercadoPagoCost: Math.round(mercadoPagoCost * 100) / 100,
+    gatewayCost: Math.round(gatewayCost * 100) / 100,
+    gatewayFeeLabel: `Woovi ~${wooviFeePercent}% (mín R$ ${wooviFeeMin.toFixed(2).replace(".", ",")} / máx R$ ${wooviFeeMax.toFixed(2).replace(".", ",")})`,
     platformProfit: Math.round(platformProfit * 100) / 100,
     mercadoPagoFeeRate,
     proSubscribers,

@@ -9,6 +9,7 @@ import { resolveCpfProvider } from "@/lib/kyc/cpf-provider";
 import { isDiditConfigured } from "@/lib/didit";
 import { isEmailConfigured } from "@/lib/email/email-client";
 import { isMercadoPagoConfigured } from "@/lib/payments/mercadopago";
+import { isWooviConfigured } from "@/lib/payments/woovi";
 
 export interface AdminPlatformStatus {
   appUrl: string;
@@ -27,6 +28,7 @@ export interface AdminPlatformStatus {
     minWithdraw: number;
   };
   integrations: {
+    woovi: boolean;
     mercadoPago: boolean;
     didit: boolean;
     cpfProvider: string;
@@ -56,6 +58,7 @@ export function getAdminPlatformStatus(): AdminPlatformStatus {
       minWithdraw: MIN_WITHDRAW_AMOUNT,
     },
     integrations: {
+      woovi: isWooviConfigured(),
       mercadoPago: isMercadoPagoConfigured(),
       didit: isDiditConfigured(),
       cpfProvider: resolveCpfProvider(),

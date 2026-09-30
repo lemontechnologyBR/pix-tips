@@ -567,11 +567,15 @@ export interface FinancePayoutSettings {
   pixHolderName: string | null;
   pixKeyMasked: string | null;
   configured: boolean;
+  wooviSubaccountName?: string | null;
 }
 
 export interface FinanceOverview {
   /** Provider ativo de recebimento Pix. */
-  paymentProvider: "mercadopago";
+  paymentProvider: "woovi";
+  /** legacy = saldo no ledger; woovi = split para subconta. */
+  payoutMode: "legacy" | "woovi";
+  migrationBanner: string | null;
   availableBalance: number;
   pendingBalance: number;
   totalWithdrawn: number;
