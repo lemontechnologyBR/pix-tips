@@ -189,9 +189,6 @@ export function AdminChannelsPanel({ initial }: AdminChannelsPanelProps) {
                       <p className="font-medium">{row.displayName}</p>
                       <p className="text-xs text-zinc-500">
                         @{row.username}
-                        {row.plan === "pro" ? (
-                          <span className="ml-2 text-amber-400">Pro</span>
-                        ) : null}
                       </p>
                     </td>
                     <td className="px-4 py-3">
