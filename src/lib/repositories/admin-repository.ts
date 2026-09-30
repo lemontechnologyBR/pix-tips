@@ -201,6 +201,7 @@ export interface AdminUserRow {
   plan: string | null;
   isSuspended: boolean | null;
   totalRaised: number | null;
+  availableBalance: number | null;
   creatorId: string | null;
   username: string | null;
 }
@@ -234,7 +235,14 @@ export async function listAllUsers(opts: {
       where,
       include: {
         creator: {
-          select: { id: true, username: true, plan: true, isSuspended: true, raised: true },
+          select: {
+            id: true,
+            username: true,
+            plan: true,
+            isSuspended: true,
+            raised: true,
+            availableBalance: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -254,6 +262,7 @@ export async function listAllUsers(opts: {
       plan: r.creator?.plan ?? null,
       isSuspended: r.creator?.isSuspended ?? null,
       totalRaised: r.creator?.raised ?? null,
+      availableBalance: r.creator?.availableBalance ?? null,
       creatorId: r.creator?.id ?? null,
       username: r.creator?.username ?? null,
     })),
@@ -290,7 +299,14 @@ export async function updateUser(
     where: { id: userId },
     include: {
       creator: {
-        select: { id: true, username: true, plan: true, isSuspended: true, raised: true },
+        select: {
+          id: true,
+          username: true,
+          plan: true,
+          isSuspended: true,
+          raised: true,
+          availableBalance: true,
+        },
       },
     },
   });
@@ -305,6 +321,7 @@ export async function updateUser(
     plan: updated.creator?.plan ?? null,
     isSuspended: updated.creator?.isSuspended ?? null,
     totalRaised: updated.creator?.raised ?? null,
+    availableBalance: updated.creator?.availableBalance ?? null,
     creatorId: updated.creator?.id ?? null,
     username: updated.creator?.username ?? null,
   };

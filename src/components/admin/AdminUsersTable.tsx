@@ -164,6 +164,7 @@ export function AdminUsersTable({
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Doações</th>
+                  <th className="px-4 py-3">Saldo</th>
                   <th className="px-4 py-3">Cadastro</th>
                   <th className="px-4 py-3">Ações</th>
                 </tr>
@@ -221,6 +222,9 @@ export function AdminUsersTable({
                     </td>
                     <td className="px-4 py-3 text-emerald-400">
                       {u.totalRaised != null ? formatCurrency(u.totalRaised) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-cyan-400">
+                      {u.availableBalance != null ? formatCurrency(u.availableBalance) : "—"}
                     </td>
                     <td className="px-4 py-3 text-zinc-400">
                       {new Date(u.createdAt).toLocaleDateString("pt-BR")}
@@ -291,6 +295,14 @@ export function AdminUsersTable({
                 <p className="text-sm text-zinc-400">{selected.email}</p>
                 {selected.username && (
                   <p className="text-xs text-cyan-400">@{selected.username}</p>
+                )}
+                {selected.creatorId && (
+                  <p className="mt-2 text-xs text-zinc-400">
+                    Doações {formatCurrency(selected.totalRaised ?? 0)} · Saldo{" "}
+                    <span className="text-cyan-400">
+                      {formatCurrency(selected.availableBalance ?? 0)}
+                    </span>
+                  </p>
                 )}
               </div>
               <button
