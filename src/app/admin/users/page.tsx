@@ -7,14 +7,18 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminUsersPage() {
-  const { items, total, page, totalPages } = await listAllUsers({ page: 1, limit: 20 });
+  const { items, total, page, totalPages } = await listAllUsers({
+    page: 1,
+    limit: 20,
+    status: "active",
+  });
 
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold">Usuários</h2>
         <p className="text-sm text-zinc-400">
-          Gerencie todos os usuários cadastrados na plataforma.
+          Por padrão lista só contas ativas. Contas sem doação foram suspensas na limpeza.
         </p>
       </div>
       <AdminUsersTable
@@ -22,6 +26,7 @@ export default async function AdminUsersPage() {
         initialTotal={total}
         initialPage={page}
         initialTotalPages={totalPages}
+        initialStatus="active"
       />
     </div>
   );

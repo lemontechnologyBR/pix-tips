@@ -227,8 +227,10 @@ export async function listAllUsers(opts: {
   page?: number;
   search?: string;
   limit?: number;
+  /** active = não suspensos (padrão); suspended; all */
+  status?: "active" | "suspended" | "all";
 } = {}): Promise<{ items: AdminUserRow[]; total: number; page: number; totalPages: number }> {
-  const { page = 1, search = "", limit = 20 } = opts;
+  const { page = 1, search = "", limit = 20, status = "active" } = opts;
 
   const where: {
     OR?: Array<
@@ -236,6 +238,7 @@ export async function listAllUsers(opts: {
       | { name: { contains: string } }
       | { creator: { username: { contains: string } } }
     >;
+    AND?: Array<Record<string, unknown>>;
   } = {};
 
   if (search.trim()) {
@@ -245,6 +248,19 @@ export async function listAllUsers(opts: {
       { name: { contains: q } },
       { creator: { username: { contains: q.toLowerCase() } } },
     ];
+  }
+
+  if (status === "active") {
+    where.AND = [
+      {
+        OR: [
+          { creator: { is: null } },
+          { creator: { isSuspended: false } },
+        ],
+      },
+    ];
+  } else if (status === "suspended") {
+    where.AND = [{ creator: { isSuspended: true } }];
   }
 
   const [rows, total] = await Promise.all([
@@ -288,6 +304,7 @@ export async function listAllUsers(opts: {
     totalPages: Math.max(1, Math.ceil(total / limit)),
   };
 }
+
 
 export async function updateUser(
   userId: string,

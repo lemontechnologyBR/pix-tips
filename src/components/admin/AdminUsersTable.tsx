@@ -10,15 +10,19 @@ interface AdminUsersTableProps {
   initialTotal: number;
   initialPage: number;
   initialTotalPages: number;
+  initialStatus?: "active" | "suspended" | "all";
 }
 
 const ROLE_LABELS: Record<string, string> = { admin: "Admin", user: "Usuário" };
+
+type StatusFilter = "active" | "suspended" | "all";
 
 export function AdminUsersTable({
   initialItems,
   initialTotal,
   initialPage,
   initialTotalPages,
+  initialStatus = "active",
 }: AdminUsersTableProps) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
@@ -26,6 +30,7 @@ export function AdminUsersTable({
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>(initialStatus);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [selected, setSelected] = useState<AdminUserRow | null>(null);
@@ -35,10 +40,10 @@ export function AdminUsersTable({
   const [error, setError] = useState<string | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchPage = useCallback(async (p: number, q: string) => {
+  const fetchPage = useCallback(async (p: number, q: string, st: StatusFilter) => {
     setFetching(true);
     try {
-      const url = `/api/admin/users?page=${p}&search=${encodeURIComponent(q)}&limit=20`;
+      const url = `/api/admin/users?page=${p}&search=${encodeURIComponent(q)}&status=${st}&limit=20`;
       const res = await fetch(url);
       if (!res.ok) return;
       const data = (await res.json()) as {
@@ -59,7 +64,12 @@ export function AdminUsersTable({
   function handleSearchChange(value: string) {
     setSearch(value);
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => fetchPage(1, value), 350);
+    searchTimer.current = setTimeout(() => fetchPage(1, value, status), 350);
+  }
+
+  function handleStatusChange(next: StatusFilter) {
+    setStatus(next);
+    fetchPage(1, search, next);
   }
 
   function openEdit(user: AdminUserRow) {
@@ -139,6 +149,29 @@ export function AdminUsersTable({
         <p className="text-sm text-zinc-500">
           {total} {total === 1 ? "usuário" : "usuários"}
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            { id: "active", label: "Ativos" },
+            { id: "suspended", label: "Suspensos" },
+            { id: "all", label: "Todos" },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => handleStatusChange(tab.id)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              status === tab.id
+                ? "bg-cyan-600 text-white"
+                : "border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {fetching ? (
@@ -245,7 +278,7 @@ export function AdminUsersTable({
               <button
                 type="button"
                 disabled={page <= 1 || fetching}
-                onClick={() => fetchPage(page - 1, search)}
+                onClick={() => fetchPage(page - 1, search, status)}
                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 hover:text-white disabled:opacity-40"
               >
                 ← Anterior
@@ -256,7 +289,7 @@ export function AdminUsersTable({
               <button
                 type="button"
                 disabled={page >= totalPages || fetching}
-                onClick={() => fetchPage(page + 1, search)}
+                onClick={() => fetchPage(page + 1, search, status)}
                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 hover:text-white disabled:opacity-40"
               >
                 Próxima →
