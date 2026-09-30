@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { TTS_VOICES, DEFAULT_TTS_TEMPLATE, type TtsVoiceId } from "@/lib/tts-config";
+import { useRef, useState } from "react";
+import { TTS_VOICES, DEFAULT_TTS_TEMPLATE, resolveTtsVoiceId, type TtsVoiceId } from "@/lib/tts-config";
 import { speakText, resolveTtsTemplate } from "@/lib/tts";
 
 interface TtsVoiceSelectorProps {
@@ -22,26 +22,57 @@ export function TtsVoiceSelector({
   onTemplateChange,
 }: TtsVoiceSelectorProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const resolvedVoiceId = resolveTtsVoiceId(voiceId);
+  const voices = TTS_VOICES;
 
-  function handlePreview(id: TtsVoiceId) {
+  async function handlePreview(id: TtsVoiceId) {
     if (id === "off") return;
+    setPreviewError(null);
+    setPreviewing(true);
     const text = resolveTtsTemplate(
       template || DEFAULT_TTS_TEMPLATE,
       "Fulano",
       10,
       "Teste na live!",
     );
-    void speakText(text, id);
+    try {
+      const probe = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voiceId: id }),
+      });
+      if (!probe.ok) {
+        const data = (await probe.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        setPreviewError(
+          data.error ??
+            "Não foi possível gerar a voz Microsoft. Tente novamente.",
+        );
+        return;
+      }
+      const blob = await probe.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      await audio.play().catch(() => undefined);
+      audio.onended = () => URL.revokeObjectURL(url);
+    } catch {
+      setPreviewError("Falha ao testar TTS. Tente novamente.");
+      void speakText(text, id);
+    } finally {
+      setPreviewing(false);
+    }
   }
 
   return (
     <div className="space-y-3 border-t border-zinc-800/80 pt-4">
-      {/* Header row with toggle */}
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-xs font-semibold text-zinc-300">Voz leitora da mensagem</p>
           <p className="text-[11px] text-zinc-500">
-            Lê o nome, valor e mensagem da doação em voz alta no OBS
+            Lê nome, valor e mensagem no OBS. Vozes neurais Microsoft (grátis).
           </p>
         </div>
         <button
@@ -63,21 +94,26 @@ export function TtsVoiceSelector({
 
       {enabled && (
         <>
-          {/* Voice grid */}
+          {previewError && (
+            <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+              {previewError}
+            </div>
+          )}
+
           <div
             ref={scrollRef}
             className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"
             style={{ scrollSnapType: "x mandatory" }}
           >
-            {TTS_VOICES.map((voice) => {
-              const isSelected = voiceId === voice.id;
+            {voices.map((voice) => {
+              const isSelected = resolvedVoiceId === voice.id;
               return (
                 <button
                   key={voice.id}
                   type="button"
                   onClick={() => {
                     onVoiceChange(voice.id);
-                    if (voice.id !== "off") handlePreview(voice.id as TtsVoiceId);
+                    if (voice.id !== "off") void handlePreview(voice.id as TtsVoiceId);
                   }}
                   className={`group flex shrink-0 flex-col items-center gap-1.5 rounded-xl border p-2.5 transition ${
                     isSelected
@@ -86,7 +122,6 @@ export function TtsVoiceSelector({
                   }`}
                   style={{ scrollSnapAlign: "start", minWidth: 72 }}
                 >
-                  {/* Avatar */}
                   <div
                     className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition ${
                       isSelected ? "ring-2 ring-cyan-400 ring-offset-1 ring-offset-zinc-950" : ""
@@ -96,10 +131,9 @@ export function TtsVoiceSelector({
                     {voice.emoji}
                   </div>
 
-                  {/* Name */}
                   <p
                     className={`text-center text-[11px] font-medium leading-tight ${
-                      isSelected ? "text-cyan-300" : "text-zinc-300"
+                      isSelected ? "text-sky-300" : "text-zinc-300"
                     }`}
                   >
                     {voice.name}
@@ -109,7 +143,6 @@ export function TtsVoiceSelector({
                     </span>
                   </p>
 
-                  {/* Selected indicator */}
                   {isSelected && voice.id !== "off" && (
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                   )}
@@ -118,21 +151,20 @@ export function TtsVoiceSelector({
             })}
           </div>
 
-          {/* Preview button */}
-          {voiceId !== "off" && (
+          {resolvedVoiceId !== "off" && (
             <button
               type="button"
-              onClick={() => handlePreview(voiceId as TtsVoiceId)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 py-2 text-xs text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200"
+              disabled={previewing}
+              onClick={() => void handlePreview(resolvedVoiceId)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 py-2 text-xs text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-50"
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z" />
               </svg>
-              Testar voz selecionada
+              {previewing ? "Gerando…" : "Testar voz selecionada"}
             </button>
           )}
 
-          {/* TTS Template */}
           <div>
             <label className="mb-1 block text-[11px] font-medium text-zinc-500">
               Texto lido (variáveis: {"{nome}"} {"{valor}"} {"{mensagem}"})

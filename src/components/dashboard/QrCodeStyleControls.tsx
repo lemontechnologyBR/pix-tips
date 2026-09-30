@@ -10,7 +10,7 @@ import type {
   QrTextAlignment,
 } from "@/types";
 
-const CARD_COLORS = ["#ffffff", "#1e293b", "#0f172a", "#7c3aed", "#059669"];
+const CARD_COLORS = ["#ffffff", "#1e293b", "#0f172a", "#7c3aed", "#0284c7"];
 
 interface QrCodeStyleControlsProps {
   title: string;
@@ -43,7 +43,7 @@ function AlignmentButtons({
           onClick={() => onChange(o.id)}
           className={`h-8 w-8 rounded border text-sm transition ${
             value === o.id
-              ? "border-cyan-500 bg-cyan-500/20 text-cyan-200"
+              ? "border-cyan-500 bg-sky-400/12 text-cyan-200"
               : "border-zinc-700 text-zinc-500 hover:border-zinc-500"
           }`}
         >
@@ -402,7 +402,7 @@ export function QrCodeWidgetControls({
                   onClick={() => onChange({ animation: anim.id })}
                   className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
                     settings.animation === anim.id
-                      ? "border-cyan-500 bg-cyan-500/15 text-cyan-100"
+                      ? "border-cyan-500 bg-sky-400/10 text-cyan-100"
                       : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                   }`}
                 >
@@ -426,7 +426,7 @@ export function QrCodeWidgetControls({
                     onClick={() => onChange({ animationSpeed: s.value })}
                     className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
                       settings.animationSpeed === s.value
-                        ? "border-cyan-500 bg-cyan-500/15 text-cyan-100"
+                        ? "border-cyan-500 bg-sky-400/10 text-cyan-100"
                         : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                     }`}
                   >
@@ -450,7 +450,7 @@ export function QrCodeWidgetControls({
                   }
                   className={`rounded-lg border py-2 text-lg transition ${
                     settings.widgetPosition === pos.id
-                      ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
+                      ? "border-cyan-500 bg-sky-400/10 text-cyan-200"
                       : "border-zinc-700 text-zinc-500 hover:border-zinc-500"
                   }`}
                 >

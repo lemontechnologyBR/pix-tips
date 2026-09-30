@@ -7,6 +7,8 @@ interface PixPaymentProps {
   pixCode: string;
   amount: number;
   expiresIn: number;
+  tipAmount?: number;
+  serviceFee?: number;
   mock?: boolean;
   onSimulatePay?: () => void;
   isSimulating?: boolean;
@@ -16,6 +18,8 @@ export function PixPayment({
   pixCode,
   amount,
   expiresIn,
+  tipAmount,
+  serviceFee,
   mock = false,
   onSimulatePay,
   isSimulating,
@@ -57,6 +61,12 @@ export function PixPayment({
         <p className="mt-1 text-xl font-bold text-white">
           R$ {amount.toFixed(2).replace(".", ",")}
         </p>
+        {serviceFee != null && serviceFee > 0 && tipAmount != null && (
+          <p className="mt-1 text-xs text-zinc-500">
+            R$ {tipAmount.toFixed(2).replace(".", ",")} para o criador + R${" "}
+            {serviceFee.toFixed(2).replace(".", ",")} de taxa de serviço
+          </p>
+        )}
       </div>
 
       <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-lg bg-white p-2">

@@ -21,7 +21,7 @@ export default function MaintenancePage() {
         </p>
         <p className="mt-6 text-sm text-zinc-600">
           Acompanhe em{" "}
-          <Link href="/status" className="text-cyan-400 hover:underline">
+          <Link href="/status" className="text-sky-400 hover:underline">
             /status
           </Link>{" "}
           ou nosso canal de status.

@@ -48,7 +48,7 @@ const SERVICES: {
 const STATUS_LABEL: Record<ServiceStatus, { label: string; className: string }> = {
   operational: {
     label: "Operacional",
-    className: "bg-emerald-950/50 text-emerald-400 ring-emerald-800",
+    className: "bg-sky-950/50 text-sky-400 ring-sky-800",
   },
   degraded: {
     label: "Degradado",
@@ -74,7 +74,7 @@ export default function StatusPage() {
       <div
         className={`mb-10 flex items-center gap-3 rounded-xl border px-5 py-4 ${
           allOperational
-            ? "border-emerald-900/50 bg-emerald-950/30"
+            ? "border-sky-900/50 bg-sky-950/30"
             : "border-amber-900/50 bg-amber-950/30"
         }`}
       >
@@ -112,7 +112,7 @@ export default function StatusPage() {
                   <span
                     className={`h-2 w-2 rounded-full ${
                       service.status === "operational"
-                        ? "bg-emerald-500"
+                        ? "bg-sky-400"
                         : service.status === "degraded"
                           ? "bg-amber-500"
                           : "bg-red-500"

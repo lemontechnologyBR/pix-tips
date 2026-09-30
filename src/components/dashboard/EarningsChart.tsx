@@ -34,7 +34,7 @@ export function EarningsChart({ data }: EarningsChartProps) {
     <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
             <OverviewIcon name="chart" className="h-5 w-5" />
           </div>
           <div>
@@ -77,7 +77,7 @@ export function EarningsChart({ data }: EarningsChartProps) {
           <div className="mt-5 flex flex-wrap gap-6 text-sm">
             <div>
               <p className="text-xs text-zinc-500">Total no período</p>
-              <p className="mt-0.5 font-semibold text-emerald-400">
+              <p className="mt-0.5 font-semibold text-sky-400">
                 {formatCurrency(total)}
               </p>
             </div>
@@ -92,7 +92,7 @@ export function EarningsChart({ data }: EarningsChartProps) {
                 <p className="text-xs text-zinc-500">
                   {formatDayLabel(sliced[hovered].date)}
                 </p>
-                <p className="mt-0.5 font-semibold text-cyan-300">
+                <p className="mt-0.5 font-semibold text-sky-300">
                   {formatCurrency(sliced[hovered].amount)}
                 </p>
               </div>

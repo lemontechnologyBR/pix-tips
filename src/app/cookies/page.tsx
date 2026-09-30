@@ -75,7 +75,7 @@ export default function CookiesPage() {
           </p>
           <p>
             Para dados pessoais associados, consulte a{" "}
-            <Link href="/privacidade" className="text-cyan-400 hover:underline">
+            <Link href="/privacidade" className="text-sky-400 hover:underline">
               Política de Privacidade
             </Link>
             .
@@ -97,7 +97,7 @@ export default function CookiesPage() {
               <tbody>
                 {COOKIE_TABLE.map((row) => (
                   <tr key={row.name} className="border-b border-zinc-800/80 last:border-0">
-                    <td className="px-4 py-3 font-mono text-xs text-cyan-300">{row.name}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-sky-300">{row.name}</td>
                     <td className="px-4 py-3 text-zinc-400">{row.type}</td>
                     <td className="px-4 py-3 text-zinc-400">{row.purpose}</td>
                     <td className="px-4 py-3 text-zinc-500">{row.duration}</td>

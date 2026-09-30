@@ -18,7 +18,8 @@ export default async function AdminUsersPage() {
       <div>
         <h2 className="text-xl font-semibold">Usuários</h2>
         <p className="text-sm text-zinc-400">
-          Por padrão lista só contas ativas. Contas sem doação foram suspensas na limpeza.
+          Lista contas ativas. Coluna &quot;Saldo legado&quot; = dinheiro antigo na pix.tips.
+          Quem já migrou pra Woovi aparece R$ 0,00. Saldo &gt; 0 sem Pix ainda não foi pago.
         </p>
       </div>
       <AdminUsersTable

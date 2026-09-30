@@ -79,7 +79,7 @@ export default function LgpdSolicitacaoPage() {
                 key={right.number}
                 className="flex gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4"
               >
-                <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-xs font-bold text-cyan-400">
+                <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-xs font-bold text-sky-400">
                   {right.number}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -91,7 +91,7 @@ export default function LgpdSolicitacaoPage() {
                         <span className="text-zinc-600">Como exercer: </span>
                         <Link
                           href="/dashboard/settings"
-                          className="text-cyan-400 hover:underline"
+                          className="text-sky-400 hover:underline"
                         >
                           Configurações da conta
                         </Link>
@@ -101,7 +101,7 @@ export default function LgpdSolicitacaoPage() {
                         <span className="text-zinc-600">Como exercer: </span>
                         <a
                           href="mailto:privacidade@pix.tips"
-                          className="text-cyan-400 hover:underline"
+                          className="text-sky-400 hover:underline"
                         >
                           privacidade@pix.tips
                         </a>

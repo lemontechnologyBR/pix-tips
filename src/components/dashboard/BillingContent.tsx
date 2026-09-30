@@ -6,9 +6,9 @@ import { formatCommissionLabel, formatPayoutFeeLabel } from "@/lib/finance";
 export function BillingContent() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-zinc-900/80 to-zinc-950 p-6 sm:p-8">
+      <div className="rounded-2xl border border-sky-400/30 bg-gradient-to-br from-sky-400/10 via-zinc-900 to-zinc-950 p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
+          <span className="rounded-full bg-sky-400/15 px-3 py-1 text-xs font-semibold text-sky-300">
             Gratuito para sempre
           </span>
         </div>
@@ -28,7 +28,7 @@ export function BillingContent() {
           </div>
           <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>
-            <p className="mt-1 text-3xl font-black text-cyan-400">{formatPayoutFeeLabel()}</p>
+            <p className="mt-1 text-3xl font-black text-sky-400">{formatPayoutFeeLabel()}</p>
             <p className="mt-1 text-xs text-zinc-500">Taxa fixa em todo saque solicitado</p>
           </div>
         </div>
@@ -39,7 +39,7 @@ export function BillingContent() {
         <ul className="mt-4 space-y-2">
           {PLATFORM_FEATURES.map((f) => (
             <li key={f} className="flex items-start gap-2 text-sm text-zinc-400">
-              <span className="mt-0.5 text-emerald-400">✓</span>
+              <span className="mt-0.5 text-sky-400">✓</span>
               {f}
             </li>
           ))}

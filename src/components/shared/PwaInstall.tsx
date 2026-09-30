@@ -25,7 +25,7 @@ export function PwaInstallTopBar() {
       : "Como instalar";
 
   return (
-    <div className="sticky top-0 z-[60] border-b border-cyan-500/20 web3-glass-strong">
+    <div className="sticky top-0 z-[60] border-b border-sky-400/20 live-panel">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2 sm:px-4">
         <div className="flex min-w-0 items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -41,7 +41,7 @@ export function PwaInstallTopBar() {
             className={
               isMobile && !canInstall
                 ? "rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-sm font-semibold text-zinc-900 shadow-sm active:scale-[0.98]"
-                : "web3-btn-primary rounded-full px-4 py-1.5 text-sm font-semibold text-white"
+                : "live-btn-primary rounded-full px-4 py-1.5 text-sm font-semibold text-white"
             }
           >
             {buttonLabel}
@@ -57,12 +57,12 @@ export function PwaInstallTopBar() {
         </div>
       </div>
       {!canInstall && isIos && (
-        <p className="border-t border-cyan-500/10 px-3 py-2 text-center text-xs text-zinc-400">
+        <p className="border-t border-zinc-800 px-3 py-2 text-center text-xs text-zinc-400">
           Safari → Compartilhar → Adicionar à Tela de Início
         </p>
       )}
       {!canInstall && isChrome && !isIos && (
-        <p className="border-t border-cyan-500/10 px-3 py-2 text-center text-xs text-zinc-400">
+        <p className="border-t border-zinc-800 px-3 py-2 text-center text-xs text-zinc-400">
           Chrome → ícone ⊕ na barra de endereço ou Menu → Instalar pix.tips
         </p>
       )}
@@ -75,7 +75,7 @@ export function PwaInstallButton({ className = "" }: { className?: string }) {
 
   if (installed) {
     return (
-      <p className={`text-sm text-emerald-400 ${className}`}>
+      <p className={`text-sm text-sky-400 ${className}`}>
         App instalado neste dispositivo
       </p>
     );
@@ -86,7 +86,7 @@ export function PwaInstallButton({ className = "" }: { className?: string }) {
       <button
         type="button"
         onClick={() => install()}
-        className={`web3-btn-primary rounded-lg px-4 py-2 text-sm font-semibold text-white ${className}`}
+        className={`live-btn-primary rounded-lg px-4 py-2 text-sm font-semibold text-white ${className}`}
       >
         Instalar app
       </button>

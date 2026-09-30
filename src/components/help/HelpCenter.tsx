@@ -57,7 +57,7 @@ export function HelpCenter() {
       {filteredSections.length === 0 ? (
         <p className="mt-12 text-center text-zinc-500">
           Nenhum resultado para &quot;{query}&quot;. Tente outras palavras ou{" "}
-          <a href="mailto:suporte@pix.tips" className="text-cyan-400 hover:underline">
+          <a href="mailto:suporte@pix.tips" className="text-sky-400 hover:underline">
             fale com o suporte
           </a>
           .
@@ -74,17 +74,17 @@ export function HelpCenter() {
                   return (
                     <div
                       key={faq.question}
-                      className="web3-card overflow-hidden rounded-xl"
+                      className="live-card overflow-hidden rounded-xl"
                     >
                       <button
                         type="button"
                         onClick={() => toggle(section.id, index)}
-                        className="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-white hover:bg-cyan-500/5"
+                        className="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-white hover:bg-sky-400/5"
                         aria-expanded={isOpen}
                       >
                         {faq.question}
                         <span
-                          className={`ml-4 shrink-0 text-cyan-400 transition ${isOpen ? "rotate-45" : ""}`}
+                          className={`ml-4 shrink-0 text-sky-400 transition ${isOpen ? "rotate-45" : ""}`}
                         >
                           +
                         </span>

@@ -107,7 +107,7 @@ export function SoundUpload({ currentCount, onUploaded }: SoundUploadProps) {
             ? "cursor-not-allowed border-zinc-800 opacity-50"
             : dragOver
               ? "border-cyan-500 bg-cyan-500/10 cursor-pointer"
-              : "border-zinc-700 hover:border-cyan-500/50 cursor-pointer"
+              : "border-zinc-700 hover:border-sky-400/40 cursor-pointer"
         }`}
       >
         <input

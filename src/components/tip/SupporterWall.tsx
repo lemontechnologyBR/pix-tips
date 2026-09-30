@@ -41,7 +41,7 @@ export function SupporterWall({ donations }: SupporterWallProps) {
               <span className="font-medium text-white">
                 {d.donorName ?? "Anônimo"}
               </span>
-              <span className="text-sm font-semibold text-emerald-400">
+              <span className="text-sm font-semibold text-sky-400">
                 {formatCurrency(d.amount)}
               </span>
             </div>

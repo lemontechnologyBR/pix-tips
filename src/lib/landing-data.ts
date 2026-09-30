@@ -142,7 +142,7 @@ export const FAQ_ITEMS = [
   {
     question: "Como funciona o saque?",
     answer:
-      "No painel Financeiro, cadastre sua chave Pix, informe o valor e solicite o saque. Há uma taxa fixa de R$ 2,49 por saque. O valor líquido é enviado para sua chave em até 24h úteis (saques legados) ou via Woovi quando sua conta já estiver migrada.",
+      "No painel Financeiro, cadastre sua chave Pix, informe o valor e solicite o saque. Há uma taxa fixa de R$ 2,49 por saque. O valor líquido é enviado na hora para sua chave Pix (saque instantâneo via Woovi).",
   },
   {
     question: "Preciso ter conta bancária específica?",

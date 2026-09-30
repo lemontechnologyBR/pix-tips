@@ -17,7 +17,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
           </Link>
         </div>
 
-        <div className="web3-glass-strong rounded-2xl border border-cyan-500/15 p-6 shadow-xl shadow-cyan-500/5 sm:p-8">
+        <div className="live-panel rounded-2xl border border-sky-400/15 p-6 shadow-xl shadow-black/30 sm:p-8">
           <div className="mb-6 text-center">
             <h1 className="text-2xl font-semibold">{title}</h1>
             {subtitle && <p className="mt-2 text-sm text-zinc-400">{subtitle}</p>}

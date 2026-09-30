@@ -118,9 +118,9 @@ export function LoginForm() {
   if (mfaStep) {
     return (
       <form onSubmit={handleMfaSubmit} className="space-y-4">
-        <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-3 text-sm text-cyan-200">
+        <div className="rounded-lg border border-sky-400/30 bg-cyan-500/10 px-3 py-3 text-sm text-cyan-200">
           <p className="font-medium">Verificação em duas etapas</p>
-          <p className="mt-1 text-cyan-300/90">
+          <p className="mt-1 text-sky-300/90">
             Informe o código de 6 dígitos do seu app autenticador
             {mfaEmail ? ` para ${mfaEmail}` : ""}.
           </p>
@@ -149,7 +149,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading || mfaCode.length !== 6}
-          className="web3-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
+          className="live-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
         >
           {loading ? "Verificando…" : "Confirmar"}
         </button>
@@ -204,7 +204,7 @@ export function LoginForm() {
       </label>
 
       <div className="flex justify-end">
-        <Link href="/forgot-password" className="text-sm text-cyan-400 hover:underline">
+        <Link href="/forgot-password" className="text-sm text-sky-400 hover:underline">
           Esqueceu a senha?
         </Link>
       </div>
@@ -212,14 +212,14 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="web3-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
+        className="live-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>
 
       <p className="text-center text-sm text-zinc-400">
         Não tem conta?{" "}
-        <Link href="/register" className="text-cyan-400 hover:underline">
+        <Link href="/register" className="text-sky-400 hover:underline">
           Criar conta
         </Link>
       </p>

@@ -115,7 +115,7 @@ export function TemplateGallery({ settings, onSelect }: TemplateGalleryProps) {
                 onClick={() => onSelect(t.id)}
                 className={`group relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-lg border px-1 py-1.5 text-center transition ${
                   isSelected
-                    ? "border-cyan-500 bg-cyan-500/15 ring-1 ring-cyan-500/50"
+                    ? "border-cyan-500 bg-sky-400/10 ring-1 ring-cyan-500/50"
                     : "border-zinc-800/80 bg-zinc-950/60 hover:border-zinc-600 hover:bg-zinc-900"
                 } ${locked ? "cursor-not-allowed opacity-40" : ""}`}
               >

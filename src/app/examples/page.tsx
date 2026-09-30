@@ -21,7 +21,7 @@ export default function ExamplesPage() {
 
       <p className="mt-14 text-center text-sm text-zinc-500">
         Quer a sua?{" "}
-        <Link href="/dashboard" className="font-medium text-cyan-400 hover:underline">
+        <Link href="/dashboard" className="font-medium text-sky-400 hover:underline">
           Criar minha página grátis
         </Link>
       </p>

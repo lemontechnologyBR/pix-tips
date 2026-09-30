@@ -29,7 +29,7 @@ export function AdminSupportPanel({ chatwootUrl, creators }: AdminSupportPanelPr
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-zinc-900/60 p-6">
+      <section className="rounded-xl border border-sky-400/20 bg-gradient-to-br from-sky-400/10 to-zinc-900/60 p-6">
         <h3 className="text-lg font-semibold text-white">Chatwoot — suporte aos criadores</h3>
         <p className="mt-1 max-w-2xl text-sm text-zinc-400">
           Central de conversas com criadores (live chat, e-mail e histórico). Use o painel do
@@ -48,7 +48,7 @@ export function AdminSupportPanel({ chatwootUrl, creators }: AdminSupportPanelPr
             href={`${chatwootUrl}/app/accounts`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-cyan-500/40"
+            className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-300 hover:border-sky-400/30"
           >
             Inbox / contas
           </a>
@@ -115,13 +115,13 @@ export function AdminSupportPanel({ chatwootUrl, creators }: AdminSupportPanelPr
                       <div className="flex flex-wrap gap-2">
                         <a
                           href={`mailto:${c.email}?subject=${encodeURIComponent(`Suporte pix.tips — @${c.username}`)}`}
-                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-cyan-500/40"
+                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-sky-400/30"
                         >
                           E-mail
                         </a>
                         <Link
                           href={`/admin/users`}
-                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-cyan-500/40"
+                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-sky-400/30"
                         >
                           Perfil admin
                         </Link>
@@ -129,7 +129,7 @@ export function AdminSupportPanel({ chatwootUrl, creators }: AdminSupportPanelPr
                           href={`/${c.username}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-cyan-500/40"
+                          className="rounded border border-zinc-700 px-2 py-1 text-[11px] text-zinc-300 hover:border-sky-400/30"
                         >
                           Tip page
                         </a>
@@ -156,7 +156,7 @@ function Stat({
   tone?: "ok" | "warn";
 }) {
   const color =
-    tone === "warn" ? "text-amber-300" : tone === "ok" ? "text-emerald-400" : "text-white";
+    tone === "warn" ? "text-amber-300" : tone === "ok" ? "text-sky-400" : "text-white";
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
       <p className="text-xs text-zinc-500">{label}</p>

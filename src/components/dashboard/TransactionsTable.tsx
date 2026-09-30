@@ -12,7 +12,7 @@ interface TransactionsTableProps {
 }
 
 const STATUS_STYLES: Record<TransactionStatus, string> = {
-  confirmed: "bg-emerald-500/15 text-emerald-400",
+  confirmed: "bg-sky-400/12 text-sky-400",
   pending: "bg-amber-500/15 text-amber-400",
   failed: "bg-red-500/15 text-red-400",
   expired: "bg-zinc-500/15 text-zinc-400",
@@ -134,7 +134,7 @@ export function TransactionsTable({
                   <td className="max-w-[200px] truncate px-4 py-3 text-zinc-500">
                     {t.message || "—"}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-emerald-400">
+                  <td className="px-4 py-3 font-semibold text-sky-400">
                     {formatCurrency(t.amount)}
                   </td>
                   <td className="px-4 py-3 uppercase text-zinc-400">{t.method}</td>
@@ -177,7 +177,7 @@ export function TransactionsTable({
               </div>
               <div className="flex justify-between">
                 <dt className="text-zinc-500">Valor</dt>
-                <dd className="text-emerald-400">{formatCurrency(selected.amount)}</dd>
+                <dd className="text-sky-400">{formatCurrency(selected.amount)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-zinc-500">Método</dt>

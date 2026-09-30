@@ -249,7 +249,7 @@ export function TemplateGlitch(p: AlertTemplateProps) {
       <div className="flex h-full items-center justify-center">
         <div className={`animate-glitch font-mono ${phase === "exit" ? "opacity-0" : ""}`}>
           <p className="text-3xl font-black text-white">{p.headline}</p>
-          <p className="text-cyan-400">{formatCurrency(p.amount)}</p>
+          <p className="text-emerald-400">{formatCurrency(p.amount)}</p>
         </div>
       </div>
     </ScreenBackground>

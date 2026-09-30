@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 
-export type NotificationType = "donation" | "system" | "promo";
+export type NotificationType = "donation" | "system" | "promo" | "subscription";
 
 export type NotificationFilter = "all" | NotificationType;
 

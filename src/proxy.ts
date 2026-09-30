@@ -9,6 +9,7 @@ export async function proxy(request: NextRequest) {
   const isDashboard = pathname.startsWith("/dashboard");
   const isOnboarding = pathname.startsWith("/onboarding");
   const isAdmin = pathname.startsWith("/admin");
+  const isConta = pathname === "/conta" || pathname.startsWith("/conta/");
 
   if (isAdmin) {
     if (!session) {
@@ -22,6 +23,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (isConta) {
+    if (!session) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", "/conta");
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
   if (isDashboard || isOnboarding) {
     if (!session) {
       const loginUrl = new URL("/login", request.url);
@@ -29,11 +39,16 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
+    // Fã sem tip page: dashboard bloqueado até virar criador no onboarding
+    if (isDashboard && !session.creatorId) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+
     if (isDashboard && !session.onboardingCompleted) {
       return NextResponse.redirect(new URL("/onboarding", request.url));
     }
 
-    if (isOnboarding && session.onboardingCompleted) {
+    if (isOnboarding && session.onboardingCompleted && session.creatorId) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
@@ -42,5 +57,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/admin/:path*", "/conta", "/conta/:path*"],
 };

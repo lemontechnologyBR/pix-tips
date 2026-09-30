@@ -29,7 +29,7 @@ export default function HelpPage() {
           <a
             key={link.href}
             href={link.href}
-            className="rounded-lg border border-zinc-800 px-3 py-1.5 text-zinc-400 transition hover:border-cyan-600/50 hover:text-cyan-300"
+            className="rounded-lg border border-zinc-800 px-3 py-1.5 text-zinc-400 transition hover:border-cyan-600/50 hover:text-sky-300"
           >
             {link.label}
           </a>
@@ -40,11 +40,11 @@ export default function HelpPage() {
 
       <p className="mt-14 text-center text-sm text-zinc-500">
         Não encontrou o que precisa?{" "}
-        <Link href="/status" className="text-cyan-400 hover:underline">
+        <Link href="/status" className="text-sky-400 hover:underline">
           Ver status dos serviços
         </Link>{" "}
         ou escreva para{" "}
-        <a href="mailto:suporte@pix.tips" className="text-cyan-400 hover:underline">
+        <a href="mailto:suporte@pix.tips" className="text-sky-400 hover:underline">
           suporte@pix.tips
         </a>
         .

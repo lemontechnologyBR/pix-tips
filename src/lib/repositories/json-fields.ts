@@ -1,8 +1,9 @@
-import { DEFAULT_TTS_TEMPLATE } from "@/lib/tts-config";
+import { DEFAULT_TTS_TEMPLATE, resolveTtsVoiceId } from "@/lib/tts-config";
 import type {
   AlertSettings,
   ChatBotSettings,
   Creator,
+  DiscordSettings,
   PaymentMethod,
   PlanType,
   TipPageSettings,
@@ -10,6 +11,10 @@ import type {
   TransactionStatus,
   ViewersPlatform,
 } from "@/types";
+import {
+  defaultDiscordSettings,
+  normalizeDiscordSettings,
+} from "@/lib/integrations/discord-roles";
 import { DEFAULT_TIP_PAGE_SETTINGS, normalizeTipPageSettings } from "@/lib/tip-page-defaults";
 import { resolveAlertSoundId } from "@/lib/alert-catalog";
 import { normalizeGoalOverlayLayout } from "@/lib/goal-overlay-layout";
@@ -194,6 +199,7 @@ export type CreatorRow = {
   alertSettings: string;
   tipPageSettings: string;
   chatBotSettings?: string;
+  discordSettings?: string;
   proExpiresAt?: Date | null;
   createdAt: Date;
   user: { email: string };
@@ -320,7 +326,10 @@ export function normalizeAlertSettings(raw: Partial<AlertSettings>): AlertSettin
 
     // TTS
     ttsEnabled: merged.ttsEnabled === true,
-    ttsVoiceId: typeof merged.ttsVoiceId === "string" ? merged.ttsVoiceId : "off",
+    ttsVoiceId:
+      typeof merged.ttsVoiceId === "string"
+        ? resolveTtsVoiceId(merged.ttsVoiceId)
+        : "off",
     ttsTemplate: typeof merged.ttsTemplate === "string" && merged.ttsTemplate.trim()
       ? merged.ttsTemplate
       : DEFAULT_TTS_TEMPLATE,
@@ -359,6 +368,12 @@ export function mapCreatorRow(row: CreatorRow): Creator {
         defaultChatBotSettings(),
       ),
     ),
+    discordSettings: normalizeDiscordSettings(
+      parseJson<Partial<DiscordSettings>>(
+        row.discordSettings ?? "{}",
+        defaultDiscordSettings(),
+      ),
+    ),
     plan: row.plan as PlanType,
     isSuspended: row.isSuspended,
     email: row.user.email,
@@ -380,15 +395,20 @@ export type TransactionRow = {
   donorName: string;
   status: string;
   method: string;
+  kind?: string | null;
   pixCode: string | null;
   wooviPaymentId: string | null;
   splitPayment: boolean;
   applicationFee: number | null;
   donorTtsVoiceId: string | null;
+  donorUserId?: string | null;
+  subscriptionPlanId?: string | null;
   createdAt: Date;
 };
 
 export function mapTransactionRow(row: TransactionRow): Transaction {
+  const kind =
+    row.kind === "subscription" ? "subscription" : "donation";
   return {
     id: row.id,
     creatorId: row.creatorId,
@@ -398,11 +418,14 @@ export function mapTransactionRow(row: TransactionRow): Transaction {
     donorName: row.donorName,
     status: row.status as TransactionStatus,
     method: row.method as PaymentMethod,
+    kind,
     pixCode: row.pixCode ?? undefined,
     wooviPaymentId: row.wooviPaymentId ?? undefined,
     splitPayment: row.splitPayment || undefined,
     applicationFee: row.applicationFee ?? undefined,
     donorTtsVoiceId: row.donorTtsVoiceId ?? undefined,
+    donorUserId: row.donorUserId ?? undefined,
+    subscriptionPlanId: row.subscriptionPlanId ?? undefined,
     createdAt: row.createdAt.toISOString(),
   };
 }

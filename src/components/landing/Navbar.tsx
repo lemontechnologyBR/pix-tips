@@ -46,7 +46,7 @@ export function Navbar() {
               className="group relative px-3 py-2 text-sm text-zinc-400 transition-colors duration-200 hover:text-white"
             >
               {link.label}
-              <span className="absolute bottom-0 left-0 h-px w-0 bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-300 group-hover:w-full" />
+              <span className="absolute bottom-0 left-0 h-px w-0 bg-gradient-to-r from-sky-400 to-violet-400 transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
         </div>
@@ -60,7 +60,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/register"
-            className="web3-btn-primary rounded-lg px-5 py-2 text-sm font-semibold text-white shadow-cyan-500/25 transition-all duration-300 hover:shadow-cyan-500/50 hover:shadow-lg"
+            className="live-btn-primary rounded-lg px-5 py-2 text-sm font-semibold text-zinc-950 transition-all duration-300 hover:brightness-110"
           >
             Criar conta
           </Link>
@@ -92,13 +92,13 @@ export function Navbar() {
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="web3-glass-strong border-t border-white/5 px-4 py-4">
+        <div className="live-panel border-t border-white/5 px-4 py-4">
           <div className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-cyan-500/10 hover:text-white"
+                className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-sky-400/10 hover:text-white"
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}
@@ -107,14 +107,14 @@ export function Navbar() {
             <div className="my-2 border-t border-white/5" />
             <Link
               href="/login"
-              className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-cyan-500/10 hover:text-white"
+              className="rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-sky-400/10 hover:text-white"
               onClick={() => setMenuOpen(false)}
             >
               Entrar
             </Link>
             <Link
               href="/register"
-              className="web3-btn-primary mt-1 rounded-lg px-3 py-2.5 text-center text-sm font-semibold text-white shadow-cyan-500/25 transition-all hover:shadow-cyan-500/50 hover:shadow-lg"
+              className="live-btn-primary mt-1 rounded-lg px-3 py-2.5 text-center text-sm font-semibold text-zinc-950 transition-all hover:brightness-110"
               onClick={() => setMenuOpen(false)}
             >
               Criar conta grátis

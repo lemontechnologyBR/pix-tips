@@ -26,7 +26,19 @@ export async function POST(
 
   const confirmed = await confirmTransaction(transactionId);
   if (confirmed) {
-    await emitDonationAlert(confirmed);
+    if (confirmed.kind === "subscription") {
+      const { activateFanSubscriptionFromTransaction } = await import(
+        "@/lib/fan-subscriptions"
+      );
+      await activateFanSubscriptionFromTransaction(confirmed.id);
+      const { getIO } = await import("@/lib/socket-server");
+      getIO()
+        .of("/alerts")
+        .to(`tx:${confirmed.id}`)
+        .emit("payment-confirmed", { transactionId: confirmed.id });
+    } else {
+      await emitDonationAlert(confirmed);
+    }
     return NextResponse.json({ ok: true, transaction: confirmed });
   }
 

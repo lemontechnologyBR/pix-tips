@@ -91,7 +91,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
           <div className="flex items-center gap-3">
             <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-center">
               <p className="text-[10px] uppercase tracking-wide text-zinc-500">Ativos</p>
-              <p className="text-xl font-bold tabular-nums text-cyan-300">{activeCount}</p>
+              <p className="text-xl font-bold tabular-nums text-sky-300">{activeCount}</p>
             </div>
             {hasGoal && (
               <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5">
@@ -121,7 +121,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
                   onClick={() => toggleWidget(key)}
                   className={`flex items-center gap-3 rounded-lg border px-3 py-3 text-left transition ${
                     enabled
-                      ? "border-cyan-500/50 bg-cyan-500/10"
+                      ? "border-sky-400/35 bg-cyan-500/10"
                       : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-700"
                   }`}
                 >
@@ -172,7 +172,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
               onClick={() => updateSettings({ overlayPresetId: null })}
               className={`rounded-lg border px-3 py-3 text-left transition ${
                 settings.overlayPresetId === null
-                  ? "border-cyan-500 bg-cyan-500/15 ring-1 ring-cyan-500/40"
+                  ? "border-cyan-500 bg-sky-400/10 ring-1 ring-cyan-500/40"
                   : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-600"
               }`}
             >
@@ -198,7 +198,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
                   onClick={() => setSettings(applyOverlayPreset(settings, preset.id))}
                   className={`rounded-lg border px-3 py-3 text-left transition ${
                     active
-                      ? "border-cyan-500 bg-cyan-500/15 ring-1 ring-cyan-500/40"
+                      ? "border-cyan-500 bg-sky-400/10 ring-1 ring-cyan-500/40"
                       : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-600"
                   }`}
                 >
@@ -225,7 +225,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <p className="text-sm text-zinc-300">Escala global</p>
-              <span className="text-sm font-semibold tabular-nums text-cyan-300">
+              <span className="text-sm font-semibold tabular-nums text-sky-300">
                 {settings.overlayScale.toFixed(2)}×
               </span>
             </div>
@@ -248,7 +248,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <p className="text-sm text-zinc-300">Opacidade geral</p>
-              <span className="text-sm font-semibold tabular-nums text-cyan-300">
+              <span className="text-sm font-semibold tabular-nums text-sky-300">
                 {Math.round(settings.overlayOpacity * 100)}%
               </span>
             </div>
@@ -280,7 +280,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+            className="rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar overlay"}
           </button>
@@ -294,7 +294,7 @@ export function OverlayEditor({ creator, widgetUrl }: OverlayEditorProps) {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg">
           {toast}
         </div>
       )}

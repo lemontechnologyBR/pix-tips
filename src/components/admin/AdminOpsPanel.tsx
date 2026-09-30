@@ -52,7 +52,7 @@ export function AdminOpsPanel({ initial }: AdminOpsPanelProps) {
         />
       </div>
 
-      <section className="rounded-xl border border-cyan-500/20 bg-zinc-900/40 p-5">
+      <section className="rounded-xl border border-sky-400/20 bg-zinc-900/40 p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 className="font-semibold">Widgets OBS</h3>
@@ -106,7 +106,7 @@ export function AdminOpsPanel({ initial }: AdminOpsPanelProps) {
                   ) : (
                     analytics.widgets.map((row) => (
                       <tr key={row.widget} className="border-t border-zinc-800/60">
-                        <td className="py-1.5 pr-2 font-mono text-xs text-cyan-300">
+                        <td className="py-1.5 pr-2 font-mono text-xs text-sky-300">
                           {row.widget}
                         </td>
                         <td className="py-1.5 pr-2 font-medium">{row.count}</td>
@@ -192,7 +192,7 @@ export function AdminOpsPanel({ initial }: AdminOpsPanelProps) {
                         {formatRelativePt(row.createdAt)}
                       </td>
                       <td className="py-1.5 pr-2 text-zinc-300">@{row.username}</td>
-                      <td className="py-1.5 font-mono text-xs text-cyan-300">
+                      <td className="py-1.5 font-mono text-xs text-sky-300">
                         {row.widget}
                       </td>
                     </tr>

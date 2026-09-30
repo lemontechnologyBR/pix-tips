@@ -11,13 +11,20 @@ import {
 import { getKycProfile } from "@/lib/repositories/kyc-repository";
 import { mapTransactionRow, type TransactionRow } from "@/lib/repositories/json-fields";
 import {
+  buildPixtipsSubaccountName,
+  debitWooviSubaccount,
   ensureWooviSubaccount,
+  findWooviSubaccountByPixKey,
   getActivePaymentProvider,
   isWooviConfigured,
+  toCents,
+  withdrawWooviSubaccount,
+  WooviApiError,
 } from "@/lib/payments/woovi";
 import {
   migrationBannerMessage,
   resolvePayoutMode,
+  shouldUseWooviSplit,
 } from "@/lib/payments/payout-mode";
 import type { FinanceOverview, Payout, PixKeyType } from "@/types";
 
@@ -64,13 +71,17 @@ export async function syncCreatorBalance(creatorId: string): Promise<void> {
   if (!creator) return;
 
   const rate = getCommissionRate();
+  const fixedFee = getCommissionFixedFee();
 
   const legacyConfirmed = confirmed.filter((tx) => !tx.splitPayment);
 
-  const totalNet = legacyConfirmed.reduce(
-    (sum, tx) => sum + computeNetAmount(tx.amount, rate),
-    0,
-  );
+  const totalNet = legacyConfirmed.reduce((sum, tx) => {
+    // Preferir taxa gravada na doação — evita zerar saldo residual com fee atual.
+    if (tx.applicationFee != null && Number.isFinite(tx.applicationFee)) {
+      return sum + Math.max(0, Math.round((tx.amount - tx.applicationFee) * 100) / 100);
+    }
+    return sum + computeNetAmount(tx.amount, rate, fixedFee);
+  }, 0);
 
   const completedWithdrawn = payouts
     .filter((p) => p.status === "completed")
@@ -156,6 +167,24 @@ export async function getFinanceOverview(
     pixKey: creator.pixKey,
   });
 
+  let availableBalance = creator.availableBalance;
+  if (payoutMode === "woovi" && isWooviConfigured()) {
+    const pix = (creator.wooviPixKey || creator.pixKey || "").trim();
+    if (pix) {
+      try {
+        const sub = await findWooviSubaccountByPixKey(pix);
+        if (sub) {
+          // Saldo operacional = subconta Woovi (+ residual legado se ainda houver)
+          availableBalance =
+            Math.round((sub.balanceCents / 100 + creator.availableBalance) * 100) /
+            100;
+        }
+      } catch (error) {
+        console.error("[finance] woovi balance", error);
+      }
+    }
+  }
+
   return {
     paymentProvider: getActivePaymentProvider(),
     payoutMode,
@@ -164,7 +193,7 @@ export async function getFinanceOverview(
       wooviSubaccountName: creator.wooviSubaccountName,
       pixKey: creator.pixKey,
     }),
-    availableBalance: creator.availableBalance,
+    availableBalance,
     pendingBalance,
     totalWithdrawn: creator.totalWithdrawn,
     totalGross,
@@ -211,8 +240,12 @@ export async function updatePayoutSettings(
 
   if (isWooviConfigured() && pixKey) {
     try {
+      const creator = await prisma.creator.findUnique({
+        where: { id: creatorId },
+        select: { username: true },
+      });
       const sub = await ensureWooviSubaccount({
-        name: pixHolderName || `creator-${creatorId.slice(0, 8)}`,
+        name: buildPixtipsSubaccountName(creator?.username || creatorId),
         pixKey,
       });
       wooviSubaccountName = sub.name;
@@ -259,9 +292,9 @@ export async function listPayouts(
 }
 
 /**
- * Solicitação de saque manual: cria um payout "pending" que debita
- * o valor (e a taxa de saque, se houver) do saldo. O admin envia o Pix
- * e marca como concluído no painel /admin/payouts.
+ * Saque:
+ * - Modo Woovi: instantâneo na subconta (taxa R$ 2,49 debitada para a conta da plataforma).
+ * - Legado: payout "pending" no ledger (admin processa).
  *
  * @param amount Valor líquido que o criador quer receber na chave Pix.
  */
@@ -289,6 +322,59 @@ export async function requestWithdrawal(
 
   const fee = computePayoutFee();
   const grossAmount = Math.round((amount + fee) * 100) / 100;
+  const useWoovi = shouldUseWooviSplit({
+    availableBalance: creator.availableBalance,
+    wooviSubaccountName: creator.wooviSubaccountName,
+    pixKey: creator.pixKey,
+  });
+
+  if (useWoovi && isWooviConfigured()) {
+    const pixKey = (creator.wooviPixKey || creator.pixKey).trim();
+    const sub = await findWooviSubaccountByPixKey(pixKey);
+    if (!sub) {
+      throw new Error("Subconta Woovi não encontrada. Salve a chave Pix novamente.");
+    }
+    if (sub.withdrawBlocked) {
+      throw new Error("Saque bloqueado na subconta Woovi. Fale com o suporte.");
+    }
+
+    const neededCents = toCents(grossAmount);
+    if (sub.balanceCents < neededCents) {
+      throw new Error(
+        fee > 0
+          ? "Saldo insuficiente na subconta (valor + taxa de saque)"
+          : "Saldo insuficiente na subconta",
+      );
+    }
+
+    try {
+      if (fee > 0) {
+        await debitWooviSubaccount({ pixKey, valueCents: toCents(fee) });
+      }
+      await withdrawWooviSubaccount({ pixKey, valueCents: toCents(amount) });
+    } catch (error) {
+      if (error instanceof WooviApiError) throw new Error(error.message);
+      throw error;
+    }
+
+    const row = await prisma.payout.create({
+      data: {
+        creatorId,
+        amount: grossAmount,
+        fee,
+        status: "completed",
+        pixKey: creator.pixKey,
+        completedAt: new Date(),
+      },
+    });
+
+    await prisma.creator.update({
+      where: { id: creatorId },
+      data: { totalWithdrawn: { increment: amount } },
+    });
+
+    return mapPayout(row);
+  }
 
   if (grossAmount > creator.availableBalance + 0.001) {
     throw new Error(

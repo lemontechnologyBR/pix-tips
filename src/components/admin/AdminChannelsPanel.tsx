@@ -196,7 +196,7 @@ export function AdminChannelsPanel({ initial }: AdminChannelsPanelProps) {
                         href={row.tipPageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-mono text-xs text-cyan-300 hover:underline"
+                        className="font-mono text-xs text-sky-300 hover:underline"
                       >
                         /{row.username}
                       </a>

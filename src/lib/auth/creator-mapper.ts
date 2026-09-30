@@ -5,6 +5,10 @@ import {
 } from "@/lib/chat-bot/settings";
 import { defaultAlertSettings, normalizeAlertSettings } from "@/lib/repositories/json-fields";
 import { normalizeTipPageSettings } from "@/lib/tip-page-defaults";
+import {
+  defaultDiscordSettings,
+  normalizeDiscordSettings,
+} from "@/lib/integrations/discord-roles";
 
 type DbCreator = {
   id: string;
@@ -21,6 +25,7 @@ type DbCreator = {
   alertSettings: string;
   tipPageSettings: string;
   chatBotSettings?: string;
+  discordSettings?: string;
   onboardingCompleted: boolean;
   notifyEmailDonation: boolean;
   notifyEmailWeekly: boolean;
@@ -57,6 +62,9 @@ export function mapDbCreatorToCreator(db: DbCreator): Creator {
     ),
     chatBotSettings: normalizeChatBotSettings(
       parseJson(db.chatBotSettings ?? "{}", defaultChatBotSettings()),
+    ),
+    discordSettings: normalizeDiscordSettings(
+      parseJson(db.discordSettings ?? "{}", defaultDiscordSettings()),
     ),
     plan: db.plan === "pro" ? "pro" : "free",
     email: db.user.email,

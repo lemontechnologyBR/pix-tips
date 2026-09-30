@@ -22,10 +22,10 @@ function statusConfig(status: KycProfile["status"]) {
     case "approved":
       return {
         icon: "status-approved" as const,
-        box: "border-emerald-500/30 bg-gradient-to-r from-emerald-600/10 to-emerald-900/5",
-        iconBox: "border-emerald-500/40 bg-emerald-600/15 text-emerald-300",
-        title: "text-emerald-100",
-        body: "text-emerald-200/80",
+        box: "border-sky-400/30 bg-gradient-to-r from-sky-500/10 to-violet-950/10",
+        iconBox: "border-sky-400/35 bg-sky-500/12 text-sky-300",
+        title: "text-sky-100",
+        body: "text-sky-200/80",
       };
     case "pending":
       return {
@@ -65,7 +65,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
         <KycFormIcon name={icon} className="h-5 w-5" />
       </div>
       <div>
@@ -97,8 +97,8 @@ function FileField({
     <div
       className={`group relative rounded-xl border border-dashed p-4 transition ${
         filled
-          ? "border-emerald-500/40 bg-emerald-500/5"
-          : "border-zinc-700/80 bg-zinc-950/30 hover:border-cyan-500/40 hover:brightness-110/[0.03]"
+          ? "border-sky-400/35 bg-sky-400/5"
+          : "border-zinc-700/80 bg-zinc-950/30 hover:border-sky-400/30 hover:brightness-110/[0.03]"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -106,8 +106,8 @@ function FileField({
           <div
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
               filled
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-zinc-700 bg-zinc-900 text-zinc-500 group-hover:text-cyan-300"
+                ? "border-sky-400/30 bg-sky-400/10 text-sky-400"
+                : "border-zinc-700 bg-zinc-900 text-zinc-500 group-hover:text-sky-300"
             }`}
           >
             {filled ? (
@@ -122,7 +122,7 @@ function FileField({
           </div>
         </div>
         {filled && (
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+          <span className="rounded-full bg-sky-400/12 px-2 py-0.5 text-[10px] font-medium text-sky-300">
             OK
           </span>
         )}
@@ -134,7 +134,7 @@ function FileField({
         className={`mt-4 flex w-full flex-col items-center justify-center rounded-lg border border-dashed px-4 py-6 transition ${
           preview
             ? "border-zinc-700/60 bg-zinc-950/50"
-            : "border-zinc-700/50 bg-zinc-950/40 group-hover:border-cyan-500/30"
+            : "border-zinc-700/50 bg-zinc-950/40 group-hover:border-sky-400/30"
         }`}
       >
         {preview ? (
@@ -146,7 +146,7 @@ function FileField({
           />
         ) : (
           <>
-            <KycFormIcon name="upload" className="h-6 w-6 text-zinc-600 group-hover:text-cyan-400" />
+            <KycFormIcon name="upload" className="h-6 w-6 text-zinc-600 group-hover:text-sky-400" />
             <span className="mt-2 text-xs text-zinc-500 group-hover:text-zinc-300">
               Clique para selecionar
             </span>
@@ -159,7 +159,7 @@ function FileField({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="mt-2 w-full text-center text-xs text-zinc-500 hover:text-cyan-300"
+          className="mt-2 w-full text-center text-xs text-zinc-500 hover:text-sky-300"
         >
           Trocar arquivo
         </button>
@@ -208,7 +208,7 @@ function StepIndicator({
                 step.done
                   ? "bg-cyan-500 text-white"
                   : active
-                    ? "border border-cyan-500/60 bg-cyan-500/20 text-cyan-200"
+                    ? "border border-cyan-500/60 bg-sky-400/12 text-cyan-200"
                     : "border border-zinc-700 bg-zinc-900 text-zinc-500"
               }`}
             >
@@ -224,7 +224,7 @@ function StepIndicator({
             {index < steps.length - 1 && (
               <span
                 className={`ml-auto hidden h-px flex-1 sm:block ${
-                  step.done ? "bg-cyan-500/50" : "bg-zinc-800"
+                  step.done ? "bg-sky-400/50" : "bg-zinc-800"
                 }`}
               />
             )}
@@ -236,7 +236,7 @@ function StepIndicator({
 }
 
 const inputClass =
-  "w-full rounded-lg border border-zinc-700/80 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
+  "w-full rounded-lg border border-zinc-700/80 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-sky-400/35 focus:outline-none focus:ring-1 focus:ring-cyan-500/30";
 
 export function KycVerificationForm({ initialProfile }: KycVerificationFormProps) {
   const [profile, setProfile] = useState(initialProfile);
@@ -322,10 +322,12 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
           return;
         }
 
-        if (data.status === "skipped") {
+        if (data.status === "skipped" || data.status === "error") {
           setCpfCheck({
             phase: "warn",
-            message: data.message ?? "Consulta externa desativada — validação local apenas.",
+            message:
+              data.message ??
+              "Consulta de CPF temporariamente indisponível — continue com a Didit.",
           });
           return;
         }
@@ -391,7 +393,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
             <KycFormIcon name="shield" className="h-5 w-5" />
           </div>
           <div>
@@ -515,7 +517,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                       cpfCheck.phase === "error"
                         ? "border-red-500/50"
                         : cpfCheck.phase === "ok"
-                          ? "border-emerald-500/40"
+                          ? "border-sky-400/35"
                           : ""
                     }`}
                     placeholder="000.000.000-00"
@@ -524,7 +526,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                     <p className="mt-1.5 text-xs text-zinc-500">Consultando CPF…</p>
                   )}
                   {cpfCheck.phase === "ok" && (
-                    <p className="mt-1.5 text-xs text-emerald-400">
+                    <p className="mt-1.5 text-xs text-sky-400">
                       {cpfCheck.message}
                       {cpfCheck.provider !== "none" && (
                         <span className="text-zinc-500"> · via {cpfCheck.provider}</span>
@@ -623,7 +625,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                 </p>
               )}
               {success && (
-                <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                <p className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-3 text-sm text-sky-300">
                   {success}
                 </p>
               )}
@@ -639,7 +641,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                 <span className="text-xs leading-relaxed text-zinc-400">
                   Li e concordo com o tratamento dos meus dados sensíveis para fins de
                   verificação de identidade conforme a{" "}
-                  <Link href="/privacidade" className="text-cyan-400 underline hover:text-cyan-300">
+                  <Link href="/privacidade" className="text-sky-400 underline hover:text-sky-300">
                     Política de Privacidade
                   </Link>
                   .
@@ -654,7 +656,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
                 <button
                   type="submit"
                   disabled={submitting || !personalDone || !documentsDone || !lgpdConsent}
-                  className="shrink-0 rounded-xl web3-btn-primary px-6 py-2.5 text-sm font-semibold hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="shrink-0 rounded-xl live-btn-primary px-6 py-2.5 text-sm font-semibold hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitting ? "Enviando…" : "Enviar para análise"}
                 </button>
@@ -667,7 +669,7 @@ export function KycVerificationForm({ initialProfile }: KycVerificationFormProps
       {profile.status === "approved" && profile.cpfMasked && (
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/30 bg-sky-400/10 text-sky-400">
               <KycFormIcon name="check" className="h-5 w-5" />
             </div>
             <div className="text-sm text-zinc-300">

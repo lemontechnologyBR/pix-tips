@@ -102,7 +102,7 @@ export function LastDonationEditor({ creator, widgetUrl }: LastDonationEditorPro
                       onClick={() => setSettings((s) => ({ ...s, lastDonationLayout: opt }))}
                       className={`rounded-lg border px-3 py-1.5 text-sm transition ${
                         active
-                          ? "border-cyan-500 bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/40"
+                          ? "border-cyan-500 bg-sky-400/10 text-cyan-200 ring-1 ring-cyan-500/40"
                           : "border-zinc-700 bg-zinc-950/60 text-zinc-400 hover:border-zinc-600"
                       }`}
                     >
@@ -188,7 +188,7 @@ export function LastDonationEditor({ creator, widgetUrl }: LastDonationEditorPro
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+            className="rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar"}
           </button>
@@ -216,7 +216,7 @@ export function LastDonationEditor({ creator, widgetUrl }: LastDonationEditorPro
         </div>
       </div>
       {toast && (
-        <div className="fixed bottom-6 right-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg">
           {toast}
         </div>
       )}

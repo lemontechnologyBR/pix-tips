@@ -41,11 +41,11 @@ export function AdminShell({ userName, userEmail, children }: AdminShellProps) {
       )}
 
       <aside
-        className={`web3-glass-strong fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-cyan-500/10 transition-transform lg:static lg:translate-x-0 ${
+        className={`live-panel fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-zinc-800 transition-transform lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-cyan-500/10 px-4">
+        <div className="flex h-16 items-center gap-2 border-b border-zinc-800 px-4">
           <Link href="/admin" className="flex items-center gap-2 font-bold">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-sm">
               AD
@@ -67,7 +67,7 @@ export function AdminShell({ userName, userEmail, children }: AdminShellProps) {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "web3-nav-active text-cyan-300"
+                    ? "live-nav-active text-sky-300"
                     : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
                 }`}
               >
@@ -78,7 +78,7 @@ export function AdminShell({ userName, userEmail, children }: AdminShellProps) {
           })}
         </nav>
 
-        <div className="space-y-2 border-t border-cyan-500/10 p-3">
+        <div className="space-y-2 border-t border-zinc-800 p-3">
           <Link
             href="/dashboard"
             className="block rounded-lg border border-zinc-700 px-3 py-2 text-center text-sm text-zinc-300 hover:border-zinc-500"
@@ -97,7 +97,7 @@ export function AdminShell({ userName, userEmail, children }: AdminShellProps) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-cyan-500/10 bg-transparent px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-zinc-800 bg-transparent px-4 backdrop-blur sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"

@@ -71,9 +71,23 @@ export async function POST(request: Request) {
     after(async () => {
       try {
         const confirmed = await confirmTransaction(transactionId);
-        if (confirmed) {
-          await emitDonationAlert(confirmed);
+        if (!confirmed) return;
+
+        if (confirmed.kind === "subscription") {
+          const { activateFanSubscriptionFromTransaction } = await import(
+            "@/lib/fan-subscriptions"
+          );
+          await activateFanSubscriptionFromTransaction(confirmed.id);
+          // Still notify payment-confirmed room for tip page checkout UI
+          const { getIO } = await import("@/lib/socket-server");
+          getIO()
+            .of("/alerts")
+            .to(`tx:${confirmed.id}`)
+            .emit("payment-confirmed", { transactionId: confirmed.id });
+          return;
         }
+
+        await emitDonationAlert(confirmed);
       } catch (error) {
         console.error("[webhooks/woovi]", error);
       }

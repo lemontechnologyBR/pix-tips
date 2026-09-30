@@ -203,7 +203,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
       </Suspense>
 
       {toast && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+        <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-4 py-3 text-sm text-sky-300">
           {toast}
         </div>
       )}
@@ -223,7 +223,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
               key={key}
               className={`flex cursor-pointer flex-col gap-3 rounded-xl border px-4 py-4 transition ${
                 profile[key]
-                  ? "border-cyan-500/40 bg-cyan-500/5"
+                  ? "border-sky-400/30 bg-sky-400/5"
                   : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-700"
               }`}
             >
@@ -250,7 +250,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
           type="button"
           onClick={handleSaveNotifications}
           disabled={!isDirty || saving}
-          className="web3-btn-primary mt-5 rounded-xl px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="live-btn-primary mt-5 rounded-xl px-6 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {saving ? "Salvando..." : "Salvar preferências"}
         </button>
@@ -263,7 +263,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
         <label
           className={`flex cursor-pointer items-start gap-4 rounded-xl border px-4 py-4 transition ${
             profile.marketingOptIn
-              ? "border-cyan-500/40 bg-cyan-500/5"
+              ? "border-sky-400/30 bg-sky-400/5"
               : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-700"
           }`}
         >
@@ -287,11 +287,11 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
         </label>
         <p className="mt-4 text-xs text-zinc-500">
           Você pode revogar este consentimento a qualquer momento. Saiba mais na{" "}
-          <Link href="/privacidade" className="text-cyan-400 hover:underline">
+          <Link href="/privacidade" className="text-sky-400 hover:underline">
             política de privacidade
           </Link>{" "}
           ou em{" "}
-          <Link href="/privacidade/solicitacao" className="text-cyan-400 hover:underline">
+          <Link href="/privacidade/solicitacao" className="text-sky-400 hover:underline">
             exercício de direitos LGPD
           </Link>
           . Salve as alterações com o botão na seção Notificações acima.
@@ -304,7 +304,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
         action={
           <Link
             href="/dashboard/integrations"
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-cyan-500/50 hover:text-white"
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-sky-400/40 hover:text-white"
           >
             Ver integrações →
           </Link>
@@ -337,7 +337,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
               {!profile.kyc.canWithdraw && (
                 <Link
                   href="/dashboard/finance?tab=verificacao"
-                  className="mt-2 inline-block text-xs text-cyan-400 hover:underline"
+                  className="mt-2 inline-block text-xs text-sky-400 hover:underline"
                 >
                   Completar verificação →
                 </Link>
@@ -359,7 +359,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
             </div>
             <Link
               href="/forgot-password"
-              className="inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white"
+              className="inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-sky-400/40 hover:text-white"
             >
               {profile.hasPassword ? "Alterar senha" : "Definir senha por e-mail"}
             </Link>
@@ -384,7 +384,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
           type="button"
           onClick={handleExportData}
           disabled={exportingData}
-          className="mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-sky-400/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {exportingData ? "Exportando..." : "Exportar meus dados"}
         </button>
@@ -419,7 +419,7 @@ export function SettingsForm({ profile: initialProfile }: SettingsFormProps) {
               type="button"
               onClick={handleSaveNotifications}
               disabled={saving}
-              className="web3-btn-primary rounded-xl px-5 py-2 text-sm font-semibold disabled:opacity-50"
+              className="live-btn-primary rounded-xl px-5 py-2 text-sm font-semibold disabled:opacity-50"
             >
               {saving ? "Salvando..." : "Salvar preferências"}
             </button>

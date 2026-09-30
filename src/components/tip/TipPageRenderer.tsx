@@ -1,6 +1,7 @@
-import type { Creator } from "@/types";
+import type { Creator, CreatorFanMissionPublic, CreatorSubPlan } from "@/types";
 import { DEMO_USERNAME } from "@/lib/demo";
-import { DonationForm } from "./DonationForm";
+import { TipSupportStack } from "./TipSupportStack";
+import { TipPageShell } from "./TipPageShell";
 import { GoalProgressBar } from "./GoalProgressBar";
 import { SupporterWall } from "./SupporterWall";
 import { TipPageFooter } from "./TipPageFooter";
@@ -23,6 +24,29 @@ interface DonationItem {
 interface TipPageRendererProps {
   creator: Creator;
   recentDonations: DonationItem[];
+  subPlans?: CreatorSubPlan[];
+  missions?: CreatorFanMissionPublic[];
+}
+
+function DonateAndSupport({
+  creator,
+  layoutId,
+  subPlans = [],
+  missions = [],
+}: {
+  creator: Creator;
+  layoutId: string;
+  subPlans?: CreatorSubPlan[];
+  missions?: CreatorFanMissionPublic[];
+}) {
+  return (
+    <TipSupportStack
+      creator={creator}
+      layoutId={layoutId}
+      subPlans={subPlans}
+      missions={missions}
+    />
+  );
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -56,7 +80,7 @@ function Avatar({
 // ─────────────────────────────────────────────────────────────
 // 1. DEFAULT
 // ─────────────────────────────────────────────────────────────
-function DefaultLayout({ creator, recentDonations }: TipPageRendererProps) {
+function DefaultLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const s = creator.tipPageSettings;
   const tc = creator.themeColor;
   const bg = resolveTipPageBackground(s, tc, s.darkMode !== false);
@@ -80,7 +104,7 @@ function DefaultLayout({ creator, recentDonations }: TipPageRendererProps) {
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 backdrop-blur" style={{ borderTopColor: tc + "60", borderTopWidth: 2 }}>
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Enviar doação</p>
-            <DonationForm creator={creator} layoutId="default" />
+            <DonateAndSupport creator={creator} layoutId="default" subPlans={subPlans} missions={missions} />
           </div>
 
           {s.showSupporterWall && <SupporterWall donations={recentDonations} />}
@@ -94,7 +118,7 @@ function DefaultLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 2. GLASS
 // ─────────────────────────────────────────────────────────────
-function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
+function GlassLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -141,7 +165,7 @@ function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
         )}
 
         <div className="-ml-2 w-[calc(100%+0.5rem)] rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
-          <DonationForm creator={creator} layoutId="glass" />
+          <DonateAndSupport creator={creator} layoutId="glass" subPlans={subPlans} missions={missions} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -166,7 +190,7 @@ function GlassLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 3. NEON
 // ─────────────────────────────────────────────────────────────
-function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
+function NeonLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -209,7 +233,7 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
         )}
 
         <div className="neon-border w-full rounded-2xl border bg-zinc-950 p-6">
-          <DonationForm creator={creator} layoutId="neon" />
+          <DonateAndSupport creator={creator} layoutId="neon" subPlans={subPlans} missions={missions} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -237,7 +261,7 @@ function NeonLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 4. MINIMAL
 // ─────────────────────────────────────────────────────────────
-function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
+function MinimalLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -284,7 +308,7 @@ function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
         )}
 
         <div className="w-full">
-          <DonationForm creator={creator} layoutId="minimal" />
+          <DonateAndSupport creator={creator} layoutId="minimal" subPlans={subPlans} missions={missions} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -315,7 +339,7 @@ function MinimalLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 5. RETRO
 // ─────────────────────────────────────────────────────────────
-function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
+function RetroLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
   const customBg = hasCustomBackground(s)
@@ -364,7 +388,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
 
         <div className="retro-box w-full p-5" style={{ backgroundColor: "#1a1a1a" }}>
           <div className="mb-3 text-xs font-bold uppercase" style={{ color: tc }}>{'> INSERT COIN'}</div>
-          <DonationForm creator={creator} layoutId="retro" />
+          <DonateAndSupport creator={creator} layoutId="retro" subPlans={subPlans} missions={missions} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -390,7 +414,7 @@ function RetroLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 6. SPLIT
 // ─────────────────────────────────────────────────────────────
-function SplitLayout({ creator, recentDonations }: TipPageRendererProps) {
+function SplitLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -459,7 +483,7 @@ function SplitLayout({ creator, recentDonations }: TipPageRendererProps) {
               <p className="mt-1 text-sm text-zinc-400">Apoie o trabalho de {creator.displayName}</p>
             </div>
             <div className="rounded-3xl border border-white/8 bg-white/4 p-6 shadow-2xl backdrop-blur">
-              <DonationForm creator={creator} layoutId="split" />
+              <DonateAndSupport creator={creator} layoutId="split" subPlans={subPlans} missions={missions} />
             </div>
           </div>
         </div>
@@ -471,7 +495,7 @@ function SplitLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 7. BANNER
 // ─────────────────────────────────────────────────────────────
-function BannerLayout({ creator, recentDonations }: TipPageRendererProps) {
+function BannerLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -517,7 +541,7 @@ function BannerLayout({ creator, recentDonations }: TipPageRendererProps) {
           )}
 
           <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 backdrop-blur">
-            <DonationForm creator={creator} layoutId="banner" />
+            <DonateAndSupport creator={creator} layoutId="banner" subPlans={subPlans} missions={missions} />
           </div>
 
           {s.showSupporterWall && <SupporterWall donations={recentDonations} />}
@@ -531,7 +555,7 @@ function BannerLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 8. VIP
 // ─────────────────────────────────────────────────────────────
-function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
+function VipLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const s = creator.tipPageSettings;
   const goldLight = creator.themeColor || "#fbbf24";
@@ -574,7 +598,7 @@ function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
             </div>
             <div className="border-t border-dashed p-6 md:border-t-0 md:border-l" style={{ borderColor: gold + "30" }}>
               <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest vip-text-gold">Apoie</p>
-              <DonationForm creator={creator} layoutId="vip" />
+              <DonateAndSupport creator={creator} layoutId="vip" subPlans={subPlans} missions={missions} />
             </div>
           </div>
         </div>
@@ -601,7 +625,7 @@ function VipLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 9. AURORA
 // ─────────────────────────────────────────────────────────────
-function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
+function AuroraLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -625,7 +649,7 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="aurora1 absolute -left-1/4 -top-1/4 h-[60vh] w-[60vw] rounded-full opacity-50" style={{ background: `radial-gradient(circle, ${tc}60, transparent 70%)`, filter: "blur(60px)" }} />
         <div className="aurora2 absolute -right-1/4 top-1/3 h-[50vh] w-[50vw] rounded-full" style={{ background: "radial-gradient(circle, #818cf880, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="aurora3 absolute left-1/4 bottom-0 h-[40vh] w-[40vw] rounded-full" style={{ background: "radial-gradient(circle, #34d39970, transparent 70%)", filter: "blur(50px)" }} />
+        <div className="aurora3 absolute left-1/4 bottom-0 h-[40vh] w-[40vw] rounded-full" style={{ background: "radial-gradient(circle, #7dd3fc70, transparent 70%)", filter: "blur(50px)" }} />
       </div>
 
       <div className="relative mx-auto flex w-full max-w-lg flex-col gap-0">
@@ -646,13 +670,13 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
               <span className="font-medium text-white">{formatCurrency(creator.raised)} / {formatCurrency(creator.goal)}</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/5">
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((creator.raised / creator.goal) * 100, 100)}%`, background: `linear-gradient(90deg, ${tc}, #818cf8, #34d399)` }} />
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((creator.raised / creator.goal) * 100, 100)}%`, background: `linear-gradient(90deg, ${tc}, #818cf8, #7dd3fc)` }} />
             </div>
           </div>
         )}
 
         <div className="aurora-card relative z-10 -mx-2 mt-6 w-[calc(100%+1rem)] rounded-3xl p-6 shadow-2xl">
-          <DonationForm creator={creator} layoutId="aurora" />
+          <DonateAndSupport creator={creator} layoutId="aurora" subPlans={subPlans} missions={missions} />
         </div>
 
         {s.showSupporterWall && recentDonations.length > 0 && (
@@ -677,7 +701,7 @@ function AuroraLayout({ creator, recentDonations }: TipPageRendererProps) {
 // ─────────────────────────────────────────────────────────────
 // 10. CARD
 // ─────────────────────────────────────────────────────────────
-function CardLayout({ creator, recentDonations }: TipPageRendererProps) {
+function CardLayout({ creator, recentDonations, subPlans = [], missions = [] }: TipPageRendererProps) {
   const font = resolveTipPageFontFamily(creator.tipPageSettings.fontFamily);
   const tc = creator.themeColor;
   const s = creator.tipPageSettings;
@@ -732,7 +756,7 @@ function CardLayout({ creator, recentDonations }: TipPageRendererProps) {
           {/* Divider */}
           <div className="h-px" style={{ backgroundColor: cardBorder }} />
 
-          <DonationForm creator={creator} layoutId="card" />
+          <DonateAndSupport creator={creator} layoutId="card" subPlans={subPlans} missions={missions} />
 
           {s.showSupporterWall && recentDonations.length > 0 && (
             <>
@@ -793,13 +817,13 @@ export function TipPageRenderer(props: TipPageRendererProps) {
   const isDemo = props.creator.username === DEMO_USERNAME;
 
   return (
-    <>
+    <TipPageShell>
       {isDemo && (
-        <div className="border-b border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-center text-sm text-cyan-100">
+        <div className="border-b border-sky-400/20 bg-cyan-500/10 px-4 py-2.5 text-center text-sm text-cyan-100">
           Página de demonstração — use &quot;Simular pagamento&quot; para testar sem cobrar Pix real.
         </div>
       )}
       {render(props)}
-    </>
+    </TipPageShell>
   );
 }

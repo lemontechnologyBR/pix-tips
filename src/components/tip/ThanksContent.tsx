@@ -18,7 +18,7 @@ export function ThanksContent({
 
   return (
     <div className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/80 p-8 text-center backdrop-blur">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-4xl">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-400/15 text-4xl">
         ✓
       </div>
 
@@ -28,7 +28,7 @@ export function ThanksContent({
             {donorName ? `Obrigado, ${donorName}!` : "Obrigado pela doação!"}
           </h1>
           {amount != null && (
-            <p className="mt-4 text-3xl font-black text-emerald-400">
+            <p className="mt-4 text-3xl font-black text-sky-400">
               {formatCurrency(amount)}
             </p>
           )}
@@ -51,7 +51,7 @@ export function ThanksContent({
 
       <Link
         href={tipPagePath(creator.username)}
-        className="mt-8 inline-block text-sm text-cyan-400 hover:text-cyan-300"
+        className="mt-8 inline-block text-sm text-sky-400 hover:text-sky-300"
       >
         ← Voltar para a página
       </Link>

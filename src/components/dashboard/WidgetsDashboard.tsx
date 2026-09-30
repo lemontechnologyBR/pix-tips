@@ -183,14 +183,14 @@ function WidgetsDashboardContent({
               aria-selected={selected}
               className={`group relative flex items-start gap-3 rounded-xl border p-3.5 transition ${
                 selected
-                  ? "border-cyan-500/60 bg-gradient-to-br from-cyan-500/15 to-cyan-900/5 shadow-[inset_0_1px_0_0_rgba(34,211,238,0.12)]"
+                  ? "border-cyan-500/60 bg-gradient-to-br from-sky-400/10 to-cyan-900/5 shadow-[inset_0_1px_0_0_rgba(34,211,238,0.12)]"
                   : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-900/70"
               }`}
             >
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${
                   selected
-                    ? "border-cyan-500/40 bg-cyan-500/20 text-cyan-300"
+                    ? "border-sky-400/30 bg-sky-400/12 text-sky-300"
                     : "border-zinc-700/80 bg-zinc-950 text-zinc-500 group-hover:border-zinc-600 group-hover:text-zinc-300"
                 }`}
               >
@@ -207,7 +207,7 @@ function WidgetsDashboardContent({
                   <span
                     className={`hidden rounded-full px-1.5 py-px text-[10px] font-medium xl:inline ${
                       selected
-                        ? "bg-cyan-500/20 text-cyan-300"
+                        ? "bg-sky-400/12 text-sky-300"
                         : "bg-zinc-800 text-zinc-500"
                     }`}
                   >

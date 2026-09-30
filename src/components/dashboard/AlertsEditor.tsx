@@ -11,6 +11,7 @@ import { SoundLibrary } from "./SoundLibrary";
 import { TemplateGallery } from "./TemplateGallery";
 import { BackgroundMediaUploader } from "./BackgroundMediaUploader";
 import { TtsVoiceSelector } from "./TtsVoiceSelector";
+import { AlertLiveControls } from "./AlertLiveControls";
 
 interface AlertsEditorProps {
   creator: Creator;
@@ -111,6 +112,8 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
         </div>
       )}
 
+      <AlertLiveControls userId={creator.id} token={creator.widgetToken} />
+
       <TemplateGallery settings={settings} onSelect={selectTemplate} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
@@ -207,7 +210,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                     }
                     className={`flex-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition ${
                       settings.textConfig.fontWeight === w
-                        ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300"
+                        ? "border-cyan-500/60 bg-sky-400/10 text-sky-300"
                         : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                     }`}
                     style={{
@@ -239,7 +242,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                     }
                     className={`rounded-lg border px-3 py-1.5 text-xs italic transition ${
                       settings.textConfig.fontStyle === "italic"
-                        ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300"
+                        ? "border-cyan-500/60 bg-sky-400/10 text-sky-300"
                         : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                     }`}
                   >
@@ -269,7 +272,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                       }
                       className={`flex-1 rounded-lg border py-1.5 text-sm transition ${
                         settings.textConfig.alignment === value
-                          ? "border-cyan-500/60 bg-cyan-500/15 text-cyan-300"
+                          ? "border-cyan-500/60 bg-sky-400/10 text-sky-300"
                           : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                       }`}
                     >
@@ -301,7 +304,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                       textTemplate: `${s.textTemplate} ${v}`.trim(),
                     }))
                   }
-                  className="rounded bg-zinc-800 px-2 py-0.5 text-[11px] text-cyan-300 hover:bg-zinc-700"
+                  className="rounded bg-zinc-800 px-2 py-0.5 text-[11px] text-sky-300 hover:bg-zinc-700"
                 >
                   {v}
                 </button>
@@ -324,8 +327,24 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
             enabled={settings.ttsEnabled}
             voiceId={settings.ttsVoiceId}
             template={settings.ttsTemplate}
-            onEnabledChange={(v) => setSettings((s) => ({ ...s, ttsEnabled: v }))}
-            onVoiceChange={(id) => setSettings((s) => ({ ...s, ttsVoiceId: id }))}
+            onEnabledChange={(v) =>
+              setSettings((s) => ({
+                ...s,
+                ttsEnabled: v,
+                // Ao ligar TTS, nunca ficar com voz "off" (senão o OBS fica mudo).
+                ttsVoiceId:
+                  v && (s.ttsVoiceId === "off" || !s.ttsVoiceId)
+                    ? "francisca"
+                    : s.ttsVoiceId,
+              }))
+            }
+            onVoiceChange={(id) =>
+              setSettings((s) => ({
+                ...s,
+                ttsVoiceId: id,
+                ttsEnabled: id === "off" ? false : s.ttsEnabled || id !== "off",
+              }))
+            }
             onTemplateChange={(t) => setSettings((s) => ({ ...s, ttsTemplate: t }))}
           />
 
@@ -340,7 +359,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="w-full rounded-lg web3-btn-primary py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+            className="w-full rounded-lg live-btn-primary py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar alerta"}
           </button>
@@ -351,7 +370,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-medium text-zinc-400">Preview</p>
               {previewActive && (
-                <span className="text-[10px] text-cyan-400">Reproduzindo…</span>
+                <span className="text-[10px] text-sky-400">Reproduzindo…</span>
               )}
             </div>
 
@@ -399,7 +418,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                 type="button"
                 onClick={playPreview}
                 disabled={previewActive || testingLive}
-                className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-2 py-2 text-xs font-medium text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-50"
+                className="rounded-lg border border-sky-400/30 bg-cyan-500/10 px-2 py-2 text-xs font-medium text-cyan-100 hover:bg-sky-400/12 disabled:opacity-50"
               >
                 Testar aqui
               </button>
@@ -407,7 +426,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                 type="button"
                 onClick={testLive}
                 disabled={previewActive || testingLive}
-                className="rounded-lg bg-emerald-600 px-2 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+                className="rounded-lg bg-sky-500 px-2 py-2 text-xs font-semibold text-white hover:bg-sky-400 disabled:opacity-50"
               >
                 {testingLive ? "…" : "Testar OBS"}
               </button>
@@ -416,7 +435,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
               <p
                 className={`mt-1.5 text-[10px] leading-snug ${
                   liveFeedback.startsWith("Enviado")
-                    ? "text-emerald-400"
+                    ? "text-sky-400"
                     : "text-amber-400"
                 }`}
               >
@@ -439,7 +458,7 @@ export function AlertsEditor({ creator, widgetUrl, embedded = false }: AlertsEdi
                 onClick={copyWidget}
                 className={`rounded-lg border px-2 py-2 text-xs font-medium transition ${
                   copied
-                    ? "border-emerald-500/50 bg-emerald-600/15 text-emerald-300"
+                    ? "border-sky-400/40 bg-sky-500/12 text-sky-300"
                     : "border-zinc-700 text-zinc-300 hover:border-zinc-500"
                 }`}
               >

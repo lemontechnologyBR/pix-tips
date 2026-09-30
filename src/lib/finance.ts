@@ -1,6 +1,9 @@
 /** Comissão percentual da plataforma sobre cada doação recebida (%). */
 export const COMMISSION_RATE = 0;
 
+/** Taxa de serviço cobrada do fã, em cima do apoio (5%). */
+export const DONOR_SERVICE_FEE_RATE = 0.05;
+
 /**
  * Taxa fixa por doação (R$).
  * Modelo MVP: R$ 0,99 fixos por doação (sem percentual).
@@ -33,6 +36,15 @@ export function computeFee(
   const total = Math.round((percent + fixedFee) * 100) / 100;
   // Nunca cobrar mais do que o valor da doação (edge case de valores mínimos).
   return Math.min(amount, Math.max(0, total));
+}
+
+export function computeDonorServiceFee(amount: number): number {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  return Math.round(amount * DONOR_SERVICE_FEE_RATE * 100) / 100;
+}
+
+export function computePixChargeAmount(amount: number): number {
+  return Math.round((amount + computeDonorServiceFee(amount)) * 100) / 100;
 }
 
 export function computeNetAmount(

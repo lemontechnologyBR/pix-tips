@@ -120,7 +120,7 @@ export function TwoFactorSettings({ initialEnabled, hasPassword }: TwoFactorSett
         </p>
 
         {message && (
-          <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+          <p className="mt-3 rounded-lg border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs text-sky-300">
             {message}
           </p>
         )}
@@ -148,7 +148,7 @@ export function TwoFactorSettings({ initialEnabled, hasPassword }: TwoFactorSett
             type="button"
             disabled={loading}
             onClick={handleStartSetup}
-            className="mt-3 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-50"
+            className="mt-3 rounded-lg border border-sky-400/30 bg-cyan-500/10 px-4 py-2 text-sm text-sky-300 hover:bg-sky-400/12 disabled:opacity-50"
           >
             {loading ? "Preparando…" : "Ativar 2FA"}
           </button>
@@ -208,7 +208,7 @@ export function TwoFactorSettings({ initialEnabled, hasPassword }: TwoFactorSett
                 type="button"
                 disabled={loading || setupCode.length !== 6}
                 onClick={handleEnable}
-                className="web3-btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                className="live-btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {loading ? "Verificando…" : "Ativar"}
               </button>

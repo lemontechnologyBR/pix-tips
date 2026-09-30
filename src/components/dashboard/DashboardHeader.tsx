@@ -98,7 +98,7 @@ export function DashboardHeader({ creator, onMenuClick }: DashboardHeaderProps) 
   }, []);
 
   return (
-    <header className="web3-glass sticky top-0 z-30 flex h-16 items-center justify-between border-b border-cyan-500/10 px-4 backdrop-blur sm:px-6">
+    <header className="live-panel sticky top-0 z-30 flex h-16 items-center justify-between border-b border-zinc-800 px-4 backdrop-blur sm:px-6">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -130,7 +130,7 @@ export function DashboardHeader({ creator, onMenuClick }: DashboardHeaderProps) 
           >
             🔔
             {unreadCount > 0 && (
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 text-[10px] font-bold">
+              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sky-400 text-[10px] font-bold">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -177,7 +177,7 @@ export function DashboardHeader({ creator, onMenuClick }: DashboardHeaderProps) 
               <div className="border-t border-zinc-800 px-4 py-2">
                 <Link
                   href="/dashboard/notifications"
-                  className="block text-center text-sm text-cyan-400 hover:underline"
+                  className="block text-center text-sm text-sky-400 hover:underline"
                   onClick={() => setNotifOpen(false)}
                 >
                   Ver todas

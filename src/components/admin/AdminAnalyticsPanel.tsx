@@ -69,7 +69,7 @@ function OriginLabel({ label }: { label: string }) {
         href={label}
         target="_blank"
         rel="noreferrer"
-        className="break-all font-mono text-xs text-cyan-300 hover:underline"
+        className="break-all font-mono text-xs text-sky-300 hover:underline"
       >
         {label}
       </a>
@@ -114,7 +114,7 @@ function SourceTable({
                     <OriginLabel label={row.label} />
                     <ShareBar share={row.share} />
                   </td>
-                  <td className="py-2 pr-3 font-mono text-cyan-300">{row.count}</td>
+                  <td className="py-2 pr-3 font-mono text-sky-300">{row.count}</td>
                   <td className="py-2 text-zinc-400">{row.share}%</td>
                 </tr>
               ))}
@@ -187,7 +187,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-cyan-500/50 disabled:opacity-50"
+            className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-sky-400/40 disabled:opacity-50"
           >
             Ver origem
           </button>
@@ -334,7 +334,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
                           {row.source} · {row.medium}
                         </div>
                       </td>
-                      <td className="py-2 pr-2 font-mono text-cyan-300">
+                      <td className="py-2 pr-2 font-mono text-sky-300">
                         {row.count}
                       </td>
                       <td className="py-2 text-zinc-400">{row.share}%</td>
@@ -374,13 +374,13 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
                         <button
                           type="button"
                           onClick={() => applyCreator(row.label)}
-                          className="font-medium text-cyan-300 hover:underline"
+                          className="font-medium text-sky-300 hover:underline"
                         >
                           {row.label}
                         </button>
                         <ShareBar share={row.share} />
                       </td>
-                      <td className="py-2 pr-3 font-mono text-cyan-300">{row.count}</td>
+                      <td className="py-2 pr-3 font-mono text-sky-300">{row.count}</td>
                       <td className="py-2 text-zinc-400">{row.share}%</td>
                     </tr>
                   ))}
@@ -417,7 +417,7 @@ export function AdminAnalyticsPanel({ initial }: AdminAnalyticsPanelProps) {
                       {formatRelativePt(row.createdAt)}
                     </td>
                     <td className="py-2 pr-3">{row.type}</td>
-                    <td className="py-2 pr-3 font-mono text-xs text-cyan-300">
+                    <td className="py-2 pr-3 font-mono text-xs text-sky-300">
                       {row.path ?? "—"}
                     </td>
                     <td className="py-2 pr-3">{row.source}</td>

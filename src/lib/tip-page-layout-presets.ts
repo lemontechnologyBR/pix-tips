@@ -18,14 +18,14 @@ export const TIP_PAGE_LAYOUTS: TipPageLayoutPreset[] = [
     id: "default",
     name: "Padrão",
     description: "Layout clássico centralizado com cards escuros",
-    preview: { bg: "#09090b", accent: "#06b6d4", card: "#18181b", text: "#ffffff" },
+    preview: { bg: "#07070a", accent: "#38bdf8", card: "#121218", text: "#ffffff" },
     tags: ["dark", "clean"],
   },
   {
     id: "glass",
     name: "Vidro",
     description: "Painéis translúcidos com efeito glassmorphism",
-    preview: { bg: "#1e1b4b", accent: "#818cf8", card: "rgba(255,255,255,0.08)", text: "#e0e7ff" },
+    preview: { bg: "#07070a", accent: "#a78bfa", card: "rgba(18,18,24,0.72)", text: "#e4e4e7" },
     tags: ["dark", "modern", "blur"],
   },
   {
@@ -74,7 +74,7 @@ export const TIP_PAGE_LAYOUTS: TipPageLayoutPreset[] = [
     id: "aurora",
     name: "Aurora",
     description: "Luzes do norte com gradientes animados e efeito onírico",
-    preview: { bg: "#030712", accent: "#34d399", card: "rgba(16,24,40,0.8)", text: "#ecfdf5" },
+    preview: { bg: "#030712", accent: "#7dd3fc", card: "rgba(16,24,40,0.8)", text: "#ecfdf5" },
     tags: ["dark", "animated", "dreamy"],
   },
   {
@@ -130,7 +130,7 @@ export const TIP_PAGE_LAYOUTS: TipPageLayoutPreset[] = [
     id: "forest",
     name: "Floresta",
     description: "Verde escuro, natural e aconchegante",
-    preview: { bg: "#052e16", accent: "#84cc16", card: "#14532d", text: "#ecfccb" },
+    preview: { bg: "#052e16", accent: "#84cc16", card: "#0c4a6e", text: "#ecfccb" },
     tags: ["dark", "green", "nature"],
   },
   {

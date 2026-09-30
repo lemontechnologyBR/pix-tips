@@ -153,24 +153,24 @@ export function SoundLibrary({
   return (
     <div className="space-y-3">
       {/* Som ativo */}
-      <div className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2.5">
+      <div className="flex items-center gap-2 rounded-lg border border-sky-400/30 bg-cyan-500/10 px-3 py-2.5">
         <button
           type="button"
           onClick={() => void previewSelected()}
           disabled={!activeSoundId && !selectedUrl}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full web3-btn-primary text-sm text-white hover:brightness-110 disabled:opacity-40"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full live-btn-primary text-sm text-white hover:brightness-110 disabled:opacity-40"
           aria-label="Ouvir som selecionado"
         >
           ▶
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-cyan-300/80">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-sky-300/80">
             Som do alerta
           </p>
           <p className="truncate text-sm font-medium text-white">
             {selectedLabel}
             {isDefaultSound && (
-              <span className="ml-1.5 text-[10px] font-normal text-cyan-300/90">
+              <span className="ml-1.5 text-[10px] font-normal text-sky-300/90">
                 · padrão
               </span>
             )}
@@ -316,7 +316,7 @@ function SoundRow({
     <li
       className={`flex items-center gap-2 rounded-lg border px-2 py-2 transition ${
         active
-          ? "border-cyan-500 bg-cyan-500/15"
+          ? "border-cyan-500 bg-sky-400/10"
           : "border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700"
       } ${locked ? "opacity-45" : ""}`}
     >
@@ -342,7 +342,7 @@ function SoundRow({
         <p className="text-xs text-zinc-500">{meta}</p>
       </button>
       {active && (
-        <span className="shrink-0 text-cyan-400" aria-hidden>
+        <span className="shrink-0 text-sky-400" aria-hidden>
           ✓
         </span>
       )}

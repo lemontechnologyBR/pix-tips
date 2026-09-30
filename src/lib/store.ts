@@ -312,6 +312,9 @@ export async function createTransaction(input: {
   method: Transaction["method"];
   pixCode?: string;
   donorTtsVoiceId?: string;
+  donorUserId?: string;
+  kind?: "donation" | "subscription";
+  subscriptionPlanId?: string;
 }): Promise<Transaction> {
   return transactionRepo.createTransaction(input);
 }

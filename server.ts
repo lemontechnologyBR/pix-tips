@@ -110,6 +110,23 @@ app.prepare().then(() => {
     }
 
     socket.join(userId);
+
+    socket.on("alert-control", (raw: unknown) => {
+      const action =
+        raw && typeof raw === "object" && "action" in raw
+          ? (raw as { action?: unknown }).action
+          : undefined;
+      if (
+        action !== "pause" &&
+        action !== "resume" &&
+        action !== "skip" &&
+        action !== "replay" &&
+        action !== "clear"
+      ) {
+        return;
+      }
+      alertsNs.to(userId).emit("alert-control", { action });
+    });
   });
 
   httpServer.listen(port, () => {
@@ -127,6 +144,18 @@ app.prepare().then(() => {
       );
     }
     void startTwitchChatBot();
+
+    // Expira assinaturas de fã cujo período mensal encerrou
+    const runExpire = () => {
+      void import("./src/lib/fan-subscriptions")
+        .then((m) => m.expireDueFanSubscriptions())
+        .then((n) => {
+          if (n > 0) console.log(`[fan-subs] expired ${n}`);
+        })
+        .catch((err) => console.error("[fan-subs] expire error", err));
+    };
+    runExpire();
+    setInterval(runExpire, 60 * 60 * 1000);
   });
 }).catch((err) => {
   console.error('[server] Failed to start:', err)

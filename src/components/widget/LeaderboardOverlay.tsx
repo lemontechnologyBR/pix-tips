@@ -79,7 +79,7 @@ export function LeaderboardOverlay({
                   {index < 3 ? medals[index] : `${index + 1}.`}
                 </span>
                 <span className="truncate font-medium" style={{ color: nameColor }}>
-                  {entry.name}
+                  {entry.isSubscriber ? `★ ${entry.name}` : entry.name}
                 </span>
               </span>
               <span className="shrink-0 font-bold" style={{ color: themeColor }}>

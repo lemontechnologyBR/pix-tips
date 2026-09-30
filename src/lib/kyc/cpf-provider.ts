@@ -639,6 +639,21 @@ async function verifyWithHubDesenvolvedor(
     }
 
     if (!raw || raw.status !== true || raw.return !== "OK" || !raw.result) {
+      const msg = (raw?.message ?? raw?.return ?? "").toString();
+      // Hub devolve "NOK" também para token/saldo — não tratar como CPF inválido.
+      if (
+        /token|saldo|crédito|credito|inválid|invalid|sem saldo|parametro invalido|parâmetro inválido/i.test(
+          msg,
+        )
+      ) {
+        console.error("[kyc/cpf] Hub infra:", msg);
+        return {
+          status: "error",
+          provider: "hubdodesenvolvedor",
+          message:
+            "Consulta de CPF temporariamente indisponível (Hub sem saldo/token). Use a verificação Didit.",
+        };
+      }
       return {
         status: "cpf_not_found",
         provider: "hubdodesenvolvedor",
@@ -700,6 +715,81 @@ async function verifyWithHubDesenvolvedor(
   }
 }
 
+async function runCpfProvider(
+  provider: CpfProviderId,
+  input: CpfVerificationInput,
+): Promise<CpfVerificationResult> {
+  if (provider === "serpro-demo" || provider === "serpro") {
+    return verifyWithSerpro(input, provider);
+  }
+  if (provider === "hubdodesenvolvedor") {
+    return verifyWithHubDesenvolvedor(input);
+  }
+  if (provider === "workapi") {
+    return verifyWithWorkApi(input);
+  }
+  if (provider === "workbuscas") {
+    return verifyWithWorkbuscas(input);
+  }
+  if (provider === "cpfcnpj") {
+    return verifyWithCpfCnpj(input);
+  }
+  return {
+    status: "error",
+    provider,
+    message: "Provedor de CPF não suportado.",
+  };
+}
+
+function providerConfigured(id: CpfProviderId): boolean {
+  switch (id) {
+    case "hubdodesenvolvedor":
+      return Boolean(
+        process.env.HUB_DESENVOLVEDOR_TOKEN?.trim() ||
+          process.env.HUBDODESENVOLVEDOR_TOKEN?.trim(),
+      );
+    case "workapi":
+      return Boolean(
+        process.env.WORKAPI_API_KEY?.trim() || process.env.WORKAPI_KEY?.trim(),
+      );
+    case "workbuscas":
+      return Boolean(process.env.WORKBUSCAS_TOKEN?.trim());
+    case "cpfcnpj":
+      return Boolean(
+        process.env.CPF_CNPJ_API_TOKEN && process.env.CPF_CNPJ_PACKAGE_ID,
+      );
+    case "serpro":
+      return Boolean(
+        process.env.SERPRO_CONSUMER_KEY && process.env.SERPRO_CONSUMER_SECRET,
+      );
+    case "serpro-demo":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/** Ordem de fallback quando o provedor principal falha por infraestrutura. */
+function cpfFallbackChain(primary: CpfProviderId): CpfProviderId[] {
+  const preferred: CpfProviderId[] = [
+    primary,
+    "hubdodesenvolvedor",
+    "workapi",
+    "workbuscas",
+    "cpfcnpj",
+    "serpro",
+  ];
+  const seen = new Set<CpfProviderId>();
+  const chain: CpfProviderId[] = [];
+  for (const id of preferred) {
+    if (seen.has(id) || id === "none" || id === "mock") continue;
+    if (!providerConfigured(id)) continue;
+    seen.add(id);
+    chain.push(id);
+  }
+  return chain;
+}
+
 export async function verifyCpfIdentity(
   input: CpfVerificationInput,
 ): Promise<CpfVerificationResult> {
@@ -725,28 +815,42 @@ export async function verifyCpfIdentity(
     };
   }
 
-  if (provider === "serpro-demo" || provider === "serpro") {
-    return verifyWithSerpro(input, provider);
+  const chain = cpfFallbackChain(provider);
+  if (chain.length === 0) {
+    return {
+      status: "error",
+      provider,
+      message: "Nenhum provedor de consulta CPF configurado.",
+    };
   }
 
-  if (provider === "hubdodesenvolvedor") {
-    return verifyWithHubDesenvolvedor(input);
+  let lastError: CpfVerificationResult | null = null;
+  for (const candidate of chain) {
+    const result = await runCpfProvider(candidate, input);
+    if (result.status === "error") {
+      console.warn(`[kyc/cpf] provider=${candidate} error:`, result.message);
+      lastError = result;
+      continue;
+    }
+    // matched / mismatch / cpf_not_found — resposta definitiva desse provedor
+    return result;
   }
 
-  if (provider === "workapi") {
-    return verifyWithWorkApi(input);
-  }
-
-  if (provider === "workbuscas") {
-    return verifyWithWorkbuscas(input);
-  }
-
-  return verifyWithCpfCnpj(input);
+  return (
+    lastError ?? {
+      status: "error",
+      provider,
+      message: "Consulta de CPF indisponível em todos os provedores.",
+    }
+  );
 }
 
-/** Bloqueia KYC quando o CPF não foi confirmado de forma confiável. */
+/**
+ * Bloqueia só quando a base respondeu e os dados NÃO conferem.
+ * Falha de infraestrutura (error/skipped) não bloqueia — Didit cobre a identidade.
+ */
 export function isCpfVerificationBlocking(result: CpfVerificationResult): boolean {
-  return result.status !== "matched" && result.status !== "mock";
+  return result.status === "mismatch" || result.status === "cpf_not_found";
 }
 
 /** Em produção, só "matched" (ou mock em dev) libera aprovação. */

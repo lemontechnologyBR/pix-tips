@@ -28,7 +28,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
           <h2 className="font-semibold">Crescimento de criadores</h2>
           <p className="text-sm text-zinc-400">
             {latest} criadores ·{" "}
-            <span className={growth >= 0 ? "text-emerald-400" : "text-red-400"}>
+            <span className={growth >= 0 ? "text-sky-400" : "text-red-400"}>
               {growth >= 0 ? "+" : ""}
               {growth.toFixed(0)}% no período
             </span>

@@ -93,7 +93,7 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
         {message && (
           <p
             className={`mt-3 text-sm ${
-              message.includes("enviado") ? "text-emerald-400" : "text-red-400"
+              message.includes("enviado") ? "text-sky-400" : "text-red-400"
             }`}
           >
             {message}
@@ -124,13 +124,13 @@ export function AdminSettingsPanel({ status }: AdminSettingsPanelProps) {
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href="/admin/ops"
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-300"
+            className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:border-sky-400/30 hover:text-sky-300"
           >
             Abrir Operações (widgets / KYC)
           </Link>
           <Link
             href="/admin/kyc"
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-300"
+            className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:border-sky-400/30 hover:text-sky-300"
           >
             Verificações KYC
           </Link>
@@ -152,7 +152,7 @@ function Info({
   tone?: "ok" | "warn";
 }) {
   const color =
-    tone === "ok" ? "text-emerald-400" : tone === "warn" ? "text-amber-400" : "text-white";
+    tone === "ok" ? "text-sky-400" : tone === "warn" ? "text-amber-400" : "text-white";
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 px-3 py-2.5">
       <dt className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</dt>

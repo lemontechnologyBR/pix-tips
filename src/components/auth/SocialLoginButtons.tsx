@@ -32,7 +32,7 @@ export function SocialLoginButtons() {
           <a
             key={id}
             href={`/api/auth/oauth/${id}`}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-cyan-500/50 hover:bg-cyan-950/30"
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-sky-400/40 hover:bg-cyan-950/30"
           >
             <Icon className="h-5 w-5" />
             <span>{label}</span>

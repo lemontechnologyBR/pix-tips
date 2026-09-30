@@ -1,5 +1,5 @@
-import type { Creator } from "@/types";
-import { DonationForm } from "./DonationForm";
+import type { Creator, CreatorFanMissionPublic, CreatorSubPlan } from "@/types";
+import { TipSupportStack } from "./TipSupportStack";
 import { TipPageFooter } from "./TipPageFooter";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -19,6 +19,8 @@ interface DonationItem {
 export interface VariantLayoutProps {
   creator: Creator;
   recentDonations: DonationItem[];
+  subPlans?: CreatorSubPlan[];
+  missions?: CreatorFanMissionPublic[];
   variant: keyof typeof THEME_VARIANTS;
 }
 
@@ -155,7 +157,7 @@ function SupportersList({
   );
 }
 
-export function ThemeVariantLayout({ creator, recentDonations, variant }: VariantLayoutProps) {
+export function ThemeVariantLayout({ creator, recentDonations, subPlans = [], missions = [], variant }: VariantLayoutProps) {
   const cfg = THEME_VARIANTS[variant];
   const s = creator.tipPageSettings;
   const accent = creator.themeColor || cfg.accent;
@@ -205,7 +207,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
           <section className="flex flex-col justify-center p-8">
             <p className="mb-4 font-mono text-xs uppercase tracking-[0.4em]" style={{ color: cfg.muted }}>Transmissão · Doação</p>
             <div className="rounded-xl border p-6" style={{ borderColor: cfg.border, background: cfg.card }}>
-              <DonationForm creator={creator} layoutId="studio" />
+              <TipSupportStack
+                creator={creator}
+                layoutId="studio"
+                subPlans={subPlans}
+                missions={missions}
+              />
             </div>
             <TipPageFooter layoutId="studio" className="mt-8" />
           </section>
@@ -240,7 +247,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
           )}
           <div className="rounded-[2rem] border p-6 shadow-2xl backdrop-blur-xl" style={{ borderColor: cfg.border, background: cfg.card }}>
-            <DonationForm creator={creator} layoutId="ocean" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="ocean"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
             <div className="mt-6 rounded-[2rem] border p-5" style={{ borderColor: cfg.border, background: cfg.card }}>
@@ -276,7 +288,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
           )}
           <div className="mt-6 rounded-[2rem] p-6 shadow-md" style={{ background: cfg.card, border: `1px solid ${cfg.border}` }}>
-            <DonationForm creator={creator} layoutId="sakura" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="sakura"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
             <div className="mt-6 text-left">
@@ -321,7 +338,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
             <div className="border p-5" style={{ borderColor: accent, background: "#000" }}>
               <p className="mb-4 text-[10px] uppercase tracking-widest" style={{ color: accent }}>// donate.execute()</p>
-              <DonationForm creator={creator} layoutId="matrix" />
+              <TipSupportStack
+                creator={creator}
+                layoutId="matrix"
+                subPlans={subPlans}
+                missions={missions}
+              />
             </div>
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
@@ -361,7 +383,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
             <div>
               <h2 className="border-b-2 border-gray-900 pb-2 font-serif text-xl font-bold">Apoie esta edição</h2>
-              <DonationForm creator={creator} layoutId="news" />
+              <TipSupportStack
+                creator={creator}
+                layoutId="news"
+                subPlans={subPlans}
+                missions={missions}
+              />
             </div>
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
@@ -400,7 +427,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
               </div>
             )}
             <div className="mt-5">
-              <DonationForm creator={creator} layoutId="comic" />
+              <TipSupportStack
+                creator={creator}
+                layoutId="comic"
+                subPlans={subPlans}
+                missions={missions}
+              />
             </div>
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
@@ -438,7 +470,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
           )}
           <div className="mt-6 rounded-3xl border p-6" style={{ borderColor: cfg.border, background: cfg.card }}>
-            <DonationForm creator={creator} layoutId="forest" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="forest"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
             <div className="mt-6 rounded-3xl border p-5" style={{ borderColor: cfg.border, background: cfg.card }}>
@@ -473,7 +510,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
           )}
           <div className="mt-6 rounded-[2rem] border p-6" style={{ borderColor: cfg.border, background: cfg.card }}>
-            <DonationForm creator={creator} layoutId="sunset" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="sunset"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
             <div className="mt-6"><SupportersList donations={recentDonations} accent={accent} text={cfg.text} muted={cfg.muted} /></div>
@@ -513,7 +555,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
             </div>
           )}
           <div className="mt-6 rounded-[2rem] border p-6 backdrop-blur-xl" style={{ borderColor: cfg.border, background: cfg.card }}>
-            <DonationForm creator={creator} layoutId="space" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="space"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </div>
           {s.showSupporterWall && recentDonations.length > 0 && (
             <div className="mt-6"><SupportersList donations={recentDonations} accent={accent} text={cfg.text} muted={cfg.muted} /></div>
@@ -552,7 +599,12 @@ export function ThemeVariantLayout({ creator, recentDonations, variant }: Varian
           </section>
           <section className="border-4 border-gray-900 p-6" style={{ background: "#1f2937" }}>
             <p className="mb-4 text-xs font-black uppercase tracking-[0.3em]" style={{ color: accent }}>Stick it · Donate</p>
-            <DonationForm creator={creator} layoutId="street" />
+            <TipSupportStack
+                creator={creator}
+                layoutId="street"
+                subPlans={subPlans}
+                missions={missions}
+              />
           </section>
         </div>
         <TipPageFooter layoutId="street" className="mt-8" />

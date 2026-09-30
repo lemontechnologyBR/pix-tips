@@ -9,7 +9,7 @@ function ChangeBadge({ value }: { value: number }) {
   const positive = value >= 0;
   return (
     <span
-      className={`text-xs font-medium ${positive ? "text-emerald-400" : "text-red-400"}`}
+      className={`text-xs font-medium ${positive ? "text-sky-400" : "text-red-400"}`}
     >
       {positive ? "↑" : "↓"} {Math.abs(value).toFixed(0)}%
     </span>
@@ -31,27 +31,27 @@ export function AdminMetricsCards({ overview }: AdminMetricsCardsProps) {
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
         <p className="text-sm text-zinc-400">GMV total</p>
-        <p className="mt-1 text-2xl font-bold text-emerald-400">
+        <p className="mt-1 text-2xl font-bold text-sky-400">
           {formatCurrency(overview.totalVolume)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          {overview.confirmedDonations} doações confirmadas
+          {overview.confirmedDonations} doações confirmadas na Woovi
         </p>
       </div>
 
-      <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-5">
+      <div className="rounded-xl border border-sky-400/30 bg-sky-400/5 p-5">
         <p className="text-sm text-zinc-400">Receita da plataforma</p>
-        <p className="mt-1 text-2xl font-bold text-cyan-300">
+        <p className="mt-1 text-2xl font-bold text-sky-300">
           {formatCurrency(overview.platformRevenue)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">
-          Taxa fixa R$ 0,99 nas doações (+ saques)
+          Taxa de serviço 5% + R$ 0,99, só vendas Woovi
         </p>
       </div>
 
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
+      <div className="rounded-xl border border-sky-400/30 bg-sky-400/5 p-5">
         <p className="text-sm text-zinc-400">Lucro estimado</p>
-        <p className="mt-1 text-2xl font-bold text-emerald-300">
+        <p className="mt-1 text-2xl font-bold text-sky-300">
           {formatCurrency(overview.platformProfit)}
         </p>
         <p className="mt-1 text-xs text-zinc-500">

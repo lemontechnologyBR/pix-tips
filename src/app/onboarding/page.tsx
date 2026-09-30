@@ -1,22 +1,44 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
-import { getSessionFromCookies } from "@/lib/auth/session";
+import { ensureCreatorForUser } from "@/lib/auth/oauth";
+import { getSessionFromCookies, setSessionCookie } from "@/lib/auth/session";
 import * as creatorRepo from "@/lib/repositories/creator-repository";
+import { getPrisma } from "@/lib/db";
 
 export default async function OnboardingPage() {
   const session = await getSessionFromCookies();
   if (!session) redirect("/login?redirect=/onboarding");
 
-  const creator =
-    (await creatorRepo.getById(session.creatorId)) ??
+  let creator =
+    (session.creatorId ? await creatorRepo.getById(session.creatorId) : null) ??
     (await creatorRepo.getByUserId(session.userId));
+
+  // Fã virando streamer: cria tip page na hora do onboarding
+  if (!creator) {
+    const created = await ensureCreatorForUser(session.userId);
+    creator = await creatorRepo.getById(created.id);
+    if (creator) {
+      const db = getPrisma();
+      const user = await db.user.findUnique({
+        where: { id: session.userId },
+        select: { role: true, email: true },
+      });
+      await setSessionCookie({
+        userId: session.userId,
+        creatorId: creator.id,
+        email: user?.email ?? session.email,
+        role: user?.role ?? session.role,
+        onboardingCompleted: false,
+      });
+    }
+  }
 
   if (creator?.onboardingCompleted && !session.onboardingCompleted) {
     redirect("/api/onboarding/sync-session");
   }
 
-  if (session.onboardingCompleted) {
+  if (session.onboardingCompleted && creator) {
     redirect("/dashboard");
   }
 

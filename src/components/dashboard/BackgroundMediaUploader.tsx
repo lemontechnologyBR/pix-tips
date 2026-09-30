@@ -220,7 +220,7 @@ export function BackgroundMediaUploader({
           <button
             type="button"
             onClick={() => setShowLibrary(true)}
-            className="text-[10px] text-cyan-400 hover:text-cyan-300"
+            className="text-[10px] text-sky-400 hover:text-sky-300"
           >
             Galeria ({library.length})
           </button>

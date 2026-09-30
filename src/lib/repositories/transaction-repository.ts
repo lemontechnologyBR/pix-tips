@@ -152,6 +152,9 @@ export async function createTransaction(input: {
   method: Transaction["method"];
   pixCode?: string;
   donorTtsVoiceId?: string;
+  donorUserId?: string;
+  kind?: "donation" | "subscription";
+  subscriptionPlanId?: string;
 }): Promise<Transaction> {
   const row = await prisma.transaction.create({
     data: {
@@ -162,7 +165,10 @@ export async function createTransaction(input: {
       donorName: input.anonymous ? "Anônimo" : input.donorName,
       status: "pending",
       method: input.method,
+      kind: input.kind ?? "donation",
       donorTtsVoiceId: input.donorTtsVoiceId ?? null,
+      donorUserId: input.donorUserId ?? null,
+      subscriptionPlanId: input.subscriptionPlanId ?? null,
       pixCode:
         input.pixCode ??
         (input.method === "pix"
@@ -180,6 +186,7 @@ export async function updateTransactionPayment(
     wooviPaymentId?: string;
     splitPayment?: boolean;
     applicationFee?: number;
+    donorServiceFee?: number;
   },
 ): Promise<Transaction | null> {
   const row = await prisma.transaction.update({
@@ -189,6 +196,7 @@ export async function updateTransactionPayment(
       ...(patch.wooviPaymentId != null ? { wooviPaymentId: patch.wooviPaymentId } : {}),
       ...(patch.splitPayment != null ? { splitPayment: patch.splitPayment } : {}),
       ...(patch.applicationFee != null ? { applicationFee: patch.applicationFee } : {}),
+      ...(patch.donorServiceFee != null ? { donorServiceFee: patch.donorServiceFee } : {}),
     },
   });
   return mapTransactionRow(row as TransactionRow);

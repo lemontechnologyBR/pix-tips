@@ -1,7 +1,17 @@
 export type TtsVoiceId =
   | "off"
-  | "ricardo-br"
-  | "vitoria-br"
+  | "francisca"
+  | "antonio"
+  | "thalita"
+  | "raquel"
+  | "duarte"
+  | "ava"
+  | "emma"
+  | "andrew"
+  | "brian"
+  | "vivienne"
+  | "remy"
+  // Aliases legados (ElevenLabs / nomes antigos) — resolvidos em TTS_VOICE_ALIASES
   | "helena-ia"
   | "rafael-ia"
   | "aurora-ia"
@@ -10,9 +20,20 @@ export type TtsVoiceId =
   | "theo-ia"
   | "river-ia"
   | "alice-ia"
-  | "eric-ia";
+  | "eric-ia"
+  | "ricardo-br"
+  | "vitoria-br"
+  | "brenda"
+  | "donato"
+  | "elza"
+  | "fabio"
+  | "giovanna"
+  | "humberto"
+  | "leila"
+  | "leticia"
+  | "manuela";
 
-export type TtsProvider = "browser" | "elevenlabs";
+export type TtsProvider = "edge" | "browser" | "elevenlabs";
 
 export interface ElevenLabsVoiceSettings {
   stability: number;
@@ -25,27 +46,66 @@ export interface TtsVoiceConfig {
   id: TtsVoiceId;
   name: string;
   subtitle: string;
-  /** Emoji usado como avatar no seletor */
   emoji: string;
-  /** Cor de fundo do avatar */
   avatarColor: string;
   lang: string;
-  /** Provedor da voz: navegador (Web Speech API) ou ElevenLabs (IA neural) */
   provider: TtsProvider;
-  /** Parâmetros usados apenas pelo provedor "browser" (speechSynthesis) */
   pitch: number;
   rate: number;
   volume: number;
-  /** Preferência de gênero para seleção de voz do sistema (provider browser) */
   preferFemale?: boolean;
-  /** ID da voz na ElevenLabs (obrigatório quando provider === "elevenlabs") */
+  edgeVoiceName?: string;
   elevenLabsVoiceId?: string;
-  /** Ajustes de geração da ElevenLabs */
   elevenLabsSettings?: ElevenLabsVoiceSettings;
-  /** Se true, mostra badge "IA" */
+  isMicrosoft: boolean;
+  /** @deprecated use isMicrosoft / provider */
   isAi: boolean;
 }
 
+/**
+ * IDs legados → vozes Edge reais (gratuitas).
+ * Nunca inventar ShortName inexistente no Edge.
+ */
+export const TTS_VOICE_ALIASES: Record<string, TtsVoiceId> = {
+  // Nomes inventados antigos → pt-BR
+  brenda: "francisca",
+  elza: "francisca",
+  giovanna: "francisca",
+  leila: "francisca",
+  leticia: "francisca",
+  manuela: "francisca",
+  donato: "antonio",
+  fabio: "antonio",
+  humberto: "antonio",
+  "ricardo-br": "antonio",
+  "vitoria-br": "francisca",
+  // Antigas “IA ElevenLabs” → multilíngues Microsoft grátis
+  "helena-ia": "ava",
+  "rafael-ia": "andrew",
+  "aurora-ia": "emma",
+  "bruno-ia": "brian",
+  "nina-ia": "vivienne",
+  "theo-ia": "remy",
+  "river-ia": "thalita",
+  "alice-ia": "raquel",
+  "eric-ia": "duarte",
+};
+
+const EDGE_DEFAULTS = {
+  pitch: 1,
+  rate: 1,
+  volume: 1,
+  lang: "pt-BR" as const,
+  provider: "edge" as const,
+  isMicrosoft: true,
+  isAi: true,
+};
+
+/**
+ * Catálogo 100% gratuito via Microsoft Edge Read Aloud (neural).
+ * ShortNames verificados em runtime com msedge-tts.getVoices().
+ * ElevenLabs (pago) fica fora do catálogo padrão — só se reativar no futuro.
+ */
 export const TTS_VOICES: TtsVoiceConfig[] = [
   {
     id: "off",
@@ -53,185 +113,167 @@ export const TTS_VOICES: TtsVoiceConfig[] = [
     subtitle: "Sem leitura",
     emoji: "🔇",
     avatarColor: "#3f3f46",
-    lang: "pt-BR",
-    provider: "browser",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
+    provider: "edge",
+    isMicrosoft: false,
     isAi: false,
-  },
-  // ─────────────── Vozes de IA (ElevenLabs, neural realista) ───────────────
-  {
-    id: "helena-ia",
-    name: "Sarah",
-    subtitle: "IA · feminina",
-    emoji: "💁‍♀️",
-    avatarColor: "#9d174d",
-    lang: "pt-BR",
-    provider: "elevenlabs",
     pitch: 1,
     rate: 1,
     volume: 1,
-    elevenLabsVoiceId: "EXAVITQu4vr4xnSDxMaL",
-    elevenLabsSettings: { stability: 0.45, similarityBoost: 0.8, style: 0.2, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "rafael-ia",
-    name: "Adam",
-    subtitle: "IA · masculina",
-    emoji: "🧔",
-    avatarColor: "#1e40af",
     lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "pNInz6obpgDQGcFmaJgB",
-    elevenLabsSettings: { stability: 0.5, similarityBoost: 0.8, style: 0.15, useSpeakerBoost: true },
-    isAi: true,
   },
   {
-    id: "aurora-ia",
-    name: "Jessica",
-    subtitle: "IA · animada",
-    emoji: "✨",
-    avatarColor: "#831843",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "cgSgspJ2msm6clMCkdW9",
-    elevenLabsSettings: { stability: 0.4, similarityBoost: 0.75, style: 0.35, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "bruno-ia",
-    name: "Brian",
-    subtitle: "IA · locutor",
-    emoji: "🎙️",
-    avatarColor: "#065f46",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "nPczCjzI2devNBz1zQrb",
-    elevenLabsSettings: { stability: 0.55, similarityBoost: 0.85, style: 0.25, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "nina-ia",
-    name: "Liam",
-    subtitle: "IA · jovem",
-    emoji: "🌟",
-    avatarColor: "#4c1d95",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "TX3LPaxmHKxFdv7VOQHJ",
-    elevenLabsSettings: { stability: 0.45, similarityBoost: 0.75, style: 0.35, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "theo-ia",
-    name: "Charlie",
-    subtitle: "IA · enérgico",
-    emoji: "🧑‍🎤",
-    avatarColor: "#92400e",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "IKne3meq5aSn9XLyUdCD",
-    elevenLabsSettings: { stability: 0.45, similarityBoost: 0.8, style: 0.3, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "river-ia",
-    name: "River",
-    subtitle: "IA · neutra",
-    emoji: "🌊",
-    avatarColor: "#0e7490",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "SAz9YHcvj6GT2YYXdXww",
-    elevenLabsSettings: { stability: 0.5, similarityBoost: 0.8, style: 0.2, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "alice-ia",
-    name: "Alice",
-    subtitle: "IA · educadora",
-    emoji: "👩‍🏫",
-    avatarColor: "#166534",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "Xb7hH8MSUJpSbSDYk0k2",
-    elevenLabsSettings: { stability: 0.5, similarityBoost: 0.8, style: 0.2, useSpeakerBoost: true },
-    isAi: true,
-  },
-  {
-    id: "eric-ia",
-    name: "Eric",
-    subtitle: "IA · suave",
-    emoji: "🎧",
-    avatarColor: "#1e3a5f",
-    lang: "pt-BR",
-    provider: "elevenlabs",
-    pitch: 1,
-    rate: 1,
-    volume: 1,
-    elevenLabsVoiceId: "cjVigY5qzO86Huf0OWal",
-    elevenLabsSettings: { stability: 0.5, similarityBoost: 0.85, style: 0.15, useSpeakerBoost: true },
-    isAi: true,
-  },
-  // ─────────────── Vozes do navegador (offline, sem custo) ───────────────
-  {
-    id: "ricardo-br",
-    name: "Ricardo",
-    subtitle: "Navegador",
-    emoji: "🧑",
-    avatarColor: "#334155",
-    lang: "pt-BR",
-    provider: "browser",
-    pitch: 0.95,
-    rate: 1.0,
-    volume: 1,
-    preferFemale: false,
-    isAi: false,
-  },
-  {
-    id: "vitoria-br",
-    name: "Vitória",
-    subtitle: "Navegador",
+    id: "francisca",
+    name: "Francisca",
+    subtitle: "Brasil · feminina · grátis",
     emoji: "👩",
-    avatarColor: "#475569",
-    lang: "pt-BR",
-    provider: "browser",
-    pitch: 1.25,
-    rate: 1.0,
-    volume: 1,
+    avatarColor: "#be185d",
     preferFemale: true,
-    isAi: false,
+    edgeVoiceName: "pt-BR-FranciscaNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "antonio",
+    name: "Antônio",
+    subtitle: "Brasil · masculina · grátis",
+    emoji: "🧔",
+    avatarColor: "#1d4ed8",
+    preferFemale: false,
+    edgeVoiceName: "pt-BR-AntonioNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "thalita",
+    name: "Thalita",
+    subtitle: "Brasil · multilíngue · grátis",
+    emoji: "✨",
+    avatarColor: "#7c3aed",
+    preferFemale: true,
+    edgeVoiceName: "pt-BR-ThalitaMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "raquel",
+    name: "Raquel",
+    subtitle: "Portugal · feminina · grátis",
+    emoji: "🎤",
+    avatarColor: "#9d174d",
+    preferFemale: true,
+    edgeVoiceName: "pt-PT-RaquelNeural",
+    lang: "pt-PT",
+    pitch: 1,
+    rate: 1,
+    volume: 1,
+    provider: "edge",
+    isMicrosoft: true,
+    isAi: true,
+  },
+  {
+    id: "duarte",
+    name: "Duarte",
+    subtitle: "Portugal · masculina · grátis",
+    emoji: "🎙️",
+    avatarColor: "#1e3a8a",
+    preferFemale: false,
+    edgeVoiceName: "pt-PT-DuarteNeural",
+    lang: "pt-PT",
+    pitch: 1,
+    rate: 1,
+    volume: 1,
+    provider: "edge",
+    isMicrosoft: true,
+    isAi: true,
+  },
+  {
+    id: "ava",
+    name: "Ava",
+    subtitle: "Multilíngue · feminina · grátis",
+    emoji: "🌐",
+    avatarColor: "#86198f",
+    preferFemale: true,
+    edgeVoiceName: "en-US-AvaMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "emma",
+    name: "Emma",
+    subtitle: "Multilíngue · suave · grátis",
+    emoji: "💫",
+    avatarColor: "#9a3412",
+    preferFemale: true,
+    edgeVoiceName: "en-US-EmmaMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "andrew",
+    name: "Andrew",
+    subtitle: "Multilíngue · masculina · grátis",
+    emoji: "🗣️",
+    avatarColor: "#065f46",
+    preferFemale: false,
+    edgeVoiceName: "en-US-AndrewMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "brian",
+    name: "Brian",
+    subtitle: "Multilíngue · locutor · grátis",
+    emoji: "📻",
+    avatarColor: "#1e293b",
+    preferFemale: false,
+    edgeVoiceName: "en-US-BrianMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "vivienne",
+    name: "Vivienne",
+    subtitle: "Multilíngue · FR · grátis",
+    emoji: "🎧",
+    avatarColor: "#0e7490",
+    preferFemale: true,
+    edgeVoiceName: "fr-FR-VivienneMultilingualNeural",
+    ...EDGE_DEFAULTS,
+  },
+  {
+    id: "remy",
+    name: "Rémy",
+    subtitle: "Multilíngue · FR · grátis",
+    emoji: "🎬",
+    avatarColor: "#334155",
+    preferFemale: false,
+    edgeVoiceName: "fr-FR-RemyMultilingualNeural",
+    ...EDGE_DEFAULTS,
   },
 ];
 
-export function getTtsVoice(id: TtsVoiceId | string | null): TtsVoiceConfig {
-  return TTS_VOICES.find((v) => v.id === id) ?? TTS_VOICES[0];
+export function resolveTtsVoiceId(id: string | null | undefined): TtsVoiceId {
+  if (!id || id === "off") return "off";
+  if (TTS_VOICE_ALIASES[id]) return TTS_VOICE_ALIASES[id];
+  if (TTS_VOICES.some((v) => v.id === id)) return id as TtsVoiceId;
+  return "off";
 }
+
+export function getTtsVoice(id: TtsVoiceId | string | null): TtsVoiceConfig {
+  const resolved = resolveTtsVoiceId(id);
+  return TTS_VOICES.find((v) => v.id === resolved) ?? TTS_VOICES[0];
+}
+
+export const SELECTABLE_TTS_VOICES = TTS_VOICES.filter((v) => v.id !== "off");
+
+export const MICROSOFT_TTS_VOICES = SELECTABLE_TTS_VOICES.filter((v) => v.isMicrosoft);
+
+/** Mantido por compat — catálogo padrão não inclui ElevenLabs (pago). */
+export const ELEVENLABS_TTS_VOICES = SELECTABLE_TTS_VOICES.filter(
+  (v) => v.provider === "elevenlabs",
+);
+
+export const DEFAULT_TTS_VOICE_ID: TtsVoiceId = "francisca";
 
 export const DEFAULT_TTS_TEMPLATE = "{nome} doou {valor} reais. {mensagem}";
 
-/** Modelo padrão da ElevenLabs (boa qualidade em pt-BR). Pode ser sobrescrito por env. */
 export const DEFAULT_ELEVENLABS_MODEL = "eleven_multilingual_v2";
+
+export function getTtsRuntimePrefer(): "edge" | "elevenlabs" | "auto" {
+  const raw = (process.env.TTS_PROVIDER ?? "edge").trim().toLowerCase();
+  if (raw === "elevenlabs" || raw === "auto" || raw === "edge") return raw;
+  return "edge";
+}

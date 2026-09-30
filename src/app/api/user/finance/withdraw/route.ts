@@ -9,8 +9,8 @@ import {
 import { requestWithdrawal } from "@/lib/repositories/finance-repository";
 
 /**
- * Solicitação de saque manual: cria um payout "pending" que o admin
- * processa (Pix enviado manualmente) e marca como concluído no painel.
+ * Solicitação de saque: Woovi (instantâneo) quando a conta está migrada;
+ * legado cria payout "pending" para o admin.
  */
 export async function POST(request: Request) {
   const session = await requireSession();
@@ -87,11 +87,13 @@ export async function POST(request: Request) {
 
   try {
     const payout = await requestWithdrawal(session.creator.id, amountReais);
+    const instant = payout.status === "completed";
     return NextResponse.json({
       ok: true,
       payout,
-      message:
-        "Saque solicitado! O valor será enviado para sua chave Pix em até 24h úteis.",
+      message: instant
+        ? "Saque concluído! O Pix já foi enviado para sua chave."
+        : "Saque solicitado! Estamos processando o Pix para sua chave.",
     });
   } catch (error) {
     const message =

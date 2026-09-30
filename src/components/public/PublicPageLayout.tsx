@@ -80,7 +80,7 @@ export function LegalNav({ items }: { items: { id: string; label: string }[] }) 
           <li key={item.id}>
             <a
               href={`#${item.id}`}
-              className="text-cyan-400 transition hover:text-cyan-300"
+              className="text-sky-400 transition hover:text-sky-300"
             >
               {item.label}
             </a>

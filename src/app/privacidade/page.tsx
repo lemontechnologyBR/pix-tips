@@ -96,7 +96,7 @@ export default function PrivacidadePage() {
           </p>
           <p>
             Dúvidas? Entre em contato com nosso Encarregado de Dados pelo e-mail{" "}
-            <a href="mailto:privacidade@pix.tips" className="text-cyan-400 hover:underline">
+            <a href="mailto:privacidade@pix.tips" className="text-sky-400 hover:underline">
               privacidade@pix.tips
             </a>
             .
@@ -241,7 +241,7 @@ export default function PrivacidadePage() {
                 "Legítimo interesse — Art. 7º, IX",
               ],
               [
-                "Síntese de voz via ElevenLabs (alerta de doação em tempo real com TTS)",
+                "Síntese de voz Microsoft (alerta de doação em tempo real com TTS)",
                 "Execução do serviço contratado — Art. 7º, V",
               ],
               [
@@ -282,11 +282,11 @@ export default function PrivacidadePage() {
               dados sensíveis.
             </li>
             <li>
-              <strong className="text-zinc-300">ElevenLabs</strong>{" "}
-              <span className="text-zinc-500 text-xs">(EUA — internacional)</span> — Síntese de
-              voz para alertas de doação em tempo real. Dados compartilhados: texto da mensagem
-              do apoiador (até 300 caracteres). Garantias: Data Processing Agreement (DPA) em
-              vigor.
+              <strong className="text-zinc-300">Microsoft Edge Read Aloud</strong>{" "}
+              <span className="text-zinc-500 text-xs">(serviço de síntese de voz)</span> — Vozes
+              neurais para alertas de doação em tempo real. Dados compartilhados: texto da
+              mensagem do apoiador (até 300 caracteres). Não armazenamos o áudio gerado além do
+              uso imediato no alerta.
             </li>
             <li>
               <strong className="text-zinc-300">Provedores de consulta de CPF</strong>{" "}
@@ -331,9 +331,10 @@ export default function PrivacidadePage() {
               salvaguardas específicas para dados sensíveis.
             </li>
             <li>
-              <strong className="text-zinc-300">ElevenLabs</strong> (síntese de voz) — operações
-              nos EUA. Garantias: Data Processing Agreement com obrigações equivalentes às da
-              LGPD, incluindo limitação de finalidade e segurança.
+              <strong className="text-zinc-300">Microsoft</strong> (síntese de voz Edge) —
+              processamento do texto do alerta. Garantias: uso limitado à geração imediata do
+              áudio; sem armazenamento persistente do conteúdo pelo pix.tips além do necessário
+              ao alerta.
             </li>
             <li>
               <strong className="text-zinc-300">Armazenamento em nuvem</strong> — servidores
@@ -344,7 +345,7 @@ export default function PrivacidadePage() {
           <p>
             Caso você tenha dúvidas sobre as garantias adotadas em transferências específicas,
             entre em contato com nosso DPO pelo e-mail{" "}
-            <a href="mailto:privacidade@pix.tips" className="text-cyan-400 hover:underline">
+            <a href="mailto:privacidade@pix.tips" className="text-sky-400 hover:underline">
               privacidade@pix.tips
             </a>
             .
@@ -503,7 +504,7 @@ export default function PrivacidadePage() {
           </ul>
           <p>
             Para exercer qualquer direito ou obter mais informações, envie sua solicitação para{" "}
-            <a href="mailto:privacidade@pix.tips" className="text-cyan-400 hover:underline">
+            <a href="mailto:privacidade@pix.tips" className="text-sky-400 hover:underline">
               privacidade@pix.tips
             </a>
             . Responderemos em até 15 dias úteis. Você também pode peticionar à ANPD (
@@ -511,7 +512,7 @@ export default function PrivacidadePage() {
               href="https://www.gov.br/anpd"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+              className="text-sky-400 hover:underline"
             >
               gov.br/anpd
             </a>
@@ -531,7 +532,7 @@ export default function PrivacidadePage() {
             </li>
             <li>
               <strong className="text-zinc-300">E-mail do DPO:</strong>{" "}
-              <a href="mailto:privacidade@pix.tips" className="text-cyan-400 hover:underline">
+              <a href="mailto:privacidade@pix.tips" className="text-sky-400 hover:underline">
                 privacidade@pix.tips
               </a>
             </li>
@@ -673,7 +674,7 @@ export default function PrivacidadePage() {
               href="https://www.gov.br/anpd"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+              className="text-sky-400 hover:underline"
             >
               gov.br/anpd
             </a>
@@ -684,17 +685,17 @@ export default function PrivacidadePage() {
         <div className="border-t border-zinc-800 pt-6 text-center">
           <p className="text-xs text-zinc-600">
             Esta política está em vigor desde junho de 2026 · pix.tips Tecnologia Ltda. ·{" "}
-            <a href="mailto:privacidade@pix.tips" className="text-cyan-400 hover:underline">
+            <a href="mailto:privacidade@pix.tips" className="text-sky-400 hover:underline">
               privacidade@pix.tips
             </a>
           </p>
           <p className="mt-2 text-xs text-zinc-600">
             Consulte também:{" "}
-            <Link href="/termos" className="text-cyan-400 hover:underline">
+            <Link href="/termos" className="text-sky-400 hover:underline">
               Termos de Uso
             </Link>{" "}
             ·{" "}
-            <Link href="/cookies" className="text-cyan-400 hover:underline">
+            <Link href="/cookies" className="text-sky-400 hover:underline">
               Política de Cookies
             </Link>
           </p>

@@ -72,7 +72,7 @@ export function QuickActions({ tipPageUrl, username }: QuickActionsProps) {
   return (
     <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
           <OverviewIcon name="spark" className="h-5 w-5" />
         </div>
         <div>
@@ -87,7 +87,7 @@ export function QuickActions({ tipPageUrl, username }: QuickActionsProps) {
         {ACTIONS.map((item) => {
           const inner = (
             <>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/80 bg-zinc-900 text-zinc-400 transition group-hover:border-cyan-500/30 group-hover:text-cyan-300">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/80 bg-zinc-900 text-zinc-400 transition group-hover:border-sky-400/30 group-hover:text-sky-300">
                 <OverviewIcon name={item.icon} className="h-4 w-4" />
               </div>
               <div className="min-w-0">
@@ -109,7 +109,7 @@ export function QuickActions({ tipPageUrl, username }: QuickActionsProps) {
                 key={item.title}
                 type="button"
                 onClick={() => void copyLink()}
-                className="group flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4 text-left transition hover:border-cyan-500/30 hover:bg-cyan-500/[0.03]"
+                className="group flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4 text-left transition hover:border-sky-400/30 hover:bg-cyan-500/[0.03]"
               >
                 {inner}
               </button>
@@ -120,7 +120,7 @@ export function QuickActions({ tipPageUrl, username }: QuickActionsProps) {
             <Link
               key={item.title}
               href={item.href!}
-              className="group flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4 transition hover:border-cyan-500/30 hover:bg-cyan-500/[0.03]"
+              className="group flex items-start gap-3 rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4 transition hover:border-sky-400/30 hover:bg-cyan-500/[0.03]"
             >
               {inner}
             </Link>

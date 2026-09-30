@@ -143,7 +143,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
               embedded
                 ? `border-b-2 px-1 pb-2 text-sm font-medium transition ${
                     tab === t.id
-                      ? "border-cyan-500 text-cyan-300"
+                      ? "border-cyan-500 text-sky-300"
                       : "border-transparent text-zinc-500 hover:text-zinc-300"
                   }`
                 : `rounded-lg px-4 py-2 text-sm font-medium transition ${
@@ -189,7 +189,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
                 <p className="text-sm text-zinc-400">
                   O QR Code aponta para esta URL. Compartilhe onde quiser.
                 </p>
-                <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm text-cyan-300">
+                <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm text-sky-300">
                   {displayUrl}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -230,7 +230,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
                     onClick={copyWidget}
                     className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                       copiedWidget
-                        ? "border-emerald-500/50 bg-emerald-600/15 text-emerald-300"
+                        ? "border-sky-400/40 bg-sky-500/12 text-sky-300"
                         : "border-zinc-700 bg-zinc-800/80 text-zinc-200 hover:border-zinc-600"
                     }`}
                   >
@@ -286,7 +286,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
               <h2 className="font-semibold">Configuração geral</h2>
               <p className="text-sm text-zinc-400">
                 Meta, valores de doação e identidade visual ficam em{" "}
-                <Link href="/dashboard/tip-page" className="text-cyan-400 hover:underline">
+                <Link href="/dashboard/tip-page" className="text-sky-400 hover:underline">
                   Minha página
                 </Link>
                 .
@@ -301,7 +301,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+              className="rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
             >
               {saving ? "Salvando..." : "Salvar"}
             </button>
@@ -332,7 +332,7 @@ export function QrCodeEditor({ initialCreator, widgetUrl, embedded = false }: Qr
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg">
           {toast}
         </div>
       )}

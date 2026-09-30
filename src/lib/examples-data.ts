@@ -24,7 +24,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     username: "demo",
     category: "gaming",
     description: "Streamer de RPG e jogos indie. Usa layout Neon com meta semanal e alertas personalizados.",
-    accent: "from-violet-600 to-fuchsia-600",
+    accent: "from-sky-500 to-lime-600",
     tags: ["OBS", "Meta", "Alertas"],
   },
   {
@@ -33,7 +33,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     username: "demo",
     category: "musica",
     description: "Sets ao vivo toda sexta. Layout Glass com wall de apoiadores e sugestões de valor.",
-    accent: "from-cyan-600 to-violet-600",
+    accent: "from-teal-600 to-violet-500",
     tags: ["Música", "Live", "Pix"],
   },
   {
@@ -41,7 +41,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     name: "Arte com Manu",
     username: "demo",
     category: "arte",
-    description: "Ilustração digital ao vivo com leitura de mensagens via voz IA (TTS ElevenLabs).",
+    description: "Ilustração digital ao vivo com leitura de mensagens via voz Microsoft TTS.",
     accent: "from-amber-600 to-orange-600",
     tags: ["Arte", "Voz IA", "TTS"],
   },
@@ -51,7 +51,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     username: "demo",
     category: "podcast",
     description: "Episódios semanais sobre tecnologia. Página minimalista com doações anônimas.",
-    accent: "from-emerald-600 to-teal-600",
+    accent: "from-sky-500 to-teal-600",
     tags: ["Podcast", "Tech", "Minimal"],
   },
   {
@@ -60,7 +60,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     username: "demo",
     category: "educacao",
     description: "Aulas gratuitas de programação. Ranking de apoiadores do mês e meta de conteúdo.",
-    accent: "from-blue-600 to-indigo-600",
+    accent: "from-sky-600 to-violet-600",
     tags: ["Educação", "Código", "Ranking"],
   },
   {
@@ -69,7 +69,7 @@ export const EXAMPLE_CREATORS: ExampleCreator[] = [
     username: "demo",
     category: "gaming",
     description: "Maratonas de speedrun com barra de progresso em tempo real e alertas no OBS.",
-    accent: "from-rose-600 to-violet-600",
+    accent: "from-rose-600 to-orange-600",
     tags: ["Gaming", "Speedrun", "OBS"],
   },
 ];

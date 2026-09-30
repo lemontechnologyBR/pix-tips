@@ -14,29 +14,63 @@ export type OAuthProvider =
   | "twitch"
   | "youtube"
   | "discord"
-  | "kick"
-  | "streamlabs"
-  | "streamelements";
+  | "kick";
 
 export const OAUTH_STATE_COOKIE = "oauth_state";
 export const OAUTH_PKCE_COOKIE = "oauth_pkce_verifier";
 export const OAUTH_LINK_USER_COOKIE = "oauth_link_user_id";
 export const OAUTH_RETURN_COOKIE = "oauth_return_to";
+/** fan = tip page login (sem tip page); creator = signup/login de streamer */
+export const OAUTH_ACCOUNT_KIND_COOKIE = "oauth_account_kind";
+export type OAuthAccountKind = "fan" | "creator";
 export const OAUTH_PROVIDERS: OAuthProvider[] = [
   "google",
   "twitch",
   "youtube",
   "discord",
   "kick",
-  "streamlabs",
-  "streamelements",
 ];
 
-/** Provedores que só podem ser vinculados a uma conta existente (sem login social). */
-export const LINK_ONLY_OAUTH_PROVIDERS: OAuthProvider[] = [
-  "streamlabs",
-  "streamelements",
+const RESERVED_TIP_RETURN_PREFIXES = [
+  "/dashboard",
+  "/onboarding",
+  "/login",
+  "/register",
+  "/admin",
+  "/api",
+  "/widget",
+  "/help",
+  "/blog",
+  "/status",
+  "/developers",
+  "/contato",
+  "/sobre",
+  "/termos",
+  "/privacidade",
+  "/cookies",
+  "/examples",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/maintenance",
+  "/conta",
 ];
+
+/** Retorno de tip page pública → conta de fã, não streamer. */
+export function resolveOAuthAccountKind(returnTo: string): OAuthAccountKind {
+  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) return "creator";
+  if (RESERVED_TIP_RETURN_PREFIXES.some((p) => returnTo === p || returnTo.startsWith(`${p}/`))) {
+    return "creator";
+  }
+  // /{username} ou /{username}/thanks
+  if (/^\/[a-zA-Z0-9_-]+(\/thanks)?\/?$/.test(returnTo)) {
+    return "fan";
+  }
+  return "creator";
+}
+
+/** Provedores que só podem ser vinculados a uma conta existente (sem login social). */
+export const LINK_ONLY_OAUTH_PROVIDERS: OAuthProvider[] = [];
 
 export function isLinkOnlyOAuthProvider(provider: OAuthProvider): boolean {
   return LINK_ONLY_OAUTH_PROVIDERS.includes(provider);
@@ -166,40 +200,6 @@ export function buildAuthUrl(
     });
 
     return `https://id.kick.com/oauth/authorize?${params.toString()}`;
-  }
-
-  if (provider === "streamlabs") {
-    const clientId = process.env.STREAMLABS_CLIENT_ID;
-    if (!clientId) {
-      throw new Error("STREAMLABS_CLIENT_ID não configurado.");
-    }
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: getOAuthRedirectUri("streamlabs"),
-      response_type: "code",
-      scope: "donations.create alerts.create",
-      state,
-    });
-
-    return `https://streamlabs.com/api/v2.0/authorize?${params.toString()}`;
-  }
-
-  if (provider === "streamelements") {
-    const clientId = process.env.STREAMELEMENTS_CLIENT_ID;
-    if (!clientId) {
-      throw new Error("STREAMELEMENTS_CLIENT_ID não configurado.");
-    }
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: getOAuthRedirectUri("streamelements"),
-      response_type: "code",
-      scope: "tips:write channel:read",
-      state,
-    });
-
-    return `https://api.streamelements.com/oauth2/authorize?${params.toString()}`;
   }
 
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
@@ -355,84 +355,6 @@ export async function exchangeCode(
     if (!res.ok) {
       const detail = await res.text();
       throw new Error(`Falha ao trocar código Kick: ${detail}`);
-    }
-
-    const data = (await res.json()) as {
-      access_token: string;
-      refresh_token?: string;
-      expires_in?: number;
-    };
-
-    return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresIn: data.expires_in,
-    };
-  }
-
-  if (provider === "streamlabs") {
-    const clientId = process.env.STREAMLABS_CLIENT_ID;
-    const clientSecret = process.env.STREAMLABS_CLIENT_SECRET;
-    if (!clientId || !clientSecret) {
-      throw new Error("Credenciais Streamlabs OAuth não configuradas.");
-    }
-
-    const body = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: getOAuthRedirectUri("streamlabs"),
-    });
-
-    const res = await fetch("https://streamlabs.com/api/v2.0/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(`Falha ao trocar código Streamlabs: ${detail}`);
-    }
-
-    const data = (await res.json()) as {
-      access_token: string;
-      refresh_token?: string;
-      expires_in?: number;
-    };
-
-    return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresIn: data.expires_in,
-    };
-  }
-
-  if (provider === "streamelements") {
-    const clientId = process.env.STREAMELEMENTS_CLIENT_ID;
-    const clientSecret = process.env.STREAMELEMENTS_CLIENT_SECRET;
-    if (!clientId || !clientSecret) {
-      throw new Error("Credenciais StreamElements OAuth não configuradas.");
-    }
-
-    const body = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: getOAuthRedirectUri("streamelements"),
-    });
-
-    const res = await fetch("https://api.streamelements.com/oauth2/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(`Falha ao trocar código StreamElements: ${detail}`);
     }
 
     const data = (await res.json()) as {
@@ -620,63 +542,6 @@ export async function getUserInfo(
     };
   }
 
-  if (provider === "streamlabs") {
-    const res = await fetch("https://streamlabs.com/api/v2.0/user", {
-      headers: { Authorization: `Bearer ${tokens.accessToken}` },
-    });
-
-    if (!res.ok) {
-      throw new Error("Não foi possível obter perfil Streamlabs.");
-    }
-
-    const data = (await res.json()) as {
-      streamlabs?: { id?: number | string; display_name?: string };
-    };
-
-    const profile = data.streamlabs;
-    if (!profile?.id) {
-      throw new Error("Perfil Streamlabs inválido.");
-    }
-
-    const providerUserId = String(profile.id);
-
-    return {
-      providerUserId,
-      email: `${providerUserId}@linked.streamlabs`,
-      name: profile.display_name?.trim() || "Streamlabs",
-    };
-  }
-
-  if (provider === "streamelements") {
-    const res = await fetch("https://api.streamelements.com/kappa/v2/channels/me", {
-      headers: { Authorization: `oAuth ${tokens.accessToken}` },
-    });
-
-    if (!res.ok) {
-      throw new Error("Não foi possível obter perfil StreamElements.");
-    }
-
-    const data = (await res.json()) as {
-      _id?: string;
-      email?: string;
-      displayName?: string;
-      username?: string;
-      avatar?: string;
-    };
-
-    if (!data._id) {
-      throw new Error("Perfil StreamElements inválido.");
-    }
-
-    return {
-      providerUserId: data._id,
-      email: (data.email ?? `${data._id}@linked.streamelements`).trim().toLowerCase(),
-      name: data.displayName?.trim() || data.username?.trim() || "StreamElements",
-      avatar: data.avatar,
-      username: data.username?.trim() || undefined,
-    };
-  }
-
   throw new Error(`Provedor OAuth desconhecido: ${provider}`);
 }
 
@@ -706,7 +571,7 @@ async function generateUniqueUsername(email: string): Promise<string> {
 
 export interface OAuthSessionResult {
   userId: string;
-  creatorId: string;
+  creatorId: string | null;
   email: string;
   role: string;
   onboardingCompleted: boolean;
@@ -714,12 +579,55 @@ export interface OAuthSessionResult {
   isNewUser: boolean;
 }
 
+async function createCreatorProfileForUser(
+  userId: string,
+  opts: { email: string; name: string; avatar?: string | null },
+) {
+  const db = getPrisma();
+  const username = await generateUniqueUsername(opts.email);
+  const alertSettings = getDefaultAlertSettings();
+  const tipPageSettings = getDefaultTipPageSettings();
+
+  return db.creator.create({
+    data: {
+      userId,
+      username,
+      displayName: opts.name,
+      avatar: opts.avatar || getDefaultAvatar(username),
+      widgetToken: generateWidgetToken(),
+      paymentMethods: JSON.stringify(["pix"]),
+      alertSettings: JSON.stringify(alertSettings),
+      tipPageSettings: JSON.stringify(tipPageSettings),
+    },
+  });
+}
+
+export async function ensureCreatorForUser(
+  userId: string,
+  opts?: { email?: string; name?: string; avatar?: string | null },
+) {
+  const db = getPrisma();
+  const existing = await db.creator.findUnique({ where: { userId } });
+  if (existing) return existing;
+
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("Usuário não encontrado.");
+
+  return createCreatorProfileForUser(userId, {
+    email: opts?.email ?? user.email,
+    name: opts?.name ?? user.name,
+    avatar: opts?.avatar ?? user.avatar ?? null,
+  });
+}
+
 export async function findOrCreateOAuthUser(
   provider: OAuthProvider,
   userInfo: OAuthUserInfo,
   tokens: OAuthTokens,
+  options?: { accountKind?: OAuthAccountKind },
 ): Promise<OAuthSessionResult> {
   const db = getPrisma();
+  const accountKind: OAuthAccountKind = options?.accountKind ?? "creator";
 
   const existingAccount = await db.oAuthAccount.findUnique({
     where: {
@@ -743,17 +651,34 @@ export async function findOrCreateOAuthUser(
       },
     });
 
-    const creator = existingAccount.user.creator;
-    if (!creator) {
-      throw new Error("Conta de criador não encontrada.");
+    if (userInfo.avatar && !existingAccount.user.avatar) {
+      await db.user.update({
+        where: { id: existingAccount.user.id },
+        data: { avatar: userInfo.avatar },
+      });
+    }
+
+    let creator = existingAccount.user.creator;
+    // Login de streamer em conta que era só fã → cria tip page
+    if (!creator && accountKind === "creator") {
+      creator = await createCreatorProfileForUser(existingAccount.user.id, {
+        email: existingAccount.user.email,
+        name: existingAccount.user.name || userInfo.name,
+        avatar: userInfo.avatar || existingAccount.user.avatar,
+      });
+      await sendWelcomeEmail(
+        existingAccount.user.email,
+        creator.displayName,
+        creator.username,
+      );
     }
 
     return {
       userId: existingAccount.user.id,
-      creatorId: creator.id,
+      creatorId: creator?.id ?? null,
       email: existingAccount.user.email,
       role: existingAccount.user.role,
-      onboardingCompleted: creator.onboardingCompleted,
+      onboardingCompleted: creator?.onboardingCompleted ?? false,
       totpEnabled: existingAccount.user.totpEnabled,
       isNewUser: false,
     };
@@ -768,6 +693,37 @@ export async function findOrCreateOAuthUser(
     throw new Error("oauth_email_conflict");
   }
 
+  if (accountKind === "fan") {
+    const user = await db.user.create({
+      data: {
+        email: userInfo.email,
+        passwordHash: null,
+        name: userInfo.name,
+        avatar: userInfo.avatar || "",
+        emailVerified: true,
+        oauthAccounts: {
+          create: {
+            provider,
+            providerAccountId: userInfo.providerUserId,
+            username: userInfo.username,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+          },
+        },
+      },
+    });
+
+    return {
+      userId: user.id,
+      creatorId: null,
+      email: user.email,
+      role: user.role,
+      onboardingCompleted: false,
+      totpEnabled: user.totpEnabled,
+      isNewUser: true,
+    };
+  }
+
   const username = await generateUniqueUsername(userInfo.email);
   const alertSettings = getDefaultAlertSettings();
   const tipPageSettings = getDefaultTipPageSettings();
@@ -777,6 +733,7 @@ export async function findOrCreateOAuthUser(
       email: userInfo.email,
       passwordHash: null,
       name: userInfo.name,
+      avatar: userInfo.avatar || "",
       emailVerified: true,
       creator: {
         create: {
@@ -846,19 +803,31 @@ export async function linkOAuthAccount(
         username: userInfo.username ?? existingAccount.username,
       },
     });
-    return;
+  } else {
+    await db.oAuthAccount.create({
+      data: {
+        userId,
+        provider,
+        providerAccountId: userInfo.providerUserId,
+        username: userInfo.username,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      },
+    });
   }
 
-  await db.oAuthAccount.create({
-    data: {
-      userId,
-      provider,
-      providerAccountId: userInfo.providerUserId,
-      username: userInfo.username,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    },
-  });
+  if (userInfo.avatar) {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    });
+    if (user && !user.avatar) {
+      await db.user.update({
+        where: { id: userId },
+        data: { avatar: userInfo.avatar },
+      });
+    }
+  }
 }
 
 export async function listOAuthAccounts(

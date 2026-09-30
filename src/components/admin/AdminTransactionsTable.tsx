@@ -17,7 +17,7 @@ interface AdminTransactionsTableProps {
 }
 
 const STATUS_STYLES: Record<TransactionStatus, string> = {
-  confirmed: "bg-emerald-500/15 text-emerald-400",
+  confirmed: "bg-sky-400/12 text-sky-400",
   pending: "bg-amber-500/15 text-amber-400",
   failed: "bg-red-500/15 text-red-400",
   expired: "bg-zinc-500/15 text-zinc-400",
@@ -173,7 +173,7 @@ export function AdminTransactionsTable({
                   <td className="px-4 py-3">
                     {t.anonymous ? "Anônimo" : t.donorName}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-emerald-400">
+                  <td className="px-4 py-3 font-semibold text-sky-400">
                     {formatCurrency(t.amount)}
                   </td>
                   <td className="px-4 py-3 uppercase text-zinc-400">{t.method}</td>

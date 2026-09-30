@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { synthesizeEdgeTts } from "@/lib/tts-edge";
 import {
-  ElevenLabsError,
+  getTtsRuntimePrefer,
+  getTtsVoice,
+  resolveTtsVoiceId,
+} from "@/lib/tts-config";
+import {
   isElevenLabsConfigured,
   synthesizeElevenLabs,
+  ElevenLabsError,
 } from "@/lib/tts-elevenlabs";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -17,21 +23,19 @@ function getClientIp(request: Request): string {
   return realIp ?? "unknown";
 }
 
-/**
- * Informa ao client se as vozes de IA (ElevenLabs) estão disponíveis no servidor.
- */
 export async function GET() {
-  return NextResponse.json({ available: isElevenLabsConfigured() });
+  const prefer = getTtsRuntimePrefer();
+  const elevenlabs = isElevenLabsConfigured() && prefer !== "edge";
+  return NextResponse.json({
+    available: true,
+    providers: { edge: true, elevenlabs },
+    prefer,
+  });
 }
 
-/**
- * Gera o áudio de uma voz de IA. Recebe { text, voiceId } e devolve audio/mpeg.
- * Quando a ElevenLabs não está configurada ou falha, retorna um status de erro
- * para que o client faça fallback para a voz do navegador.
- */
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  if (!rateLimit(`tts:${ip}`, 20, 60_000)) {
+  if (!rateLimit(`tts:${ip}`, 40, 60_000)) {
     return NextResponse.json(
       { error: "Muitas requisições. Tente novamente em breve." },
       { status: 429, headers: NO_STORE },
@@ -46,34 +50,98 @@ export async function POST(request: Request) {
   }
 
   const text = typeof body.text === "string" ? body.text : "";
-  const voiceId = typeof body.voiceId === "string" ? body.voiceId : "";
+  const rawVoiceId = typeof body.voiceId === "string" ? body.voiceId : "";
+  const voiceId = resolveTtsVoiceId(rawVoiceId);
+  const voice = getTtsVoice(voiceId);
 
-  if (!text.trim() || !voiceId) {
+  if (!text.trim() || voiceId === "off") {
     return NextResponse.json(
       { error: "Parâmetros 'text' e 'voiceId' são obrigatórios" },
       { status: 400, headers: NO_STORE },
     );
   }
 
+  const prefer = getTtsRuntimePrefer();
+  const wantEleven =
+    voice.provider === "elevenlabs" &&
+    isElevenLabsConfigured() &&
+    prefer !== "edge";
+
+  if (wantEleven) {
+    try {
+      const { audio, contentType } = await synthesizeElevenLabs(text, voiceId);
+      return new NextResponse(audio, {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": "no-store",
+          "X-TTS-Provider": "elevenlabs",
+          "X-TTS-Voice": voiceId,
+        },
+      });
+    } catch (error) {
+      console.error("[api/tts] elevenlabs", error);
+      const msg =
+        error instanceof ElevenLabsError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : "Falha ElevenLabs";
+      return NextResponse.json(
+        { error: msg },
+        {
+          status: error instanceof ElevenLabsError ? error.status || 502 : 502,
+          headers: NO_STORE,
+        },
+      );
+    }
+  }
+
+  if (voice.provider === "elevenlabs" && prefer === "edge") {
+    // Sem ElevenLabs ativo: cair na Microsoft por gênero
+    const fallback =
+      voice.preferFemale === false ? "antonio" : "francisca";
+    try {
+      const { audio, contentType } = await synthesizeEdgeTts(text, fallback);
+      return new NextResponse(audio, {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": "no-store",
+          "X-TTS-Provider": "edge",
+          "X-TTS-Voice": fallback,
+          "X-TTS-Fallback-From": voiceId,
+        },
+      });
+    } catch (error) {
+      console.error("[api/tts] edge-fallback", error);
+      return NextResponse.json(
+        { error: "Falha ao gerar áudio TTS." },
+        { status: 500, headers: NO_STORE },
+      );
+    }
+  }
+
   try {
-    const { audio, contentType } = await synthesizeElevenLabs(text, voiceId);
+    const { audio, contentType } = await synthesizeEdgeTts(text, voiceId);
     return new NextResponse(audio, {
       status: 200,
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "no-store",
+        "X-TTS-Provider": "edge",
+        "X-TTS-Voice": voiceId,
       },
     });
   } catch (error) {
-    if (error instanceof ElevenLabsError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status, headers: NO_STORE },
-      );
-    }
-    console.error("[api/tts]", error);
+    console.error("[api/tts] edge", error);
     return NextResponse.json(
-      { error: "Falha ao gerar áudio" },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Falha ao gerar áudio Microsoft TTS.",
+      },
       { status: 500, headers: NO_STORE },
     );
   }

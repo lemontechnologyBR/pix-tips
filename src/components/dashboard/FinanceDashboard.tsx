@@ -25,7 +25,7 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 const STATUS_STYLES: Record<TransactionStatus, string> = {
-  confirmed: "bg-emerald-500/15 text-emerald-400",
+  confirmed: "bg-sky-400/12 text-sky-400",
   pending: "bg-amber-500/15 text-amber-400",
   failed: "bg-red-500/15 text-red-400",
   expired: "bg-zinc-500/15 text-zinc-400",
@@ -53,7 +53,7 @@ const PAYOUT_STATUS_LABELS: Record<Payout["status"], string> = {
 };
 
 const PAYOUT_STATUS_STYLES: Record<Payout["status"], string> = {
-  completed: "bg-emerald-500/15 text-emerald-400",
+  completed: "bg-sky-400/12 text-sky-400",
   pending: "bg-amber-500/15 text-amber-400",
   processing: "bg-sky-500/15 text-sky-400",
   failed: "bg-red-500/15 text-red-400",
@@ -364,11 +364,11 @@ export function FinanceDashboard({
           <h1 className="text-xl font-bold text-white">Financeiro</h1>
           <p className="mt-1 text-sm text-zinc-400">
             {overview.payoutMode === "woovi"
-              ? "Novas doações vão direto para sua subconta Woovi. Saques do saldo legado (se houver) continuam neste painel."
-              : "Doações creditam seu saldo na pix.tips. Solicite o saque quando quiser (taxa de R$ 2,49)."}
+              ? "Doações caem na sua subconta Woovi. Saque instantâneo com taxa de R$ 2,49."
+              : "Cadastre sua chave Pix para receber na subconta Woovi e sacar na hora (taxa R$ 2,49)."}
           </p>
         </div>
-        <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
+        <span className="rounded-full border border-sky-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-sky-300">
           Taxa {formatCommissionLabel(overview.commissionRate, overview.commissionFixedFee)}
         </span>
       </div>
@@ -384,15 +384,23 @@ export function FinanceDashboard({
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-white">Saque do saldo</h2>
               <p className="mt-1 text-sm text-zinc-400">
-                Solicite o saque e o valor é enviado para sua chave Pix em até{" "}
-                <strong className="text-zinc-200">24h úteis</strong>.
+                {overview.payoutMode === "woovi" ? (
+                  <>
+                    Saque <strong className="text-zinc-200">instantâneo</strong> para
+                    sua chave Pix (taxa {formatCurrency(overview.payoutFee)}).
+                  </>
+                ) : (
+                  <>
+                    Cadastre a chave Pix para ativar saque instantâneo via Woovi.
+                  </>
+                )}
               </p>
 
               <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 px-5 py-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                   Saldo disponível
                 </p>
-                <p className="mt-1 text-3xl font-bold text-emerald-400">
+                <p className="mt-1 text-3xl font-bold text-sky-400">
                   {formatCurrency(overview.availableBalance)}
                 </p>
                 {overview.pendingBalance > 0 && (
@@ -419,7 +427,7 @@ export function FinanceDashboard({
                     <button
                       type="button"
                       onClick={() => setEditingPayoutSettings(true)}
-                      className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-cyan-500/40 hover:text-cyan-200"
+                      className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-sky-400/30 hover:text-cyan-200"
                     >
                       Alterar
                     </button>
@@ -433,7 +441,7 @@ export function FinanceDashboard({
                     <button
                       type="button"
                       onClick={() => setTab("verificacao")}
-                      className="web3-btn-primary mt-3 inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                      className="live-btn-primary mt-3 inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
                     >
                       Ir para verificação
                     </button>
@@ -501,7 +509,7 @@ export function FinanceDashboard({
                       <button
                         type="submit"
                         disabled={savingPayoutSettings}
-                        className="web3-btn-primary flex-1 rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                        className="live-btn-primary flex-1 rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                       >
                         {savingPayoutSettings ? "Salvando…" : "Salvar chave Pix"}
                       </button>
@@ -568,7 +576,7 @@ export function FinanceDashboard({
               {withdrawPreview && withdrawPreview.netAmount > 0 && (
                 <p className="mt-2 text-xs text-zinc-400">
                   Você recebe{" "}
-                  <span className="font-medium text-emerald-300">
+                  <span className="font-medium text-sky-300">
                     {formatCurrency(withdrawPreview.netAmount)}
                   </span>
                   {withdrawPreview.payoutFee > 0 ? (
@@ -593,7 +601,7 @@ export function FinanceDashboard({
                   !withdrawAmount.trim() ||
                   !overview.payoutSettings.configured
                 }
-                className="web3-btn-primary mt-3 w-full rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                className="live-btn-primary mt-3 w-full rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {withdrawOtpSending
                   ? "Enviando código…"
@@ -602,7 +610,7 @@ export function FinanceDashboard({
                     : "Solicitar saque"}
               </button>
               <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
-                Após a confirmação, o Pix é enviado para sua chave em até 24h úteis.
+                Após a confirmação, o Pix é enviado na hora para sua chave.
               </p>
             </div>
           </div>
@@ -615,7 +623,7 @@ export function FinanceDashboard({
             onClick={() => setTab(t.id)}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               tab === t.id
-                ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-sm"
+                ? "bg-sky-400 text-white shadow-sm"
                 : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
             }`}
           >
@@ -638,7 +646,7 @@ export function FinanceDashboard({
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
               <p className="text-sm text-zinc-400">Recebido este mês</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-400">
+              <p className="mt-1 text-2xl font-bold text-sky-400">
                 {formatCurrency(overview.monthNet)}
               </p>
               <p className="mt-1 text-xs text-zinc-500">
@@ -685,7 +693,7 @@ export function FinanceDashboard({
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-semibold text-emerald-400">
+                      <p className="font-semibold text-sky-400">
                         {formatCurrency(tx.amount)}
                       </p>
                       <span
@@ -701,7 +709,7 @@ export function FinanceDashboard({
             <button
               type="button"
               onClick={() => setTab("extrato")}
-              className="mt-4 text-sm text-cyan-400 hover:underline"
+              className="mt-4 text-sm text-sky-400 hover:underline"
             >
               Ver extrato completo →
             </button>
@@ -731,7 +739,7 @@ export function FinanceDashboard({
               onClick={() => setExtratoView("doacoes")}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                 extratoView === "doacoes"
-                  ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white"
+                  ? "bg-sky-400 text-white"
                   : "border border-zinc-700 text-zinc-400 hover:text-white"
               }`}
             >
@@ -742,7 +750,7 @@ export function FinanceDashboard({
               onClick={() => setExtratoView("saques")}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                 extratoView === "saques"
-                  ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white"
+                  ? "bg-sky-400 text-white"
                   : "border border-zinc-700 text-zinc-400 hover:text-white"
               }`}
             >
@@ -824,7 +832,7 @@ export function FinanceDashboard({
                         <td className="px-4 py-3 text-red-400/80">
                           {tx.status === "confirmed" ? formatCurrency(tx.fee) : "—"}
                         </td>
-                        <td className="px-4 py-3 font-semibold text-emerald-400">
+                        <td className="px-4 py-3 font-semibold text-sky-400">
                           {tx.status === "confirmed" ? formatCurrency(tx.net) : "—"}
                         </td>
                         <td className="px-4 py-3">
@@ -868,7 +876,7 @@ export function FinanceDashboard({
                       <td className="px-4 py-3 text-red-400/80">
                         {payout.fee != null ? formatCurrency(payout.fee) : "—"}
                       </td>
-                      <td className="px-4 py-3 font-semibold text-emerald-400">
+                      <td className="px-4 py-3 font-semibold text-sky-400">
                         {formatCurrency(payout.netAmount)}
                       </td>
                       <td className="px-4 py-3">
@@ -900,7 +908,7 @@ export function FinanceDashboard({
             </p>
 
             {withdrawTotpEnabled && (
-              <p className="mt-2 text-xs text-cyan-300">
+              <p className="mt-2 text-xs text-sky-300">
                 Com 2FA ativo, você também pode usar o código do autenticador.
               </p>
             )}
@@ -951,7 +959,7 @@ export function FinanceDashboard({
                   (withdrawOtp.length !== 6 && withdrawTotpCode.length !== 6)
                 }
                 onClick={handleConfirmWithdraw}
-                className="web3-btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                className="live-btn-primary flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {withdrawing ? "Solicitando…" : "Confirmar saque"}
               </button>
@@ -961,7 +969,7 @@ export function FinanceDashboard({
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg">
           {toast}
         </div>
       )}

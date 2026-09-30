@@ -28,12 +28,12 @@ export default function GlobalError({
             <button
               type="button"
               onClick={() => reset()}
-              className="mt-8 rounded-lg web3-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+              className="mt-8 rounded-lg live-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110"
             >
               Recarregar
             </button>
             <p className="mt-6">
-              <Link href="/" className="text-sm text-cyan-400 hover:underline">
+              <Link href="/" className="text-sm text-sky-400 hover:underline">
                 Voltar ao início
               </Link>
             </p>

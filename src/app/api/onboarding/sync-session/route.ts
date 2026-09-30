@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   const creator =
-    (await creatorRepo.getById(session.creatorId)) ??
+    (session.creatorId ? await creatorRepo.getById(session.creatorId) : null) ??
     (await creatorRepo.getByUserId(session.userId));
 
   if (!creator?.onboardingCompleted) {

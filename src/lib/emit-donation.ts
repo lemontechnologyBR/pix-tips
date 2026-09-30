@@ -3,8 +3,13 @@ import { resolveAlertSoundId } from "@/lib/alert-catalog";
 import { sendDonationReceivedEmail } from "@/lib/email";
 import { formatCurrency } from "@/lib/format";
 import { createNotification } from "@/lib/notifications/service";
-import { forwardDonationToIntegrations } from "@/lib/integrations/forward-donation";
 import { getCreatorById } from "@/lib/store";
+import { findActiveSubscriber } from "@/lib/fan-subscriptions";
+import {
+  applyTipToFanMissions,
+  fanKeyFromDonor,
+  getCompletedMissionBadges,
+} from "@/lib/fan-missions";
 import type { DonationPayload, Transaction } from "@/types";
 
 export async function emitDonationAlert(
@@ -14,20 +19,58 @@ export async function emitDonationAlert(
   const creator = await getCreatorById(transaction.creatorId);
   if (!creator) return;
 
-  // Prioridade: argumento explícito → salvo na transação → configuração do criador
-  // Ignorar vozes "off" ou em branco em todos os níveis
   const normalize = (v?: string | null) => (v && v !== "off" ? v : undefined);
 
   const donorVoice =
     normalize(overrideTtsVoiceId) ??
     normalize(transaction.donorTtsVoiceId);
 
-  // TTS ativado quando: criador habilitou OR doador escolheu uma voz
-  const ttsEnabled = creator.alertSettings.ttsEnabled || (donorVoice != null);
+  const ttsEnabled = creator.alertSettings.ttsEnabled || donorVoice != null;
   const ttsVoiceId = donorVoice ?? creator.alertSettings.ttsVoiceId;
 
+  const displayName = transaction.anonymous ? "Anônimo" : transaction.donorName;
+
+  let isSubscriber = false;
+  let subscriberPlanName: string | undefined;
+  let missionBadges: string[] = [];
+
+  if (transaction.kind !== "subscription") {
+    try {
+      const sub = await findActiveSubscriber(transaction.creatorId, {
+        userId: transaction.donorUserId,
+        name: transaction.anonymous ? null : transaction.donorName,
+      });
+      if (sub) {
+        isSubscriber = true;
+        subscriberPlanName = sub.planName;
+      }
+    } catch (err) {
+      console.error("[emit-donation] subscriber lookup", err);
+    }
+
+    try {
+      const { newlyCompletedBadges } = await applyTipToFanMissions({
+        creatorId: transaction.creatorId,
+        amount: transaction.amount,
+        donorUserId: transaction.donorUserId,
+        donorName: transaction.anonymous ? null : transaction.donorName,
+      });
+      const fanKey = fanKeyFromDonor({
+        userId: transaction.donorUserId,
+        name: transaction.anonymous ? null : transaction.donorName,
+      });
+      const allBadges = await getCompletedMissionBadges(
+        transaction.creatorId,
+        fanKey,
+      );
+      missionBadges = [...new Set([...allBadges, ...newlyCompletedBadges])];
+    } catch (err) {
+      console.error("[emit-donation] missions", err);
+    }
+  }
+
   const payload: DonationPayload = {
-    name: transaction.anonymous ? "Anônimo" : transaction.donorName,
+    name: displayName,
     amount: transaction.amount,
     message: transaction.message,
     templateId: creator.alertSettings.templateId,
@@ -41,6 +84,9 @@ export async function emitDonationAlert(
     ttsEnabled,
     ttsVoiceId,
     ttsTemplate: creator.alertSettings.ttsTemplate,
+    isSubscriber,
+    subscriberPlanName,
+    missionBadges: missionBadges.length ? missionBadges : undefined,
   };
 
   const io = getIO();
@@ -51,17 +97,11 @@ export async function emitDonationAlert(
     .to(`tx:${transaction.id}`)
     .emit("payment-confirmed", { transactionId: transaction.id });
 
-  try {
-    await forwardDonationToIntegrations(transaction.creatorId, transaction);
-  } catch (err) {
-    console.error("[emit-donation] integration error:", err);
-  }
-
   if (creator.notifyEmailDonation && creator.email) {
     try {
       await sendDonationReceivedEmail(creator.email, {
         creatorName: creator.displayName,
-        donorName: transaction.anonymous ? "Anônimo" : transaction.donorName,
+        donorName: displayName,
         amount: transaction.amount,
         message: transaction.message,
       });
@@ -71,16 +111,34 @@ export async function emitDonationAlert(
   }
 
   if (creator.notifyPanelDonation) {
-    const donorName = transaction.anonymous ? "Anônimo" : transaction.donorName;
     try {
+      const badge =
+        isSubscriber
+          ? " (assinante)"
+          : missionBadges.length
+            ? ` [${missionBadges[0]}]`
+            : "";
       await createNotification(transaction.creatorId, {
         type: "donation",
         title: "Nova doação!",
-        body: `${donorName} doou ${formatCurrency(transaction.amount)}`,
+        body: `${displayName}${badge} doou ${formatCurrency(transaction.amount)}`,
       });
     } catch (err) {
       console.error("[emit-donation] notification error:", err);
     }
+  }
+
+  try {
+    const { tryGrantDiscordRoleForDonation } = await import(
+      "@/lib/integrations/discord-roles"
+    );
+    await tryGrantDiscordRoleForDonation({
+      creatorId: transaction.creatorId,
+      amount: transaction.amount,
+      donorUserId: transaction.donorUserId,
+    });
+  } catch (err) {
+    console.error("[emit-donation] discord role error:", err);
   }
 }
 
@@ -105,6 +163,9 @@ export async function emitTestDonationAlert(creatorId: string): Promise<boolean>
     ttsEnabled: creator.alertSettings.ttsEnabled,
     ttsVoiceId: creator.alertSettings.ttsVoiceId,
     ttsTemplate: creator.alertSettings.ttsTemplate,
+    isSubscriber: true,
+    subscriberPlanName: "Apoio mensal",
+    missionBadges: ["Fã"],
   };
 
   getIO().of("/alerts").to(creatorId).emit("new-donation", payload);

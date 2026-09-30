@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
         <p className="text-sm text-zinc-300">
           Se existir uma conta com esse e-mail, enviamos instruções para redefinir a senha.
         </p>
-        <Link href="/login" className="inline-block text-sm text-cyan-400 hover:underline">
+        <Link href="/login" className="inline-block text-sm text-sky-400 hover:underline">
           Voltar ao login
         </Link>
       </div>
@@ -77,13 +77,13 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="web3-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
+        className="live-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
       >
         {loading ? "Enviando..." : "Enviar link"}
       </button>
 
       <p className="text-center text-sm text-zinc-400">
-        <Link href="/login" className="text-cyan-400 hover:underline">
+        <Link href="/login" className="text-sky-400 hover:underline">
           Voltar ao login
         </Link>
       </p>

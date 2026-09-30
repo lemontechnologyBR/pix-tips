@@ -42,6 +42,24 @@ export function DashboardNavIcon({ name, className = iconClass }: DashboardNavIc
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
       );
+    case "subscriptions":
+      return (
+        <svg {...props}>
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+          <path d="M8 14h.01" />
+          <path d="M12 14h.01" />
+          <path d="M16 14h.01" />
+        </svg>
+      );
+    case "missions":
+      return (
+        <svg {...props}>
+          <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
+        </svg>
+      );
     case "widgets":
       return (
         <svg {...props}>

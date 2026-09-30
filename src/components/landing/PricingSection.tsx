@@ -1,74 +1,70 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { computeFee, formatCommissionLabel } from "@/lib/finance";
+import {
+  COMMISSION_FIXED_FEE,
+  DEFAULT_PAYOUT_FEE,
+  computeFee,
+  computeNetAmount,
+  formatCommissionLabel,
+  formatPayoutFeeLabel,
+} from "@/lib/finance";
 import { PLATFORM_FEATURES } from "@/lib/landing-data";
 
-const AVG_DONATION = 20; // R$ used in the monthly simulator
+const EXAMPLES = [5, 10, 20, 30, 50, 100, 200] as const;
+
+function brl(value: number): string {
+  return value.toFixed(2).replace(".", ",");
+}
 
 export function PricingSection() {
-  const [donationCount, setDonationCount] = useState(50);
-
-  const gross = donationCount * AVG_DONATION;
-  // Taxa fixa por doação × quantidade
-  const fee = donationCount * computeFee(AVG_DONATION);
-  const net = gross - fee;
   const commissionLabel = formatCommissionLabel();
+  const payoutLabel = formatPayoutFeeLabel(DEFAULT_PAYOUT_FEE);
 
   return (
-    <section id="precos" className="relative py-24 overflow-hidden">
-      {/* Background glow */}
+    <section id="precos" className="relative overflow-hidden py-24">
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[700px] w-[700px] rounded-full bg-cyan-500/5 blur-3xl" />
+        <div className="h-[700px] w-[700px] rounded-full bg-sky-400/5 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Header */}
         <div className="text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
             Sem mensalidade. Para sempre.
           </span>
           <h2 className="mt-4 text-4xl font-black text-white sm:text-5xl">
             Preço simples e{" "}
-            <span className="web3-text-gradient">transparente</span>
+            <span className="live-text-accent">transparente</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-zinc-400">
-            Grátis para começar, pague só quando receber
+            Cobramos{" "}
+            <span className="font-semibold text-zinc-200">R$ 0,99 fixos</span> por
+            doação — não é percentual. Em R$ 100 a taxa efetiva fica em ~1%.
           </p>
         </div>
 
-        {/* Main grid: pricing card + simulator */}
         <div className="mt-16 grid gap-8 lg:grid-cols-2 lg:items-start">
-
           {/* LEFT: Pricing card */}
-          <div className="relative web3-glass-strong rounded-3xl p-8 shadow-2xl shadow-cyan-500/20">
-            <span className="absolute -top-3.5 left-8 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-4 py-1 text-xs font-bold text-white">
+          <div className="relative rounded-3xl p-8 shadow-2xl shadow-black/40 live-panel">
+            <span className="absolute -top-3.5 left-8 rounded-full bg-sky-400 px-4 py-1 text-xs font-bold text-white">
               Gratuito para sempre
             </span>
 
-            {/* Price */}
             <div className="flex items-end gap-2">
-              <span className="text-6xl font-black text-white leading-none">
-                R$ 0
-              </span>
+              <span className="text-6xl font-black leading-none text-white">R$ 0</span>
               <span className="mb-1.5 text-base text-zinc-500">/mês</span>
             </div>
-            <p className="mt-2 text-sm font-medium text-cyan-400">
-              {commissionLabel} por doação + taxa de saque
+            <p className="mt-2 text-sm font-medium text-sky-400">
+              {commissionLabel} por doação + {payoutLabel} por saque
             </p>
 
-            {/* Divider */}
             <div className="my-6 border-t border-zinc-800" />
 
-            {/* Feature list */}
             <ul className="space-y-3">
               {PLATFORM_FEATURES.map((feat) => (
                 <li key={feat} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-sky-400/30 bg-sky-400/10">
                     <svg
-                      className="h-3 w-3 text-emerald-400"
+                      className="h-3 w-3 text-sky-400"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -84,10 +80,9 @@ export function PricingSection() {
               ))}
             </ul>
 
-            {/* CTA */}
             <Link
               href="/dashboard"
-              className="web3-btn-primary mt-8 flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-white"
+              className="live-btn-primary mt-8 flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-white"
             >
               Criar conta grátis
               <svg
@@ -107,69 +102,73 @@ export function PricingSection() {
             </p>
           </div>
 
-          {/* RIGHT: Monthly earnings simulator + why no subscription */}
+          {/* RIGHT: Fee comparison */}
           <div className="flex flex-col gap-6">
-
-            {/* Simulator */}
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 p-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                Simulador de ganhos
+                Comparativo por doação
               </p>
               <p className="mt-1 text-sm text-zinc-400">
-                Quantas doações por mês você espera receber?
+                Sempre{" "}
+                <span className="font-semibold text-zinc-200">R$ 0,99 fixo</span>
+                {" "}— a % cai quando a doação é maior
               </p>
 
-              {/* Input */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-xs text-zinc-500 mb-2">
-                  <span>10 doações</span>
-                  <span className="font-semibold text-cyan-400 text-sm">
-                    {donationCount} doações / mês
-                  </span>
-                  <span>500 doações</span>
+              <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800">
+                <div className="grid grid-cols-4 gap-0 border-b border-zinc-800 bg-zinc-950/80 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 sm:px-4">
+                  <span>Doação</span>
+                  <span>Taxa</span>
+                  <span>Você fica</span>
+                  <span className="text-right">% efetiva</span>
                 </div>
-                <input
-                  type="range"
-                  min={10}
-                  max={500}
-                  step={10}
-                  value={donationCount}
-                  onChange={(e) => setDonationCount(Number(e.target.value))}
-                  className="w-full accent-cyan-400 cursor-pointer"
-                />
-                <p className="mt-1 text-center text-[11px] text-zinc-600">
-                  Média de R$ {AVG_DONATION},00 por doação considerada
-                </p>
+                {EXAMPLES.map((amount, i) => {
+                  const fee = computeFee(amount);
+                  const net = computeNetAmount(amount);
+                  const pct = (fee / amount) * 100;
+                  return (
+                    <div
+                      key={amount}
+                      className={`grid grid-cols-4 items-center gap-0 px-3 py-3.5 sm:px-4 ${
+                        i < EXAMPLES.length - 1 ? "border-b border-zinc-800/80" : ""
+                      } ${i === 2 ? "bg-cyan-500/[0.06]" : ""}`}
+                    >
+                      <span className="text-sm font-bold text-white">
+                        R$ {brl(amount)}
+                      </span>
+                      <span className="text-sm font-medium text-red-400">
+                        − R$ {brl(fee)}
+                      </span>
+                      <span className="text-sm font-bold text-sky-400">
+                        R$ {brl(net)}
+                      </span>
+                      <span className="text-right text-sm text-zinc-400">
+                        {pct.toFixed(1).replace(".", ",")}%
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Result breakdown */}
-              <div className="mt-5 space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-3">
-                  <span className="text-sm text-zinc-400">Total recebido</span>
-                  <span className="text-base font-bold text-white">
-                    R$ {gross.toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-red-500/15 bg-red-500/5 px-4 py-3">
-                  <span className="text-sm text-zinc-400">
-                    Taxa pix.tips ({commissionLabel})
-                  </span>
-                  <span className="text-base font-bold text-red-400">
-                    − R$ {fee.toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] px-4 py-3">
-                  <span className="text-sm font-semibold text-zinc-300">
-                    Você recebe
-                  </span>
-                  <span className="text-lg font-black text-emerald-400">
-                    R$ {net.toFixed(2).replace(".", ",")}
-                  </span>
+              <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-300">Taxa de saque</p>
+                    <p className="mt-0.5 text-[11px] text-zinc-500">
+                      Cobrada uma vez quando você saca pra sua Pix
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-base font-black text-white">
+                    {payoutLabel}
+                  </p>
                 </div>
               </div>
+
+              <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
+                Ex.: três doações de R$ 20 → você recebe R${" "}
+                {brl(3 * computeNetAmount(20))}. No saque sai mais {payoutLabel}.
+              </p>
             </div>
 
-            {/* Why no subscription */}
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 p-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                 Por que não cobramos mensalidade?
@@ -190,9 +189,9 @@ export function PricingSection() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-3">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-sky-400/30 bg-sky-400/10">
                       <svg
-                        className="h-3 w-3 text-emerald-400"
+                        className="h-3 w-3 text-sky-400"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -204,9 +203,7 @@ export function PricingSection() {
                       </svg>
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-300">
-                        {item.title}
-                      </p>
+                      <p className="text-sm font-semibold text-zinc-300">{item.title}</p>
                       <p className="mt-0.5 text-xs text-zinc-500">{item.body}</p>
                     </div>
                   </div>
@@ -216,13 +213,10 @@ export function PricingSection() {
           </div>
         </div>
 
-        {/* Comparison note */}
         <p className="mt-10 text-center text-sm text-zinc-500">
           Outras plataformas cobram até{" "}
-          <span className="line-through text-zinc-600">R$50/mês</span>.{" "}
-          <span className="font-semibold text-zinc-300">
-            Aqui você começa grátis.
-          </span>
+          <span className="text-zinc-600 line-through">R$50/mês</span>.{" "}
+          <span className="font-semibold text-zinc-300">Aqui você começa grátis.</span>
         </p>
       </div>
     </section>

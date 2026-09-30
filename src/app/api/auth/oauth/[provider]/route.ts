@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
+  OAUTH_ACCOUNT_KIND_COOKIE,
   OAUTH_LINK_USER_COOKIE,
   OAUTH_PKCE_COOKIE,
   OAUTH_RETURN_COOKIE,
@@ -10,8 +11,9 @@ import {
   generatePkcePair,
   isLinkOnlyOAuthProvider,
   isOAuthProvider,
+  resolveOAuthAccountKind,
 } from "@/lib/auth/oauth";
-import { isSessionError, requireSession } from "@/lib/auth/require-session";
+import { isUserSessionError, requireUserSession } from "@/lib/auth/require-session";
 
 interface RouteContext {
   params: Promise<{ provider: string }>;
@@ -46,6 +48,11 @@ export async function GET(request: Request, context: RouteContext) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("mode");
   const returnTo = safeReturnPath(searchParams.get("returnTo"));
+  const kindParam = searchParams.get("kind");
+  const accountKind =
+    kindParam === "fan" || kindParam === "creator"
+      ? kindParam
+      : resolveOAuthAccountKind(returnTo);
 
   if (isLinkOnlyOAuthProvider(provider) && mode !== "link") {
     const integrationsUrl = new URL("/dashboard/integrations", redirectBase());
@@ -78,18 +85,25 @@ export async function GET(request: Request, context: RouteContext) {
       });
     }
 
+    cookieStore.set({
+      name: OAUTH_RETURN_COOKIE,
+      value: returnTo,
+      ...cookieOptions,
+    });
+
+    cookieStore.set({
+      name: OAUTH_ACCOUNT_KIND_COOKIE,
+      value: accountKind,
+      ...cookieOptions,
+    });
+
     if (mode === "link") {
-      const session = await requireSession();
-      if (isSessionError(session)) return session;
+      const session = await requireUserSession();
+      if (isUserSessionError(session)) return session;
 
       cookieStore.set({
         name: OAUTH_LINK_USER_COOKIE,
         value: session.userId,
-        ...cookieOptions,
-      });
-      cookieStore.set({
-        name: OAUTH_RETURN_COOKIE,
-        value: returnTo,
         ...cookieOptions,
       });
     }

@@ -1,21 +1,19 @@
 import { BRAND_NAME, BRAND_TAGLINE, SITE_URL } from "@/lib/brand";
 
-/** Identidade visual alinhada ao site (cyan → purple, fundo slate). */
-export const EMAIL_BG = "#030712";
-export const EMAIL_SURFACE = "#0f172a";
-export const EMAIL_BORDER = "rgba(6,182,212,0.22)";
-export const EMAIL_PRIMARY = "#06b6d4";
-export const EMAIL_PRIMARY_LIGHT = "#22d3ee";
-export const EMAIL_PURPLE = "#a855f7";
-export const EMAIL_MUTED = "#94a3b8";
+/** Identidade visual alinhada ao wordmark pix.tips (sky → lavender). */
+export const EMAIL_BG = "#07070a";
+export const EMAIL_SURFACE = "#121218";
+export const EMAIL_BORDER = "rgba(63,63,70,0.85)";
+export const EMAIL_PRIMARY = "#38bdf8";
+export const EMAIL_PRIMARY_LIGHT = "#7dd3fc";
+export const EMAIL_PURPLE = "#a78bfa";
+export const EMAIL_MUTED = "#a1a1aa";
 export const EMAIL_TEXT = "#f8fafc";
-export const EMAIL_HEADER_GRADIENT =
-  "linear-gradient(135deg,#06b6d4 0%,#7c3aed 55%,#a855f7 100%)";
-export const EMAIL_BTN_GRADIENT =
-  "linear-gradient(135deg,#06b6d4 0%,#7c3aed 100%)";
+export const EMAIL_HEADER_GRADIENT = "linear-gradient(135deg,#38bdf8 0%,#a78bfa 100%)";
+export const EMAIL_BTN_GRADIENT = "linear-gradient(135deg,#38bdf8 0%,#818cf8 100%)";
 
 export function emailButton(href: string, label: string, marginTop = "0"): string {
-  return `<a href="${href}" style="display:inline-block;margin-top:${marginTop};padding:13px 26px;background:${EMAIL_BTN_GRADIENT};color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;font-size:14px;letter-spacing:0.01em;">${label}</a>`;
+  return `<a href="${href}" style="display:inline-block;margin-top:${marginTop};padding:13px 26px;background:${EMAIL_BTN_GRADIENT};color:#0b1220;text-decoration:none;border-radius:12px;font-weight:700;font-size:14px;letter-spacing:0.01em;">${label}</a>`;
 }
 
 export function emailPanel(inner: string, extraStyle = ""): string {

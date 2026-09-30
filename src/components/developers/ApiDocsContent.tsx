@@ -29,8 +29,8 @@ export function ApiDocsContent() {
                 }}
                 className={`text-left transition ${
                   activeSection === item.id
-                    ? "text-cyan-400"
-                    : "text-zinc-400 hover:text-cyan-300"
+                    ? "text-sky-400"
+                    : "text-zinc-400 hover:text-sky-300"
                 }`}
               >
                 {item.label}
@@ -49,18 +49,18 @@ export function ApiDocsContent() {
           <p className="mt-3 leading-relaxed text-zinc-400">
             {API_DOCS.authentication.description}
           </p>
-          <div className="web3-card mt-6 overflow-hidden rounded-xl">
+          <div className="live-card mt-6 overflow-hidden rounded-xl">
             <div className="border-b border-zinc-800 px-4 py-2 text-xs text-zinc-500">
               Header obrigatório
             </div>
-            <pre className="overflow-x-auto p-4 font-mono text-sm text-cyan-300">
+            <pre className="overflow-x-auto p-4 font-mono text-sm text-sky-300">
               {API_DOCS.authentication.headerName}: {API_DOCS.authentication.headerExample}
             </pre>
           </div>
           <p className="mt-4 text-sm text-zinc-500">{API_DOCS.authentication.note}</p>
           <p className="mt-2 text-sm text-zinc-500">
             Base URL:{" "}
-            <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-cyan-300">
+            <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-sky-300">
               {API_DOCS.baseUrl}
             </code>
           </p>
@@ -70,15 +70,15 @@ export function ApiDocsContent() {
           <h2 className="text-2xl font-semibold text-white">Webhooks</h2>
           <p className="mt-3 text-zinc-400">
             Configure um endpoint HTTPS para receber eventos assinados com HMAC-SHA256 no header{" "}
-            <code className="text-cyan-300">X-Tip-Page-Signature</code>.
+            <code className="text-sky-300">X-Tip-Page-Signature</code>.
           </p>
           <div className="mt-8 space-y-8">
             {API_DOCS.webhooks.map((wh) => (
               <div
                 key={wh.name}
-                className="web3-card rounded-xl p-5"
+                className="live-card rounded-xl p-5"
               >
-                <code className="text-sm font-semibold text-emerald-400">{wh.name}</code>
+                <code className="text-sm font-semibold text-sky-400">{wh.name}</code>
                 <p className="mt-2 text-sm text-zinc-400">{wh.description}</p>
                 <pre className="mt-4 overflow-x-auto rounded-lg bg-zinc-950 p-4 font-mono text-xs leading-relaxed text-zinc-400">
                   {wh.payloadExample}
@@ -92,13 +92,13 @@ export function ApiDocsContent() {
           <h2 className="text-2xl font-semibold text-white">Endpoints</h2>
           <p className="mt-3 text-zinc-400">
             Referência dos principais recursos REST. Substitua{" "}
-            <code className="text-cyan-300">tp_live_SUA_CHAVE</code> pela chave do dashboard.
+            <code className="text-sky-300">tp_live_SUA_CHAVE</code> pela chave do dashboard.
           </p>
           <div className="mt-8 space-y-6">
             {API_DOCS.endpoints.map((ep) => (
               <div
                 key={`${ep.method}-${ep.path}`}
-                className="web3-card overflow-hidden rounded-xl"
+                className="live-card overflow-hidden rounded-xl"
               >
                 <div className="flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/50 px-4 py-3">
                   <span
@@ -106,7 +106,7 @@ export function ApiDocsContent() {
                       ep.method === "GET"
                         ? "bg-blue-500/20 text-blue-400"
                         : ep.method === "POST"
-                          ? "bg-emerald-500/20 text-emerald-400"
+                          ? "bg-sky-400/15 text-sky-400"
                           : "bg-amber-500/20 text-amber-400"
                     }`}
                   >

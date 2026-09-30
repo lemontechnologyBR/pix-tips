@@ -307,6 +307,7 @@ export interface LeaderboardEntry {
   name: string;
   amount: number;
   count: number;
+  isSubscriber?: boolean;
 }
 
 export interface WidgetDonationItem {
@@ -341,6 +342,10 @@ export interface TipPageSettings {
   tipTtsEnabled: boolean;
   /** Vozes disponíveis para o doador escolher (subconjunto de TTS_VOICES) */
   tipTtsVoices: string[];
+  /** Filtra palavras bloqueadas na mensagem do doador */
+  messageFilterEnabled: boolean;
+  /** Lista custom de palavras bloqueadas (além da lista padrão leve) */
+  blockedWords: string[];
 }
 
 export type TipPageBackgroundStyle = "theme" | "solid" | "gradient" | "image";
@@ -418,6 +423,7 @@ export interface Creator {
   widgetToken: string;
   tipPageSettings: TipPageSettings;
   chatBotSettings: ChatBotSettings;
+  discordSettings: DiscordSettings;
   plan: PlanType;
   isSuspended?: boolean;
   email: string;
@@ -429,6 +435,54 @@ export interface Creator {
   proExpiresAt?: Date | null;
 }
 
+export interface DiscordRoleMapping {
+  minAmount: number;
+  roleId: string;
+  roleName?: string;
+}
+
+export interface DiscordSettings {
+  guildId: string | null;
+  roleMappings: DiscordRoleMapping[];
+}
+
+export interface CreatorSubPlan {
+  id: string;
+  creatorId: string;
+  name: string;
+  description: string;
+  price: number;
+  perks: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface FanSubscriptionPublic {
+  id: string;
+  planId: string;
+  planName: string;
+  subscriberEmail: string;
+  subscriberName: string;
+  status: string;
+  currentPeriodEnd: string | null;
+  createdAt: string;
+}
+
+export interface CreatorFanMissionPublic {
+  id: string;
+  title: string;
+  description: string;
+  type: "tip_count" | "tip_total";
+  targetValue: number;
+  periodDays: number | null;
+  rewardBadge: string;
+  rewardDiscordRoleId?: string | null;
+  active: boolean;
+  sortOrder: number;
+  progressValue?: number;
+  completed?: boolean;
+}
+
 export interface Transaction {
   id: string;
   creatorId: string;
@@ -438,11 +492,14 @@ export interface Transaction {
   donorName: string;
   status: TransactionStatus;
   method: PaymentMethod;
+  kind?: "donation" | "subscription";
   pixCode?: string;
   wooviPaymentId?: string;
   splitPayment?: boolean;
   applicationFee?: number;
   donorTtsVoiceId?: string;
+  donorUserId?: string;
+  subscriptionPlanId?: string;
   createdAt: string;
 }
 
@@ -467,6 +524,11 @@ export interface DonationPayload {
   ttsEnabled?: boolean;
   ttsVoiceId?: string;
   ttsTemplate?: string;
+  /** Assinante Pix mensal ativo neste criador */
+  isSubscriber?: boolean;
+  subscriberPlanName?: string;
+  /** Badges de missões concluídas */
+  missionBadges?: string[];
 }
 
 export interface DashboardOverview {

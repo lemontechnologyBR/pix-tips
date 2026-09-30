@@ -46,16 +46,16 @@ export async function verifyMfaPendingToken(token: string): Promise<SessionPaylo
     if (payload.purpose !== "mfa_pending") {
       return null;
     }
-    if (
-      typeof payload.userId !== "string" ||
-      typeof payload.creatorId !== "string" ||
-      typeof payload.email !== "string"
-    ) {
+    if (typeof payload.userId !== "string" || typeof payload.email !== "string") {
       return null;
     }
+    const creatorId =
+      typeof payload.creatorId === "string" && payload.creatorId.length > 0
+        ? payload.creatorId
+        : null;
     return {
       userId: payload.userId,
-      creatorId: payload.creatorId,
+      creatorId,
       email: payload.email,
       role: typeof payload.role === "string" ? payload.role : "user",
       onboardingCompleted: Boolean(payload.onboardingCompleted),

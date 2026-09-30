@@ -205,13 +205,13 @@ export function FeaturesSection() {
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
           {/* Featured card — spans 2 columns on desktop */}
-          <div className="web3-glass rounded-2xl p-7 transition-all duration-300 hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/10 sm:col-span-2 lg:col-span-2">
+          <div className="live-panel rounded-2xl p-7 transition-all duration-300 hover:border-sky-400/30 hover:shadow-xl hover:shadow-none sm:col-span-2 lg:col-span-2">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-sky-400/30 bg-cyan-500/10 text-sky-400">
                 {ICON_MAP_LARGE[featured.icon] ?? ICON_MAP[featured.icon]}
               </div>
               <div className="flex-1">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-cyan-400">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   Tempo real
                 </span>
@@ -224,9 +224,9 @@ export function FeaturesSection() {
 
                 {/* Visual indicator */}
                 <div className="mt-5 flex items-center gap-3">
-                  <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-semibold text-emerald-400">
+                  <div className="flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2">
+                    <span className="h-2 w-2 rounded-full bg-sky-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-sky-400">
                       Pix confirmado
                     </span>
                   </div>
@@ -241,8 +241,8 @@ export function FeaturesSection() {
                   >
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
-                  <div className="flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
-                    <span className="text-xs font-semibold text-cyan-400">
+                  <div className="flex items-center gap-2 rounded-xl border border-sky-400/20 bg-cyan-500/10 px-3 py-2">
+                    <span className="text-xs font-semibold text-sky-400">
                       Saldo atualizado
                     </span>
                   </div>
@@ -255,9 +255,9 @@ export function FeaturesSection() {
           {rest.map((feature) => (
             <div
               key={feature.title}
-              className="web3-glass rounded-2xl p-5 transition-all duration-300 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10"
+              className="live-panel rounded-2xl p-5 transition-all duration-300 hover:border-sky-400/30 hover:shadow-lg hover:shadow-none"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/20 bg-cyan-500/10 text-sky-400">
                 {ICON_MAP[feature.icon]}
               </div>
               <h3 className="mt-4 font-semibold text-white">{feature.title}</h3>

@@ -42,7 +42,7 @@ export function WidgetObsPanel({
           onClick={copyWidget}
           className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
             copied
-              ? "border-emerald-500/50 bg-emerald-600/15 text-emerald-300"
+              ? "border-sky-400/40 bg-sky-500/12 text-sky-300"
               : "border-zinc-700 bg-zinc-800/80 text-zinc-200 hover:border-zinc-600"
           }`}
         >
@@ -95,7 +95,7 @@ export function WidgetPositionPicker({
               onClick={() => onChange(p.id)}
               className={`rounded border py-1 text-xs transition ${
                 active
-                  ? "border-cyan-500 bg-cyan-500/20 text-cyan-200"
+                  ? "border-cyan-500 bg-sky-400/12 text-cyan-200"
                   : "border-zinc-700 text-zinc-500 hover:border-zinc-500"
               }`}
             >

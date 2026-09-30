@@ -132,7 +132,7 @@ export function OnboardingWizard({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-xl shadow-cyan-950/20">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 shadow-xl shadow-black/30">
         {step === "welcome" && (
           <>
             <h1 className="text-2xl font-bold text-white">Bem-vindo ao pix.tips 💜</h1>
@@ -143,7 +143,7 @@ export function OnboardingWizard({
             <button
               type="button"
               onClick={next}
-              className="mt-8 w-full rounded-xl web3-btn-primary py-3 font-semibold hover:brightness-110"
+              className="mt-8 w-full rounded-xl live-btn-primary py-3 font-semibold hover:brightness-110"
             >
               Começar
             </button>
@@ -185,7 +185,7 @@ export function OnboardingWizard({
                 type="button"
                 onClick={next}
                 disabled={!form.displayName.trim()}
-                className="flex-1 rounded-xl web3-btn-primary py-3 font-semibold disabled:opacity-40"
+                className="flex-1 rounded-xl live-btn-primary py-3 font-semibold disabled:opacity-40"
               >
                 Continuar
               </button>
@@ -215,7 +215,7 @@ export function OnboardingWizard({
               <button type="button" onClick={next} className="flex-1 rounded-xl border border-zinc-600 py-3 text-zinc-300">
                 Pular
               </button>
-              <button type="button" onClick={next} className="flex-1 rounded-xl web3-btn-primary py-3 font-semibold">
+              <button type="button" onClick={next} className="flex-1 rounded-xl live-btn-primary py-3 font-semibold">
                 Continuar
               </button>
             </div>
@@ -237,7 +237,7 @@ export function OnboardingWizard({
                     onClick={() => setForm({ ...form, templateId: t.id })}
                     className={`rounded-lg border px-2 py-2 text-left text-xs transition ${
                       form.templateId === t.id
-                        ? "border-cyan-500 bg-cyan-500/20 text-cyan-200"
+                        ? "border-cyan-500 bg-sky-400/12 text-cyan-200"
                         : "border-zinc-800 hover:border-zinc-600"
                     }`}
                   >
@@ -263,7 +263,7 @@ export function OnboardingWizard({
                     }}
                     className={`rounded-lg border px-3 py-2 text-left text-xs transition ${
                       form.soundId === s.id
-                        ? "border-cyan-500 bg-cyan-500/20 text-cyan-200"
+                        ? "border-cyan-500 bg-sky-400/12 text-cyan-200"
                         : "border-zinc-800 hover:border-zinc-600"
                     }`}
                   >
@@ -283,7 +283,7 @@ export function OnboardingWizard({
                 type="button"
                 onClick={finish}
                 disabled={loading}
-                className="flex-1 rounded-xl web3-btn-primary py-3 font-semibold disabled:opacity-40"
+                className="flex-1 rounded-xl live-btn-primary py-3 font-semibold disabled:opacity-40"
               >
                 {loading ? "Salvando..." : "Finalizar"}
               </button>
@@ -299,22 +299,22 @@ export function OnboardingWizard({
             <div className="mt-5 space-y-3">
               <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
                 <p className="text-xs text-zinc-500">Página de doações</p>
-                <p className="mt-1 break-all text-sm text-cyan-300">{finishLinks.tip}</p>
+                <p className="mt-1 break-all text-sm text-sky-300">{finishLinks.tip}</p>
                 <button
                   type="button"
                   onClick={() => copy(finishLinks.tip, "tip")}
-                  className="mt-2 text-xs text-cyan-400 hover:underline"
+                  className="mt-2 text-xs text-sky-400 hover:underline"
                 >
                   {copied === "tip" ? "Copiado!" : "Copiar link"}
                 </button>
               </div>
               <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
                 <p className="text-xs text-zinc-500">Widget OBS (Browser Source)</p>
-                <p className="mt-1 break-all text-sm text-cyan-300">{finishLinks.widget}</p>
+                <p className="mt-1 break-all text-sm text-sky-300">{finishLinks.widget}</p>
                 <button
                   type="button"
                   onClick={() => copy(finishLinks.widget, "widget")}
-                  className="mt-2 text-xs text-cyan-400 hover:underline"
+                  className="mt-2 text-xs text-sky-400 hover:underline"
                 >
                   {copied === "widget" ? "Copiado!" : "Copiar URL"}
                 </button>
@@ -324,7 +324,7 @@ export function OnboardingWizard({
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="mt-8 w-full rounded-xl web3-btn-primary py-3 font-semibold hover:brightness-110"
+              className="mt-8 w-full rounded-xl live-btn-primary py-3 font-semibold hover:brightness-110"
             >
               Ir para o painel
             </button>

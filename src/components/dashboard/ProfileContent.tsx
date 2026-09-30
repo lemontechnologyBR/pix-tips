@@ -27,7 +27,7 @@ function StatusPill({
   tone: "ok" | "warn" | "neutral";
 }) {
   const tones = {
-    ok: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+    ok: "border-sky-400/30 bg-sky-400/10 text-sky-300",
     warn: "border-amber-500/30 bg-amber-500/10 text-amber-300",
     neutral: "border-zinc-700 bg-zinc-900/60 text-zinc-300",
   };
@@ -69,7 +69,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
   return (
     <div className="w-full space-y-8">
       {/* ── Hero ── */}
-      <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-cyan-500/15 via-zinc-900/80 to-zinc-950 p-6 sm:p-8">
+      <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-sky-400/10 via-zinc-900 to-zinc-950 p-6 sm:p-8">
         <div className="flex flex-wrap items-start gap-5">
           {profile.avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -79,7 +79,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
               className="h-16 w-16 rounded-2xl border border-zinc-700 object-cover"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/20 text-2xl font-bold text-cyan-200">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-sky-400/30 bg-sky-400/12 text-2xl font-bold text-cyan-200">
               {avatarInitial}
             </div>
           )}
@@ -93,7 +93,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
           <Link
             href={tipPagePath(profile.username)}
             target="_blank"
-            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white"
+            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-sky-400/40 hover:text-white"
           >
             Ver página pública
           </Link>
@@ -138,7 +138,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4">
             <p className="text-xs text-zinc-500 uppercase tracking-wide">Taxa de saque</p>
-            <p className="mt-2 text-3xl font-black text-emerald-400">
+            <p className="mt-2 text-3xl font-black text-sky-400">
               {payoutFee > 0
                 ? `R$ ${payoutFee.toFixed(2).replace(".", ",")}`
                 : "Grátis"}
@@ -171,7 +171,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
               <ReadOnlyField label="Nome de exibição" value={profile.displayName} />
               <Link
                 href="/dashboard/tip-page"
-                className="inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white"
+                className="inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-sky-400/40 hover:text-white"
               >
                 Editar página pública
               </Link>
@@ -193,7 +193,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
               />
               <Link
                 href="/dashboard/finance"
-                className="web3-btn-primary inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                className="live-btn-primary inline-flex rounded-lg px-4 py-2 text-sm font-semibold text-white"
               >
                 Abrir financeiro
               </Link>
@@ -212,7 +212,7 @@ export function ProfileContent({ profile, financeOverview }: ProfileContentProps
             <Link
               key={link.href}
               href={link.href}
-              className="group rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-4 transition hover:border-cyan-500/40 hover:bg-cyan-500/5"
+              className="group rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-4 transition hover:border-sky-400/30 hover:bg-sky-400/5"
             >
               <p className="font-medium text-white group-hover:text-cyan-200">{link.label}</p>
               <p className="mt-1 text-xs text-zinc-500">{link.desc}</p>

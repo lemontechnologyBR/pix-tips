@@ -8,11 +8,13 @@ import type { OnboardingPayload } from "@/types";
 export const dynamic = "force-dynamic";
 
 async function resolveCreatorId(session: {
-  creatorId: string;
+  creatorId: string | null;
   userId: string;
 }): Promise<string | null> {
-  const byId = await creatorRepo.getById(session.creatorId);
-  if (byId) return byId.id;
+  if (session.creatorId) {
+    const byId = await creatorRepo.getById(session.creatorId);
+    if (byId) return byId.id;
+  }
 
   const byUser = await creatorRepo.getByUserId(session.userId);
   return byUser?.id ?? null;

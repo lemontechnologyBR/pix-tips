@@ -26,19 +26,19 @@ export function FAQSection() {
             </p>
             <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
               Dúvidas{" "}
-              <span className="web3-text-gradient">frequentes</span>
+              <span className="live-text-accent">frequentes</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-zinc-400">
               Tudo que você precisa saber antes de começar.
             </p>
 
-            <div className="mt-8 rounded-2xl border border-white/5 bg-cyan-500/5 p-5">
+            <div className="mt-8 rounded-2xl border border-white/5 bg-sky-400/5 p-5">
               <p className="text-sm text-zinc-400">
                 Ainda tem dúvidas? Entre em contato:
               </p>
               <a
                 href="mailto:suporte@pix.tips"
-                className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-cyan-400 hover:text-cyan-300 hover:underline"
+                className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-sky-400 hover:text-sky-300 hover:underline"
               >
                 <svg
                   className="h-4 w-4 shrink-0"
@@ -66,7 +66,7 @@ export function FAQSection() {
               return (
                 <div
                   key={item.question}
-                  className="web3-glass overflow-hidden rounded-xl border border-white/5 transition-all duration-200 hover:border-white/10"
+                  className="live-panel overflow-hidden rounded-xl border border-white/5 transition-all duration-200 hover:border-white/10"
                 >
                   <button
                     type="button"
@@ -78,7 +78,7 @@ export function FAQSection() {
                       {item.question}
                     </span>
                     <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-lg leading-none text-cyan-400 transition-transform duration-300 ${
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 text-lg leading-none text-sky-400 transition-transform duration-300 ${
                         isOpen ? "rotate-45" : ""
                       }`}
                       aria-hidden="true"
@@ -104,7 +104,7 @@ export function FAQSection() {
               <button
                 type="button"
                 onClick={() => setShowAll((v) => !v)}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/5 py-3 text-sm text-zinc-400 transition-colors hover:border-cyan-500/20 hover:text-cyan-400"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/5 py-3 text-sm text-zinc-400 transition-colors hover:border-sky-400/25 hover:text-sky-400"
               >
                 {showAll ? (
                   <>

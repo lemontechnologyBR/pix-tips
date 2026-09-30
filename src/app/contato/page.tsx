@@ -23,7 +23,7 @@ export default function ContatoPage() {
               <p className="font-medium text-zinc-300">Suporte técnico</p>
               <a
                 href="mailto:suporte@pix.tips"
-                className="text-cyan-400 transition hover:text-cyan-300 hover:underline"
+                className="text-sky-400 transition hover:text-sky-300 hover:underline"
               >
                 suporte@pix.tips
               </a>
@@ -33,7 +33,7 @@ export default function ContatoPage() {
               <p className="font-medium text-zinc-300">Privacidade e LGPD</p>
               <a
                 href="mailto:privacidade@pix.tips"
-                className="text-cyan-400 transition hover:text-cyan-300 hover:underline"
+                className="text-sky-400 transition hover:text-sky-300 hover:underline"
               >
                 privacidade@pix.tips
               </a>
@@ -44,7 +44,7 @@ export default function ContatoPage() {
               <p className="font-medium text-zinc-300">Parcerias</p>
               <a
                 href="mailto:parcerias@pix.tips"
-                className="text-cyan-400 transition hover:text-cyan-300 hover:underline"
+                className="text-sky-400 transition hover:text-sky-300 hover:underline"
               >
                 parcerias@pix.tips
               </a>
@@ -69,7 +69,7 @@ export default function ContatoPage() {
                 Envie e-mail para{" "}
                 <a
                   href="mailto:suporte@pix.tips"
-                  className="text-cyan-400 hover:underline"
+                  className="text-sky-400 hover:underline"
                 >
                   suporte@pix.tips
                 </a>{" "}
@@ -83,7 +83,7 @@ export default function ContatoPage() {
                 Acesse a{" "}
                 <Link
                   href="/privacidade/solicitacao"
-                  className="text-cyan-400 hover:underline"
+                  className="text-sky-400 hover:underline"
                 >
                   página de solicitação LGPD
                 </Link>{" "}
@@ -97,7 +97,7 @@ export default function ContatoPage() {
                 Use o e-mail{" "}
                 <a
                   href="mailto:suporte@pix.tips?subject=DENÚNCIA"
-                  className="text-cyan-400 hover:underline"
+                  className="text-sky-400 hover:underline"
                 >
                   suporte@pix.tips
                 </a>{" "}

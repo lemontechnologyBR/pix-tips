@@ -1,9 +1,12 @@
 import { AnalyticsBeacon } from "@/components/AnalyticsBeacon";
 import { TipPageRenderer } from "@/components/tip/TipPageRenderer";
 import { CreatorNotFound } from "@/components/tip/CreatorNotFound";
+import { getSessionFromCookies } from "@/lib/auth/session";
+import { listCreatorMissions } from "@/lib/fan-missions";
+import { listCreatorSubPlans } from "@/lib/fan-subscriptions";
 import { getCreatorByUsername, getRecentDonations } from "@/lib/store";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -17,8 +20,16 @@ export default async function PublicTipPage({ params }: PageProps) {
     return <CreatorNotFound />;
   }
 
+  const session = await getSessionFromCookies();
+  const fanKey = session?.userId ? `user:${session.userId}` : null;
+
   const maxVisible = creator.tipPageSettings.maxSupportersVisible ?? 10;
-  const recentDonations = (await getRecentDonations(creator.id, maxVisible)).map((t) => ({
+  const [recentDonationsRaw, subPlans, missions] = await Promise.all([
+    getRecentDonations(creator.id, maxVisible),
+    listCreatorSubPlans(creator.id, { activeOnly: true }),
+    listCreatorMissions(creator.id, { activeOnly: true, fanKey }),
+  ]);
+  const recentDonations = recentDonationsRaw.map((t) => ({
     id: t.id,
     donorName: t.anonymous ? null : t.donorName,
     amount: t.amount,
@@ -33,7 +44,12 @@ export default async function PublicTipPage({ params }: PageProps) {
         creatorId={creator.id}
         path={`/${creator.username}`}
       />
-      <TipPageRenderer creator={creator} recentDonations={recentDonations} />
+      <TipPageRenderer
+        creator={creator}
+        recentDonations={recentDonations}
+        subPlans={subPlans}
+        missions={missions}
+      />
     </>
   );
 }

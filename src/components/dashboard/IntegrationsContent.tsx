@@ -8,8 +8,6 @@ import {
   YouTubeIcon,
   DiscordIcon,
   KickIcon,
-  StreamLabsIcon,
-  StreamElementsIcon,
 } from "@/components/shared/SocialProviderIcons";
 import type { UserProfile } from "@/types";
 
@@ -20,7 +18,7 @@ interface IntegrationsContentProps {
   botConfigured: boolean;
 }
 
-type ProviderId = "twitch" | "youtube" | "discord" | "kick" | "streamlabs" | "streamelements";
+type ProviderId = "twitch" | "youtube" | "discord" | "kick";
 
 interface ProviderConfig {
   id: ProviderId;
@@ -58,11 +56,12 @@ const PROVIDERS: ProviderConfig[] = [
   {
     id: "discord",
     label: "Discord",
-    description: "Login social e notificações de doação",
+    description: "Login social; cargos por tip ficam em Recompensas",
     color: "from-indigo-600/20 to-indigo-900/10 border-indigo-500/30",
     Icon: DiscordIcon,
     features: [
       { label: "Login via Discord na sua conta" },
+      { label: "Configurar cargos por tip", href: "/dashboard/missions" },
     ],
   },
   {
@@ -72,30 +71,6 @@ const PROVIDERS: ProviderConfig[] = [
     color: "from-green-700/20 to-green-900/10 border-green-600/30",
     Icon: KickIcon,
     features: [{ label: "Login via Kick na sua conta" }],
-  },
-  {
-    id: "streamlabs",
-    label: "Streamlabs",
-    description: "Sincronize alertas e overlays com o Streamlabs Desktop",
-    color: "from-teal-600/20 to-emerald-900/10 border-teal-500/30",
-    Icon: StreamLabsIcon,
-    features: [
-      { label: "Alertas de doação no Streamlabs" },
-      { label: "Sincronização de overlays" },
-      { label: "Tema e sons personalizados" },
-    ],
-  },
-  {
-    id: "streamelements",
-    label: "StreamElements",
-    description: "Conecte seus overlays e alertas ao StreamElements",
-    color: "from-indigo-700/20 to-violet-900/10 border-indigo-500/30",
-    Icon: StreamElementsIcon,
-    features: [
-      { label: "Alertas de doação no StreamElements" },
-      { label: "Temas de overlay compatíveis" },
-      { label: "Leaderboard de doações" },
-    ],
   },
 ];
 
@@ -180,10 +155,10 @@ export function IntegrationsContent({
       )}
 
       {/* Page hero */}
-      <div className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 via-zinc-900/60 to-zinc-950 p-6">
+      <div className="rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-400/5 via-zinc-900/60 to-zinc-950 p-6">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 ring-1 ring-cyan-500/20">
-            <svg className="h-6 w-6 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 ring-1 ring-sky-400/20">
+            <svg className="h-6 w-6 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="8" cy="8" r="2" />
               <circle cx="16" cy="8" r="2" />
               <circle cx="12" cy="16" r="2" />
@@ -243,8 +218,8 @@ export function IntegrationsContent({
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-white">{provider.label}</p>
                       <p className="mt-0.5 text-xs text-zinc-400">{provider.description}</p>
-                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-sky-400/12 px-2 py-0.5 text-[11px] font-medium text-sky-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
                         Conectado
                       </span>
                     </div>

@@ -50,11 +50,11 @@ export function DashboardShell({
       )}
 
       <aside
-        className={`web3-glass-strong fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-cyan-500/10 transition-transform lg:static lg:translate-x-0 ${
+        className={`live-panel fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-zinc-800 transition-transform lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-cyan-500/10 px-4">
+        <div className="flex h-16 items-center gap-2 border-b border-zinc-800 px-4">
           <Link href="/" className="flex items-center gap-2">
             <BrandLogo />
           </Link>
@@ -73,13 +73,13 @@ export function DashboardShell({
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "web3-nav-active text-cyan-300"
+                    ? "live-nav-active text-sky-300"
                     : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
                 }`}
               >
                 <DashboardNavIcon
                   name={item.icon}
-                  className={`h-[18px] w-[18px] shrink-0 ${active ? "text-cyan-400" : "text-zinc-500"}`}
+                  className={`h-[18px] w-[18px] shrink-0 ${active ? "text-sky-400" : "text-zinc-500"}`}
                 />
                 {item.label}
               </Link>
@@ -87,7 +87,7 @@ export function DashboardShell({
           })}
         </nav>
 
-        <div className="space-y-2 border-t border-cyan-500/10 p-3">
+        <div className="space-y-2 border-t border-zinc-800 p-3">
           <Link
             href={tipPagePath(creator.username)}
             target="_blank"

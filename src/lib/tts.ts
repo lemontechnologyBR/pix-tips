@@ -77,11 +77,10 @@ export function cancelTts() {
 }
 
 /**
- * Toca a voz de IA (ElevenLabs) gerada no servidor. Retorna `true` se
- * conseguiu reproduzir o áudio até o fim, ou `false` para que o chamador
- * faça fallback para a voz do navegador.
+ * Toca o MP3 gerado no servidor (Microsoft Edge TTS). Retorna `true` se
+ * conseguiu reproduzir até o fim, ou `false` para fallback no navegador.
  */
-async function playElevenLabsAudio(
+async function playServerTtsAudio(
   text: string,
   voiceId: string,
   volume: number,
@@ -116,7 +115,7 @@ async function playElevenLabsAudio(
         resolve(true);
       };
       audio.onerror = () => {
-        console.warn("[tts] erro ao reproduzir áudio da voz de IA");
+        console.warn("[tts] erro ao reproduzir áudio Microsoft TTS");
         cleanup();
         resolve(false);
       };
@@ -127,7 +126,7 @@ async function playElevenLabsAudio(
       });
     });
   } catch (err) {
-    console.warn("[tts] falha ao buscar áudio da voz de IA:", err);
+    console.warn("[tts] falha ao buscar áudio TTS:", err);
     return false;
   }
 }
@@ -176,9 +175,9 @@ function speakBrowser(text: string, config: TtsVoiceConfig): Promise<void> {
 }
 
 /**
- * Lê o texto em voz alta. Vozes de IA (ElevenLabs) são geradas no servidor e
- * tocadas como áudio; se a API não estiver disponível, faz fallback automático
- * para a voz equivalente do navegador.
+ * Lê o texto em voz alta.
+ * Sempre tenta /api/tts no servidor (Microsoft Edge) — necessário no OBS.
+ * Só cai na Web Speech API do navegador se a API falhar.
  */
 export async function speakText(text: string, voiceId: string): Promise<void> {
   if (typeof window === "undefined") return;
@@ -188,11 +187,8 @@ export async function speakText(text: string, voiceId: string): Promise<void> {
 
   cancelTts();
 
-  if (config.provider === "elevenlabs") {
-    const ok = await playElevenLabsAudio(text, voiceId, config.volume);
-    if (ok) return;
-    // Fallback: lê com a voz do navegador caso a IA falhe/indisponível
-  }
+  const ok = await playServerTtsAudio(text, voiceId, config.volume);
+  if (ok) return;
 
   return speakBrowser(text, config);
 }

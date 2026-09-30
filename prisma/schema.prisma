@@ -11,6 +11,7 @@ model User {
   email            String         @unique
   passwordHash     String?
   name             String
+  avatar           String         @default("")
   role             String         @default("user") // user|admin
   emailVerified    Boolean        @default(false)
   totpSecret       String?
@@ -81,6 +82,7 @@ model Creator {
   alertSettings                 String         @default("{}")
   tipPageSettings               String         @default("{}")
   chatBotSettings               String         @default("{}")
+  discordSettings               String         @default("{}")
   affiliateCode                 String?        @unique
   referredByCode                String?
   affiliateClicks               Int            @default(0)
@@ -106,6 +108,9 @@ model Creator {
   kycVerification               KycVerification?
   wooviPixKeys                  CreatorWooviPixKey[]
   subscriptionPayments          SubscriptionPayment[]
+  subPlans                      CreatorSubPlan[]
+  fanSubscriptions              FanSubscription[]
+  fanMissions                   CreatorFanMission[]
 }
 
 model SubscriptionPayment {
@@ -171,12 +176,97 @@ model Transaction {
   donorName   String
   status      String   @default("pending")
   method      String
+  kind            String   @default("donation") // donation|subscription
   pixCode         String?
   wooviPaymentId  String?
   splitPayment    Boolean      @default(false)
   applicationFee Float?
+  donorServiceFee     Float        @default(0)
   donorTtsVoiceId String?
+  donorUserId     String?
+  subscriptionPlanId String?
   createdAt   DateTime @default(now())
+}
+
+/// Planos de apoio mensal do criador (fã → criador via Pix avulso).
+model CreatorSubPlan {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  name        String
+  description String   @default("")
+  price       Float
+  perks       String   @default("[]") // JSON string[]
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subscriptions FanSubscription[]
+
+  @@index([creatorId, active])
+}
+
+/// Assinatura mensal de fã (renovação = novo Pix; sem débito automático).
+model FanSubscription {
+  id                String    @id @default(cuid())
+  creatorId         String
+  creator           Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  planId            String
+  plan              CreatorSubPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subscriberUserId  String?
+  subscriberEmail   String
+  subscriberName    String    @default("")
+  status            String    @default("pending") // pending|active|expired|canceled
+  currentPeriodEnd  DateTime?
+  lastTransactionId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([creatorId, status])
+  @@index([subscriberEmail])
+  @@index([currentPeriodEnd])
+}
+
+/// Missões do fã (ex: doe N vezes → badge / cargo Discord).
+model CreatorFanMission {
+  id                   String   @id @default(cuid())
+  creatorId            String
+  creator              Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  title                String
+  description          String   @default("")
+  /// tip_count = número de tips | tip_total = soma em R$
+  type                 String   @default("tip_count")
+  targetValue          Float
+  /// null = all-time; senão janela móvel em dias
+  periodDays           Int?
+  rewardBadge          String   @default("Fã")
+  rewardDiscordRoleId  String?
+  active               Boolean  @default(true)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  progress             FanMissionProgress[]
+
+  @@index([creatorId, active])
+}
+
+model FanMissionProgress {
+  id              String    @id @default(cuid())
+  missionId       String
+  mission         CreatorFanMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  creatorId       String
+  /// Chave estável: user:<id> | name:<normalized>
+  fanKey          String
+  fanUserId       String?
+  fanName         String    @default("")
+  progressValue   Float     @default(0)
+  completedAt     DateTime?
+  rewardGrantedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([missionId, fanKey])
+  @@index([creatorId, fanKey])
 }
 
 model Payout {

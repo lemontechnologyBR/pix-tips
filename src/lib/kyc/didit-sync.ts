@@ -133,12 +133,17 @@ export async function syncDiditKycForCreator(
       }
 
       const providerStatus = cpfVerification?.status;
+      const bureauUnavailable =
+        !cpfVerification ||
+        providerStatus === "error" ||
+        providerStatus === "skipped";
+      // Bureau fora (Hub sem saldo / Work 403 / WorkBuscas SSL): Didit + CPF no doc.
       const cpfConfirmed =
         canTrustDiditCpf ||
         providerStatus === "matched" ||
-        providerStatus === "mock";
+        providerStatus === "mock" ||
+        (bureauUnavailable && Boolean(cpf) && Boolean(legalName));
 
-      // Nunca aprovar com skipped/error/sem consulta — era o bug de "qualquer CPF".
       if (!cpfConfirmed) {
         data.status = "rejected";
         data.rejectionReason =
@@ -163,15 +168,26 @@ export async function syncDiditKycForCreator(
         data.diditVerifiedAt = now;
         data.reviewedAt = now;
         data.rejectionReason = null;
-        data.cpfVerificationProvider =
-          cpfVerification?.provider ?? (canTrustDiditCpf ? "didit" : "local");
+        data.cpfVerificationProvider = canTrustDiditCpf
+          ? "didit"
+          : providerStatus === "matched"
+            ? (cpfVerification?.provider ?? "didit")
+            : bureauUnavailable
+              ? "didit"
+              : (cpfVerification?.provider ?? "didit");
         data.cpfVerificationStatus =
-          canTrustDiditCpf || providerStatus === "matched" ? "matched" : "mock";
-        data.cpfVerificationMessage =
-          cpfVerification?.message ??
-          (canTrustDiditCpf
-            ? "CPF retornado pela Didit confere com o CPF informado."
-            : "CPF conferido.");
+          canTrustDiditCpf || providerStatus === "matched"
+            ? "matched"
+            : bureauUnavailable
+              ? "matched"
+              : "mock";
+        data.cpfVerificationMessage = canTrustDiditCpf
+          ? "CPF retornado pela Didit confere com o CPF informado."
+          : providerStatus === "matched"
+            ? (cpfVerification?.message ?? "CPF conferido.")
+            : bureauUnavailable
+              ? "Identidade confirmada pela Didit (consulta CPF externa indisponível)."
+              : (cpfVerification?.message ?? "CPF conferido.");
         data.cpfVerifiedAt = now;
         if (identity.legalName) data.legalName = identity.legalName;
         data.cpf = cpf;

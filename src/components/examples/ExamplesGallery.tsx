@@ -27,7 +27,7 @@ export function ExamplesGallery() {
             onClick={() => setCategory(cat.id)}
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
               category === cat.id
-                ? "web3-btn-primary text-white"
+                ? "live-btn-primary text-white"
                 : "border border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
             }`}
           >
@@ -55,11 +55,11 @@ function CreatorCard({ creator }: { creator: ExampleCreator }) {
   return (
     <Link
       href={tipPagePath(creator.username)}
-      className="web3-card group overflow-hidden rounded-xl transition hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-950/20"
+      className="live-card group overflow-hidden rounded-xl transition hover:border-sky-400/40 hover:shadow-lg hover:shadow-black/30"
     >
       <div className={`h-28 bg-gradient-to-br ${creator.accent} opacity-80 transition group-hover:opacity-100`} />
       <div className="p-5">
-        <h3 className="font-semibold text-white group-hover:text-cyan-300">
+        <h3 className="font-semibold text-white group-hover:text-sky-300">
           {creator.name}
         </h3>
         <p className="mt-2 text-sm leading-relaxed text-zinc-500">{creator.description}</p>
@@ -73,7 +73,7 @@ function CreatorCard({ creator }: { creator: ExampleCreator }) {
             </span>
           ))}
         </div>
-        <p className="mt-4 text-sm font-medium text-cyan-400">Ver página demo →</p>
+        <p className="mt-4 text-sm font-medium text-sky-400">Ver página demo →</p>
       </div>
     </Link>
   );

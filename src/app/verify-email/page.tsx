@@ -52,11 +52,11 @@ export default function VerifyEmailPage() {
 
         {status === "success" && (
           <>
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-3xl">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sky-400/12 text-3xl">
               ✓
             </div>
             <div>
-              <p className="font-semibold text-emerald-400">{message}</p>
+              <p className="font-semibold text-sky-400">{message}</p>
               <p className="mt-1 text-sm text-zinc-400">
                 Seu e-mail foi confirmado. Você já pode usar todos os recursos da plataforma.
               </p>

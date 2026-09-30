@@ -46,10 +46,10 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
-        <meta name="theme-color" content="#06b6d4" />
+        <meta name="theme-color" content="#38bdf8" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="web3-bg min-h-full flex flex-col text-white">
+      <body className="live-bg min-h-full flex flex-col text-white">
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
           strategy="afterInteractive"

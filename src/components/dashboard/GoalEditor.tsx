@@ -99,7 +99,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3">
                 <p className="text-xs text-zinc-500">Arrecadado</p>
-                <p className="text-lg font-semibold text-emerald-400">
+                <p className="text-lg font-semibold text-sky-400">
                   {formatCurrency(creator.raised)}
                 </p>
               </div>
@@ -112,7 +112,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
               {hasGoal && (
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3">
                   <p className="text-xs text-zinc-500">Progresso</p>
-                  <p className="text-lg font-semibold text-cyan-300">
+                  <p className="text-lg font-semibold text-sky-300">
                     {progress.toFixed(0)}%
                   </p>
                 </div>
@@ -120,7 +120,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
             </div>
             <Link
               href="/dashboard/tip-page"
-              className="mt-4 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-cyan-500/50 hover:text-white"
+              className="mt-4 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-sky-400/40 hover:text-white"
             >
               Editar meta e título →
             </Link>
@@ -144,7 +144,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
                       }
                       className={`rounded-lg border px-2 py-2 text-left transition ${
                         active
-                          ? "border-cyan-500 bg-cyan-500/15 ring-1 ring-cyan-500/40"
+                          ? "border-cyan-500 bg-sky-400/10 ring-1 ring-cyan-500/40"
                           : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-600"
                       }`}
                     >
@@ -177,7 +177,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
                       }
                       className={`rounded border py-1 text-xs transition ${
                         active
-                          ? "border-cyan-500 bg-cyan-500/20 text-cyan-200"
+                          ? "border-cyan-500 bg-sky-400/12 text-cyan-200"
                           : "border-zinc-700 text-zinc-500 hover:border-zinc-500"
                       }`}
                     >
@@ -331,7 +331,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
                 onClick={copyWidget}
                 className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                   copied
-                    ? "border-emerald-500/50 bg-emerald-600/15 text-emerald-300"
+                    ? "border-sky-400/40 bg-sky-500/12 text-sky-300"
                     : "border-zinc-700 bg-zinc-800/80 text-zinc-200 hover:border-zinc-600"
                 }`}
               >
@@ -352,7 +352,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+            className="rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar"}
           </button>
@@ -387,7 +387,7 @@ export function GoalEditor({ creator, widgetUrl }: GoalEditorProps) {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg">
           {toast}
         </div>
       )}

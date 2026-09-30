@@ -33,7 +33,7 @@ function GoalToggle({
       type="button"
       onClick={() => onChange(!enabled)}
       className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-        enabled ? "bg-cyan-500" : "bg-zinc-700"
+        enabled ? "bg-sky-400" : "bg-zinc-700"
       }`}
       aria-pressed={enabled}
       aria-label={enabled ? "Desativar meta" : "Ativar meta"}
@@ -106,7 +106,7 @@ export function TipPageDonationSettings({
           <div className="flex items-center gap-2.5">
             <span
               className={`text-xs font-medium ${
-                hasGoal ? "text-emerald-400" : "text-zinc-500"
+                hasGoal ? "text-sky-400" : "text-zinc-500"
               }`}
             >
               {hasGoal ? "Ativa" : "Desativada"}
@@ -147,7 +147,7 @@ export function TipPageDonationSettings({
                     onClick={() => onGoalChange(v)}
                     className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
                       goal === v
-                        ? "bg-cyan-500 text-white"
+                        ? "bg-sky-400 text-white"
                         : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
                     }`}
                   >
@@ -169,7 +169,7 @@ export function TipPageDonationSettings({
                 step={50}
                 value={sliderValue}
                 onChange={(e) => onGoalChange(Number(e.target.value))}
-                className="mt-2 w-full accent-cyan-500"
+                className="mt-2 w-full accent-sky-400"
               />
               <div className="mt-1 flex justify-between text-[10px] text-zinc-600">
                 <span>R$ 50</span>
@@ -187,7 +187,7 @@ export function TipPageDonationSettings({
                     onClick={() => onGoalTitleChange(t)}
                     className={`rounded-lg px-2 py-1 text-[11px] transition ${
                       goalTitle === t
-                        ? "bg-cyan-500/30 text-cyan-200 ring-1 ring-cyan-500/50"
+                        ? "bg-sky-400/12 text-sky-200 ring-1 ring-sky-400/35"
                         : "bg-zinc-800 text-zinc-500 hover:text-zinc-300"
                     }`}
                   >
@@ -210,7 +210,7 @@ export function TipPageDonationSettings({
             <button
               type="button"
               onClick={() => setGoalEnabled(true)}
-              className="mt-4 rounded-xl web3-btn-primary px-5 py-2.5 text-sm font-medium text-white hover:brightness-110"
+              className="mt-4 rounded-xl live-btn-primary px-5 py-2.5 text-sm font-medium text-white hover:brightness-110"
             >
               Ativar meta — {formatCurrency(lastGoal)}
             </button>
@@ -234,7 +234,7 @@ export function TipPageDonationSettings({
                 onClick={() => toggleAmount(v)}
                 className={`min-w-[3rem] rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
                   selected
-                    ? "bg-cyan-500 text-white ring-2 ring-cyan-400/40"
+                    ? "bg-sky-400 text-white ring-2 ring-sky-400/35"
                     : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
                 }`}
               >
@@ -266,7 +266,7 @@ export function TipPageDonationSettings({
                 type="button"
                 disabled={minDonation <= 5}
                 onClick={() => onMinDonationChange(Math.max(5, minDonation - 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-cyan-500 hover:text-white disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-sky-400 hover:text-white disabled:opacity-30"
               >
                 −
               </button>
@@ -277,7 +277,7 @@ export function TipPageDonationSettings({
                 type="button"
                 disabled={minDonation >= 100}
                 onClick={() => onMinDonationChange(Math.min(100, minDonation + 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-cyan-500 hover:text-white disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-sky-400 hover:text-white disabled:opacity-30"
               >
                 +
               </button>
@@ -289,7 +289,7 @@ export function TipPageDonationSettings({
             max={100}
             value={minDonation}
             onChange={(e) => onMinDonationChange(Number(e.target.value))}
-            className="mt-3 w-full accent-cyan-500"
+            className="mt-3 w-full accent-sky-400"
           />
         </div>
       </section>

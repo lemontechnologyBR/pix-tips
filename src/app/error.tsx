@@ -20,7 +20,7 @@ export default function Error({
         <p className="text-7xl" aria-hidden>
           😵
         </p>
-        <p className="mt-4 text-sm font-medium uppercase tracking-wider text-cyan-400">
+        <p className="mt-4 text-sm font-medium uppercase tracking-wider text-sky-400">
           Erro 500
         </p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Algo deu errado</h1>
@@ -35,7 +35,7 @@ export default function Error({
           <button
             type="button"
             onClick={() => reset()}
-            className="w-full rounded-lg web3-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110 sm:w-auto"
+            className="w-full rounded-lg live-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110 sm:w-auto"
           >
             Tentar novamente
           </button>
@@ -48,7 +48,7 @@ export default function Error({
         </div>
         <p className="mt-8 text-sm text-zinc-500">
           Precisa de ajuda?{" "}
-          <Link href="/help" className="text-cyan-400 hover:underline">
+          <Link href="/help" className="text-sky-400 hover:underline">
             Central de Ajuda
           </Link>
         </p>

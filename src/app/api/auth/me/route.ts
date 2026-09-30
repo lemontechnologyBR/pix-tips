@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { listOAuthAccounts } from "@/lib/auth/oauth";
 import { getSessionFromCookies } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db";
 
@@ -16,11 +17,13 @@ export async function GET() {
         id: true,
         email: true,
         name: true,
+        avatar: true,
         creator: {
           select: {
             id: true,
             username: true,
             displayName: true,
+            avatar: true,
             onboardingCompleted: true,
           },
         },
@@ -31,7 +34,30 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 401 });
     }
 
-    return NextResponse.json({ user });
+    const accounts = await listOAuthAccounts(user.id);
+
+    let lastCreator: { username: string; displayName: string; avatar: string } | null =
+      null;
+    const lastTip = await db.transaction.findFirst({
+      where: { donorUserId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        creator: { select: { username: true, displayName: true, avatar: true } },
+      },
+    });
+    if (lastTip?.creator) {
+      lastCreator = {
+        username: lastTip.creator.username,
+        displayName: lastTip.creator.displayName,
+        avatar: lastTip.creator.avatar || "",
+      };
+    }
+
+    return NextResponse.json({
+      user,
+      providers: accounts.map((a) => a.provider),
+      lastCreator,
+    });
   } catch (error) {
     if (error instanceof Error && error.message.includes("Prisma")) {
       return NextResponse.json(

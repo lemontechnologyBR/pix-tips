@@ -88,7 +88,7 @@ export function TipPageAppearanceSettings({
         <div
           className={`rounded-xl border px-4 py-3 ${
             overridingTheme
-              ? "border-cyan-500/25 bg-cyan-500/5"
+              ? "border-sky-400/25 bg-sky-400/5"
               : "border-zinc-800 bg-zinc-950/40"
           }`}
         >
@@ -124,7 +124,7 @@ export function TipPageAppearanceSettings({
                 onClick={() => onChange({ backgroundStyle: opt.id as TipPageBackgroundStyle })}
                 className={`rounded-xl border px-4 py-3 text-left transition ${
                   active
-                    ? "border-cyan-500/50 bg-cyan-500/10 ring-1 ring-cyan-500/30"
+                    ? "border-sky-400/35 bg-cyan-500/10 ring-1 ring-cyan-500/30"
                     : "border-zinc-800 bg-zinc-950/40 hover:border-zinc-600"
                 }`}
               >
@@ -240,7 +240,7 @@ export function TipPageAppearanceSettings({
               type="button"
               disabled={uploading}
               onClick={() => fileRef.current?.click()}
-              className="w-full rounded-xl border border-dashed border-zinc-700 py-4 text-sm text-zinc-400 transition hover:border-cyan-500/40 hover:text-cyan-300 disabled:opacity-50"
+              className="w-full rounded-xl border border-dashed border-zinc-700 py-4 text-sm text-zinc-400 transition hover:border-sky-400/30 hover:text-sky-300 disabled:opacity-50"
             >
               {uploading ? "Enviando…" : "Enviar imagem do computador"}
             </button>

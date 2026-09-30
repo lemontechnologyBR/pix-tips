@@ -104,7 +104,7 @@ export function RegisterForm() {
 
   const hintColor =
     usernameStatusDisplay === "available"
-      ? "text-emerald-400"
+      ? "text-sky-400"
       : usernameStatusDisplay === "taken" || usernameStatusDisplay === "invalid"
         ? "text-red-400"
         : "text-zinc-500";
@@ -169,11 +169,11 @@ export function RegisterForm() {
         />
         <span className="text-zinc-400">
           Li e aceito os{" "}
-          <Link href="/termos" className="text-cyan-400 hover:underline">
+          <Link href="/termos" className="text-sky-400 hover:underline">
             termos de uso
           </Link>{" "}
           e a{" "}
-          <Link href="/privacidade" className="text-cyan-400 hover:underline">
+          <Link href="/privacidade" className="text-sky-400 hover:underline">
             política de privacidade
           </Link>
         </span>
@@ -189,7 +189,7 @@ export function RegisterForm() {
         <span className="text-zinc-400">
           Quero receber novidades e dicas da pix.tips por e-mail (opcional). Você pode cancelar
           a qualquer momento nas{" "}
-          <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">
+          <Link href="/dashboard/settings" className="text-sky-400 hover:underline">
             configurações
           </Link>
           .
@@ -199,14 +199,14 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={loading || usernameStatusDisplay !== "available" || !terms}
-        className="web3-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
+        className="live-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
       >
         {loading ? "Criando conta..." : "Criar conta"}
       </button>
 
       <p className="text-center text-sm text-zinc-400">
         Já tem conta?{" "}
-        <Link href="/login" className="text-cyan-400 hover:underline">
+        <Link href="/login" className="text-sky-400 hover:underline">
           Entrar
         </Link>
       </p>

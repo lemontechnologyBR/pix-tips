@@ -191,16 +191,88 @@ export function isWooviChargeExpired(status: string): boolean {
   return s === "EXPIRED" || s === "REMOVED" || s === "CANCELED" || s === "CANCELLED";
 }
 
+export function buildPixtipsSubaccountName(username: string): string {
+  const slug = username
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+  return `pixtips_${slug || "creator"}`.slice(0, 100);
+}
+
+export interface WooviSubaccount {
+  name: string;
+  pixKey: string;
+  /** Saldo em centavos. */
+  balanceCents: number;
+  withdrawBlocked?: boolean;
+}
+
+export async function listWooviSubaccounts(): Promise<WooviSubaccount[]> {
+  const out: WooviSubaccount[] = [];
+  let skip = 0;
+  for (;;) {
+    const res = await fetch(
+      `${WOOVI_API_BASE}/subaccount?skip=${skip}&limit=100`,
+      { headers: authHeaders() },
+    );
+    const data = (await res.json().catch(() => ({}))) as {
+      subAccounts?: Array<{
+        name?: string;
+        pixKey?: string;
+        balance?: number;
+        withdrawBlocked?: boolean;
+      }>;
+    };
+    if (!res.ok) {
+      console.error("[woovi] listSubaccounts failed", res.status, data);
+      break;
+    }
+    const batch = data.subAccounts ?? [];
+    for (const s of batch) {
+      if (!s.pixKey) continue;
+      out.push({
+        name: s.name || s.pixKey,
+        pixKey: s.pixKey,
+        balanceCents: Number(s.balance ?? 0),
+        withdrawBlocked: s.withdrawBlocked,
+      });
+    }
+    if (batch.length < 100) break;
+    skip += 100;
+  }
+  return out;
+}
+
+export async function findWooviSubaccountByPixKey(
+  pixKey: string,
+): Promise<WooviSubaccount | null> {
+  const key = pixKey.trim();
+  if (!key) return null;
+  const all = await listWooviSubaccounts();
+  return all.find((s) => s.pixKey === key) ?? null;
+}
+
 /**
  * Cria (ou reutiliza) subconta Woovi vinculada à chave Pix do criador.
- * Retorna o nome/identificador da subconta.
+ * Prefere nomes com prefixo `pixtips_`.
  */
 export async function ensureWooviSubaccount(input: {
   name: string;
   pixKey: string;
-}): Promise<{ name: string; pixKey: string }> {
+}): Promise<{ name: string; pixKey: string; balanceCents: number }> {
   const pixKey = input.pixKey.trim();
-  const name = input.name.trim().slice(0, 100) || "Criador pix.tips";
+  const name = input.name.trim().slice(0, 100) || "pixtips_creator";
+
+  const existing = await findWooviSubaccountByPixKey(pixKey);
+  if (existing) {
+    return {
+      name: existing.name,
+      pixKey: existing.pixKey,
+      balanceCents: existing.balanceCents,
+    };
+  }
 
   const res = await fetch(`${WOOVI_API_BASE}/subaccount`, {
     method: "POST",
@@ -209,33 +281,20 @@ export async function ensureWooviSubaccount(input: {
   });
 
   const data = (await res.json().catch(() => ({}))) as {
-    subAccount?: { name?: string; pixKey?: string };
+    subAccount?: { name?: string; pixKey?: string; balance?: number };
     error?: string;
     message?: string;
   };
 
-  // Já existe → buscar / aceitar
   if (!res.ok) {
-    // Tentativa de GET por pixKey (algumas contas retornam 409)
-    const existing = await fetch(
-      `${WOOVI_API_BASE}/subaccount?pixKey=${encodeURIComponent(pixKey)}`,
-      { headers: authHeaders() },
-    ).catch(() => null);
-
-    if (existing?.ok) {
-      const list = (await existing.json().catch(() => ({}))) as {
-        subAccounts?: Array<{ name?: string; pixKey?: string }>;
-        subAccount?: { name?: string; pixKey?: string };
+    const again = await findWooviSubaccountByPixKey(pixKey);
+    if (again) {
+      return {
+        name: again.name,
+        pixKey: again.pixKey,
+        balanceCents: again.balanceCents,
       };
-      const found =
-        list.subAccount ||
-        list.subAccounts?.find((s) => s.pixKey === pixKey) ||
-        list.subAccounts?.[0];
-      if (found?.name) {
-        return { name: found.name, pixKey: found.pixKey || pixKey };
-      }
     }
-
     console.error("[woovi] ensureSubaccount failed", res.status, data);
     throw new WooviApiError(
       data.message || data.error || "Não foi possível criar a subconta Woovi.",
@@ -246,7 +305,136 @@ export async function ensureWooviSubaccount(input: {
   return {
     name: data.subAccount?.name || name,
     pixKey: data.subAccount?.pixKey || pixKey,
+    balanceCents: Number(data.subAccount?.balance ?? 0),
   };
+}
+
+/** Pix Out da conta principal → chave do criador (centavos). */
+export async function createAndApproveWooviPayment(input: {
+  correlationID: string;
+  valueCents: number;
+  destinationAlias: string;
+  comment?: string;
+}): Promise<{ correlationID: string; status: string }> {
+  if (input.valueCents < 1) {
+    throw new WooviApiError("Valor de pagamento inválido.", 400);
+  }
+
+  const createRes = await fetch(`${WOOVI_API_BASE}/payment`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      correlationID: input.correlationID,
+      value: input.valueCents,
+      destinationAlias: input.destinationAlias.trim(),
+      comment: (input.comment ?? "Migração saldo pix.tips").slice(0, 140),
+    }),
+  });
+
+  const created = (await createRes.json().catch(() => ({}))) as {
+    payment?: { correlationID?: string; status?: string };
+    error?: string;
+    message?: string;
+  };
+
+  if (!createRes.ok || !created.payment) {
+    console.error("[woovi] createPayment failed", createRes.status, created);
+    throw new WooviApiError(
+      created.message || created.error || "Falha ao criar pagamento Woovi.",
+      createRes.status >= 500 ? 502 : 400,
+    );
+  }
+
+  const correlationID = created.payment.correlationID || input.correlationID;
+  const approveRes = await fetch(`${WOOVI_API_BASE}/payment/approve`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ correlationID }),
+  });
+
+  const approved = (await approveRes.json().catch(() => ({}))) as {
+    payment?: { correlationID?: string; status?: string };
+    error?: string;
+    message?: string;
+  };
+
+  if (!approveRes.ok) {
+    console.error("[woovi] approvePayment failed", approveRes.status, approved);
+    throw new WooviApiError(
+      approved.message || approved.error || "Falha ao aprovar pagamento Woovi.",
+      approveRes.status >= 500 ? 502 : 400,
+    );
+  }
+
+  return {
+    correlationID,
+    status: approved.payment?.status || created.payment.status || "APPROVED",
+  };
+}
+
+/** Saque instantâneo da subconta para o banco da chave Pix vinculada. */
+export async function withdrawWooviSubaccount(input: {
+  pixKey: string;
+  valueCents: number;
+}): Promise<{ ok: true }> {
+  if (input.valueCents < 1) {
+    throw new WooviApiError("Valor de saque inválido.", 400);
+  }
+
+  const pixKey = encodeURIComponent(input.pixKey.trim());
+  const res = await fetch(`${WOOVI_API_BASE}/subaccount/${pixKey}/withdraw`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ value: input.valueCents }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    console.error("[woovi] subaccount withdraw failed", res.status, data);
+    const msg = data.message || data.error || "Falha no saque Woovi.";
+    if (/balance|saldo|enought|enough/i.test(msg)) {
+      throw new WooviApiError("Saldo insuficiente na subconta Woovi.", 400);
+    }
+    throw new WooviApiError(msg, res.status >= 500 ? 502 : 400);
+  }
+
+  return { ok: true };
+}
+
+/** Move centavos da subconta → conta principal (taxa da plataforma). */
+export async function debitWooviSubaccount(input: {
+  pixKey: string;
+  valueCents: number;
+}): Promise<{ ok: true }> {
+  if (input.valueCents < 1) {
+    throw new WooviApiError("Valor de débito inválido.", 400);
+  }
+
+  const pixKey = encodeURIComponent(input.pixKey.trim());
+  const res = await fetch(`${WOOVI_API_BASE}/subaccount/${pixKey}/debit`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ value: input.valueCents }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    console.error("[woovi] subaccount debit failed", res.status, data);
+    throw new WooviApiError(
+      data.message || data.error || "Falha ao debitar taxa da subconta.",
+      res.status >= 500 ? 502 : 400,
+    );
+  }
+
+  return { ok: true };
 }
 
 /**

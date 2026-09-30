@@ -64,7 +64,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
         <ChatBotIcon name={icon} className="h-5 w-5" />
       </div>
       <div>
@@ -117,7 +117,7 @@ function StatCard({
   tone: "ok" | "warn" | "neutral";
 }) {
   const tones = {
-    ok: "border-emerald-500/25 bg-emerald-500/[0.06] text-emerald-300",
+    ok: "border-sky-400/25 bg-sky-400/[0.06] text-sky-300",
     warn: "border-amber-500/25 bg-amber-500/[0.06] text-amber-300",
     neutral: "border-zinc-800 bg-zinc-950/40 text-zinc-400",
   };
@@ -271,8 +271,8 @@ export function ChatBotEditor({
 
   const statusHero = settings.enabled
     ? {
-        box: "border-emerald-500/30 bg-gradient-to-r from-emerald-600/10 via-emerald-900/5 to-zinc-900/20",
-        icon: "border-emerald-500/40 bg-emerald-600/15 text-emerald-300",
+        box: "border-sky-400/30 bg-gradient-to-r from-sky-500/10 via-violet-950/10 to-zinc-900/20",
+        icon: "border-sky-400/35 bg-sky-500/12 text-sky-300",
         title: "Bot ativo no chat",
         body: profile.twitchChannel
           ? `Respondendo comandos em #${profile.twitchChannel} durante a live.`
@@ -280,8 +280,8 @@ export function ChatBotEditor({
       }
     : canEnable
       ? {
-          box: "border-cyan-500/25 bg-gradient-to-r from-cyan-500/10 via-cyan-900/5 to-zinc-900/20",
-          icon: "border-cyan-500/40 bg-cyan-500/15 text-cyan-300",
+          box: "border-sky-400/25 bg-gradient-to-r from-sky-400/10 via-violet-950/20 to-zinc-900/20",
+          icon: "border-sky-400/30 bg-sky-400/10 text-sky-300",
           title: "Pronto para ativar",
           body: "Tudo configurado. Ative o bot e salve para começar a responder no chat.",
         }
@@ -298,7 +298,7 @@ export function ChatBotEditor({
     <div className="w-full space-y-6 pb-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
             <ChatBotIcon name="robot" className="h-5 w-5" />
           </div>
           <div>
@@ -312,7 +312,7 @@ export function ChatBotEditor({
           type="button"
           onClick={() => void handleSave()}
           disabled={saving}
-          className="rounded-xl web3-btn-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-900/30 hover:brightness-110 disabled:opacity-50"
+          className="rounded-xl live-btn-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 hover:brightness-110 disabled:opacity-50"
         >
           {saving ? "Salvando…" : "Salvar alterações"}
         </button>
@@ -348,9 +348,9 @@ export function ChatBotEditor({
           label="Conta Twitch"
           value={
             profile.twitchConnected ? (
-              <span className="text-emerald-400">Vinculada</span>
+              <span className="text-sky-400">Vinculada</span>
             ) : (
-              <Link href="/dashboard/settings" className="text-cyan-400 hover:text-cyan-300">
+              <Link href="/dashboard/settings" className="text-sky-400 hover:text-sky-300">
                 Vincular →
               </Link>
             )
@@ -383,7 +383,7 @@ export function ChatBotEditor({
               href={pageUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-cyan-400 hover:text-cyan-300"
+              className="text-sky-400 hover:text-sky-300"
             >
               /{username}
             </a>
@@ -420,7 +420,7 @@ export function ChatBotEditor({
                   (sample) => (
                     <span
                       key={sample}
-                      className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 font-mono text-xs text-cyan-300"
+                      className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 font-mono text-xs text-sky-300"
                     >
                       {sample}
                     </span>
@@ -457,12 +457,12 @@ export function ChatBotEditor({
                       key={cmd.id}
                       className={`overflow-hidden rounded-xl border transition ${
                         cmd.enabled
-                          ? "border-cyan-500/20 bg-zinc-950/50"
+                          ? "border-sky-400/20 bg-zinc-950/50"
                           : "border-zinc-800/80 bg-zinc-950/20 opacity-70"
                       }`}
                     >
                       <div className="flex items-center gap-3 border-b border-zinc-800/60 px-4 py-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-sky-400/20 bg-cyan-500/10 text-sky-300">
                           <ChatBotIcon name={icon} className="h-4 w-4" />
                         </div>
                         <span className="font-mono text-sm font-semibold text-cyan-200">
@@ -560,7 +560,7 @@ export function ChatBotEditor({
               <button
                 type="button"
                 onClick={addCustomCommand}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-3.5 text-sm text-zinc-400 transition hover:border-cyan-500/40 hover:brightness-110/[0.03] hover:text-cyan-300"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-3.5 text-sm text-zinc-400 transition hover:border-sky-400/30 hover:brightness-110/[0.03] hover:text-sky-300"
               >
                 <ChatBotIcon name="custom" className="h-4 w-4" />
                 Adicionar comando personalizado
@@ -581,7 +581,7 @@ export function ChatBotEditor({
                   key={msg.id}
                   className={`rounded-xl border p-4 transition ${
                     msg.enabled
-                      ? "border-cyan-500/20 bg-zinc-950/50"
+                      ? "border-sky-400/20 bg-zinc-950/50"
                       : "border-zinc-800/80 bg-zinc-950/20 opacity-70"
                   }`}
                 >
@@ -642,7 +642,7 @@ export function ChatBotEditor({
                           onClick={() => updateRotating(msg.id, { intervalSeconds: sec })}
                           className={`rounded-md border px-2 py-0.5 text-[11px] ${
                             msg.intervalSeconds === sec
-                              ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
+                              ? "border-sky-400/30 bg-cyan-500/10 text-sky-300"
                               : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
                           }`}
                         >
@@ -658,7 +658,7 @@ export function ChatBotEditor({
                 type="button"
                 onClick={addRotatingMessage}
                 disabled={rotatingMessages.length >= MAX_ROTATING}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-3.5 text-sm text-zinc-400 transition hover:border-cyan-500/40 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-3.5 text-sm text-zinc-400 transition hover:border-sky-400/30 hover:text-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChatBotIcon name="chat" className="h-4 w-4" />
                 {rotatingMessages.length >= MAX_ROTATING
@@ -678,12 +678,12 @@ export function ChatBotEditor({
               </div>
               <span
                 className={`flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide ${
-                  settings.enabled ? "text-emerald-400" : "text-zinc-500"
+                  settings.enabled ? "text-sky-400" : "text-zinc-500"
                 }`}
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    settings.enabled ? "bg-emerald-400 animate-pulse" : "bg-zinc-600"
+                    settings.enabled ? "bg-sky-400 animate-pulse" : "bg-zinc-600"
                   }`}
                 />
                 {settings.enabled ? "Ao vivo" : "Offline"}
@@ -749,7 +749,7 @@ export function ChatBotEditor({
                   <span
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                       step.done
-                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                        ? "border-sky-400/35 bg-sky-400/12 text-sky-400"
                         : "border-zinc-700 bg-zinc-900 text-zinc-600"
                     }`}
                   >
@@ -760,7 +760,7 @@ export function ChatBotEditor({
                     )}
                   </span>
                   {step.href ? (
-                    <Link href={step.href} className="text-cyan-400 hover:text-cyan-300">
+                    <Link href={step.href} className="text-sky-400 hover:text-sky-300">
                       {step.label}
                     </Link>
                   ) : (
@@ -776,7 +776,7 @@ export function ChatBotEditor({
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
           <ChatBotIcon name="check" className="h-4 w-4" />
           {toast}
         </div>

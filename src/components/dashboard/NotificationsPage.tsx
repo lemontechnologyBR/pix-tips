@@ -142,7 +142,7 @@ export function NotificationsPage() {
             onClick={() => handleFilterChange(tab.value)}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               filter === tab.value
-                ? "bg-cyan-500/20 text-cyan-300"
+                ? "bg-sky-400/12 text-sky-300"
                 : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
             }`}
           >
@@ -174,7 +174,7 @@ export function NotificationsPage() {
             <li
               key={n.id}
               className={`flex gap-4 px-4 py-4 transition hover:bg-zinc-900/50 ${
-                !n.read ? "bg-cyan-500/5" : ""
+                !n.read ? "bg-sky-400/5" : ""
               }`}
             >
               <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-lg">
@@ -235,7 +235,7 @@ export function NotificationsPage() {
       )}
 
       <p className="text-center text-xs text-zinc-600">
-        <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">
+        <Link href="/dashboard/settings" className="text-sky-400 hover:underline">
           Configurações
         </Link>
         {" · "}

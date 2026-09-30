@@ -10,7 +10,7 @@ export default function NotFound() {
         >
           🧭
         </div>
-        <p className="mt-8 text-sm font-medium uppercase tracking-wider text-cyan-400">
+        <p className="mt-8 text-sm font-medium uppercase tracking-wider text-sky-400">
           Erro 404
         </p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Página não encontrada</h1>
@@ -21,7 +21,7 @@ export default function NotFound() {
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href="/"
-            className="w-full rounded-lg web3-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110 sm:w-auto"
+            className="w-full rounded-lg live-btn-primary px-6 py-2.5 text-sm font-semibold text-white hover:brightness-110 sm:w-auto"
           >
             Voltar ao início
           </Link>
@@ -34,7 +34,7 @@ export default function NotFound() {
         </div>
         <p className="mt-8 text-sm text-zinc-500">
           Procurando exemplos?{" "}
-          <Link href="/examples" className="text-cyan-400 hover:underline">
+          <Link href="/examples" className="text-sky-400 hover:underline">
             Ver galeria de páginas
           </Link>
         </p>

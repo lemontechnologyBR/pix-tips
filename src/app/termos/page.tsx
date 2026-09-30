@@ -39,7 +39,7 @@ export default function TermosPage() {
           <p>
             Ao acessar ou utilizar a pix.tips (&quot;Plataforma&quot;), você concorda com estes
             Termos de Uso e com a nossa{" "}
-            <Link href="/privacidade" className="text-cyan-400 hover:underline">
+            <Link href="/privacidade" className="text-sky-400 hover:underline">
               Política de Privacidade
             </Link>
             . Se não concordar, não utilize os serviços.
@@ -111,7 +111,7 @@ export default function TermosPage() {
           <p>
             Titulares podem exercer direitos de acesso, correção, exclusão e portabilidade
             conforme descrito na{" "}
-            <Link href="/privacidade" className="text-cyan-400 hover:underline">
+            <Link href="/privacidade" className="text-sky-400 hover:underline">
               Política de Privacidade
             </Link>
             . O Encarregado de dados (DPO) pode ser contatado em privacidade@pix.tips.

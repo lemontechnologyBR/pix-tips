@@ -27,11 +27,13 @@ function demoTipPageSettings() {
     thankYouMessage: "Obrigado pelo apoio! Esta é uma página de demonstração.",
     tipTtsEnabled: true,
     tipTtsVoices: [
-      "helena-ia",
-      "rafael-ia",
-      "aurora-ia",
-      "ricardo-br",
-      "vitoria-br",
+      "francisca",
+      "antonio",
+      "thalita",
+      "raquel",
+      "duarte",
+      "ava",
+      "andrew",
     ],
   };
 }

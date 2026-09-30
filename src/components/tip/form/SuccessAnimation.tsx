@@ -26,11 +26,11 @@ export function SuccessAnimation({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
-        <div className="animate-pop-in mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-3xl">
+      <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 p-8 text-center">
+        <div className="animate-pop-in mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-400/15 text-3xl">
           ✓
         </div>
-        <h3 className="mt-4 text-xl font-bold text-emerald-400">
+        <h3 className="mt-4 text-xl font-bold text-sky-400">
           Pagamento confirmado!
         </h3>
         <p className="mt-2 text-sm text-zinc-400">

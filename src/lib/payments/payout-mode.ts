@@ -1,9 +1,9 @@
 import { getKycProfile } from "@/lib/repositories/kyc-repository";
 
 /**
- * Regras de migração gradual:
- * - Legado: ainda tem saldo no ledger da pix.tips → doações creditam saldo + saque admin.
- * - Woovi split: saldo zerado + subconta/chave Pix → doações com split, sem incrementar ledger.
+ * Modelo único (pós-migração):
+ * - Woovi split: doações com split para subconta; saque instantâneo na Woovi.
+ * - Legado: só se ainda não tem chave Pix/subconta (ainda não migrou).
  */
 
 export type PayoutMode = "legacy" | "woovi";
@@ -20,9 +20,8 @@ export function hasLegacyLedgerBalance(availableBalance: number): boolean {
   return availableBalance > 0.01;
 }
 
-/** Split Woovi quando não há saldo legado e já existe subconta (ou ao menos chave Pix). */
+/** Split Woovi sempre que já existe subconta ou chave Pix cadastrada. */
 export function shouldUseWooviSplit(creator: CreatorPayoutContext): boolean {
-  if (hasLegacyLedgerBalance(creator.availableBalance)) return false;
   return Boolean(creator.wooviSubaccountName?.trim() || creator.pixKey?.trim());
 }
 
@@ -47,6 +46,6 @@ export async function canRequestLegacyWithdraw(creatorId: string): Promise<{
 }
 
 export function migrationBannerMessage(creator: CreatorPayoutContext): string | null {
-  if (!hasLegacyLedgerBalance(creator.availableBalance)) return null;
-  return "Você ainda tem saldo na pix.tips. Saque esse valor para migrar automaticamente para o modelo Woovi (doações diretas na sua subconta).";
+  if (shouldUseWooviSplit(creator)) return null;
+  return "Cadastre sua chave Pix para receber doações direto na sua subconta Woovi e sacar na hora.";
 }

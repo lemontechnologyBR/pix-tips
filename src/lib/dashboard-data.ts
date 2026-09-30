@@ -13,7 +13,9 @@ export type DashboardNavIconId =
   | "transactions"
   | "settings"
   | "billing"
-  | "integrations";
+  | "integrations"
+  | "subscriptions"
+  | "missions";
 
 export const DASHBOARD_NAV: {
   href: string;
@@ -24,6 +26,8 @@ export const DASHBOARD_NAV: {
   { href: "/dashboard", label: "Visão Geral", icon: "overview", exact: true },
   { href: "/dashboard/profile", label: "Perfil", icon: "profile" },
   { href: "/dashboard/tip-page", label: "Minha página", icon: "tip-page" },
+  { href: "/dashboard/subscriptions", label: "Apoio mensal", icon: "subscriptions" },
+  { href: "/dashboard/missions", label: "Recompensas", icon: "missions" },
   { href: "/dashboard/widgets", label: "Widgets", icon: "widgets" },
   { href: "/dashboard/chat-bot", label: "ChatBot", icon: "chat-bot" },
   { href: "/dashboard/finance", label: "Financeiro", icon: "finance" },
@@ -35,6 +39,8 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Visão Geral",
   "/dashboard/profile": "Perfil",
   "/dashboard/tip-page": "Minha página",
+  "/dashboard/subscriptions": "Apoio mensal",
+  "/dashboard/missions": "Recompensas",
   "/dashboard/widgets": "Widgets",
   "/dashboard/chat-bot": "ChatBot",
   "/dashboard/finance": "Financeiro",

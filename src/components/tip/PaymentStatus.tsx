@@ -19,7 +19,7 @@ const config: Record<
   confirmed: {
     title: "Pagamento confirmado!",
     description: "Obrigado pelo apoio. O criador recebeu sua doação.",
-    color: "text-emerald-400",
+    color: "text-sky-400",
   },
   failed: {
     title: "Pagamento falhou",
@@ -39,7 +39,7 @@ export function PaymentStatus({ variant, message }: PaymentStatusProps) {
   return (
     <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 p-6 text-center">
       {variant === "confirmed" && (
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20 text-2xl">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-sky-400/15 text-2xl">
           ✓
         </div>
       )}

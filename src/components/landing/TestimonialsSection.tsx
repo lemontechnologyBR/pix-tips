@@ -3,7 +3,7 @@ import { TESTIMONIALS } from "@/lib/landing-data";
 const PLATFORM_BADGE: Record<string, { label: string; className: string }> = {
   Twitch: {
     label: "Twitch",
-    className: "bg-purple-500/15 text-purple-400 border border-purple-500/20",
+    className: "bg-sky-400/12 text-sky-400 border border-sky-400/20",
   },
   YouTube: {
     label: "YouTube",
@@ -26,7 +26,7 @@ export function TestimonialsSection() {
           </p>
           <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
             O que{" "}
-            <span className="web3-text-gradient">streamers</span> estão dizendo
+            <span className="live-text-accent">streamers</span> estão dizendo
           </h2>
         </div>
 
@@ -41,7 +41,7 @@ export function TestimonialsSection() {
             return (
               <div
                 key={t.handle}
-                className="web3-glass group flex flex-col gap-4 rounded-2xl border border-white/5 p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5"
+                className="live-panel group flex flex-col gap-4 rounded-2xl border border-white/5 p-6 transition-all duration-300 hover:border-sky-400/30 hover:shadow-lg hover:shadow-none"
               >
                 {/* Quote mark */}
                 <span

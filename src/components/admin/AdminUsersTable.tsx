@@ -192,7 +192,7 @@ export function AdminUsersTable({
                   <th className="px-4 py-3">Role</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Doações</th>
-                  <th className="px-4 py-3">Saldo</th>
+                  <th className="px-4 py-3">Saldo legado</th>
                   <th className="px-4 py-3">Cadastro</th>
                   <th className="px-4 py-3">Ações</th>
                 </tr>
@@ -204,7 +204,7 @@ export function AdminUsersTable({
                       <p className="font-medium">{u.name}</p>
                       <p className="text-xs text-zinc-500">{u.email}</p>
                       {u.username && (
-                        <p className="text-xs text-cyan-400">@{u.username}</p>
+                        <p className="text-xs text-sky-400">@{u.username}</p>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -224,7 +224,7 @@ export function AdminUsersTable({
                           className={`rounded-full px-2 py-0.5 text-xs ${
                             u.isSuspended
                               ? "bg-red-500/15 text-red-400"
-                              : "bg-emerald-500/15 text-emerald-400"
+                              : "bg-sky-400/12 text-sky-400"
                           }`}
                         >
                           {u.isSuspended ? "Suspenso" : "Ativo"}
@@ -233,11 +233,34 @@ export function AdminUsersTable({
                         <span className="text-xs text-zinc-600">Sem creator</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-emerald-400">
+                    <td className="px-4 py-3 text-sky-400">
                       {u.totalRaised != null ? formatCurrency(u.totalRaised) : "—"}
                     </td>
-                    <td className="px-4 py-3 text-cyan-400">
-                      {u.availableBalance != null ? formatCurrency(u.availableBalance) : "—"}
+                    <td className="px-4 py-3">
+                      {u.hasWooviSubaccount ? (
+                        <div>
+                          <p className="text-sky-300">
+                            {formatCurrency(u.availableBalance ?? u.wooviBalance ?? 0)}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wide text-sky-400/70">
+                            Woovi
+                            {(u.ledgerBalance ?? 0) > 0.01
+                              ? ` + legado ${formatCurrency(u.ledgerBalance ?? 0)}`
+                              : ""}
+                          </p>
+                        </div>
+                      ) : u.availableBalance != null && u.availableBalance > 0.01 ? (
+                        <div>
+                          <p className="text-amber-300">{formatCurrency(u.availableBalance)}</p>
+                          <p className="text-[10px] uppercase tracking-wide text-amber-500/80">
+                            {u.hasPixKey ? "pendente migração" : "sem Pix — não pago"}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-zinc-500">
+                          {u.availableBalance != null ? formatCurrency(u.availableBalance) : "—"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-zinc-400">
                       {new Date(u.createdAt).toLocaleDateString("pt-BR")}
@@ -251,7 +274,7 @@ export function AdminUsersTable({
                             onClick={() => quickToggleSuspend(u)}
                             className={`rounded-lg px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
                               u.isSuspended
-                                ? "border border-emerald-700 text-emerald-400 hover:bg-emerald-950"
+                                ? "border border-sky-600 text-sky-400 hover:bg-sky-950"
                                 : "border border-red-800 text-red-400 hover:bg-red-950"
                             }`}
                           >
@@ -307,14 +330,40 @@ export function AdminUsersTable({
                 <h3 className="text-lg font-semibold">{selected.name}</h3>
                 <p className="text-sm text-zinc-400">{selected.email}</p>
                 {selected.username && (
-                  <p className="text-xs text-cyan-400">@{selected.username}</p>
+                  <p className="text-xs text-sky-400">@{selected.username}</p>
                 )}
                 {selected.creatorId && (
                   <p className="mt-2 text-xs text-zinc-400">
-                    Doações {formatCurrency(selected.totalRaised ?? 0)} · Saldo{" "}
-                    <span className="text-cyan-400">
-                      {formatCurrency(selected.availableBalance ?? 0)}
-                    </span>
+                    Doações {formatCurrency(selected.totalRaised ?? 0)}
+                    {selected.hasWooviSubaccount ? (
+                      <>
+                        {" "}
+                        · Saldo Woovi{" "}
+                        <span className="text-sky-400">
+                          {formatCurrency(selected.wooviBalance ?? selected.availableBalance ?? 0)}
+                        </span>
+                        {(selected.ledgerBalance ?? 0) > 0.01 ? (
+                          <>
+                            {" "}
+                            · Legado{" "}
+                            <span className="text-amber-300">
+                              {formatCurrency(selected.ledgerBalance ?? 0)}
+                            </span>
+                          </>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        · Saldo{" "}
+                        <span className="text-sky-400">
+                          {formatCurrency(selected.availableBalance ?? 0)}
+                        </span>
+                        {(selected.availableBalance ?? 0) > 0.01 && !selected.hasPixKey
+                          ? " · sem Pix"
+                          : ""}
+                      </>
+                    )}
                   </p>
                 )}
               </div>

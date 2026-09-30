@@ -42,7 +42,7 @@ export function ApiKeySection() {
       <h2 className="text-base font-semibold text-white">API para desenvolvedores</h2>
       <p className="mt-1 text-sm text-zinc-400">
         Gere uma chave para integrações e webhooks.{" "}
-        <a href="/developers" className="text-cyan-400 hover:underline">
+        <a href="/developers" className="text-sky-400 hover:underline">
           Ver documentação
         </a>
       </p>
@@ -69,7 +69,7 @@ export function ApiKeySection() {
           type="button"
           disabled={loading}
           onClick={loadOrCreateKey}
-          className="mt-4 rounded-lg web3-btn-primary px-4 py-2 text-sm font-medium hover:brightness-110 disabled:opacity-50"
+          className="mt-4 rounded-lg live-btn-primary px-4 py-2 text-sm font-medium hover:brightness-110 disabled:opacity-50"
         >
           {loading ? "Gerando..." : "Gerar chave de API"}
         </button>

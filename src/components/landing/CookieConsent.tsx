@@ -69,12 +69,12 @@ export function CookieConsent() {
   if (!visible) return null;
 
   return (
-    <div className="web3-glass-strong fixed inset-x-0 bottom-0 z-50 border-t border-cyan-500/20 p-4 sm:bottom-4 sm:inset-x-4 sm:rounded-xl sm:border">
+    <div className="live-panel fixed inset-x-0 bottom-0 z-50 border-t border-sky-400/20 p-4 sm:bottom-4 sm:inset-x-4 sm:rounded-xl sm:border">
       <div className="mx-auto max-w-4xl space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-400">
             Usamos cookies para melhorar sua experiência. Veja nossa{" "}
-            <Link href="/privacidade" className="text-cyan-400 hover:underline">
+            <Link href="/privacidade" className="text-sky-400 hover:underline">
               Política de Privacidade
             </Link>
             .
@@ -97,7 +97,7 @@ export function CookieConsent() {
             <button
               type="button"
               onClick={acceptAll}
-              className="web3-btn-primary rounded-lg px-5 py-2 text-sm font-semibold text-white"
+              className="live-btn-primary rounded-lg px-5 py-2 text-sm font-semibold text-zinc-950"
             >
               Aceitar todos
             </button>
@@ -113,7 +113,7 @@ export function CookieConsent() {
                   Necessários para o funcionamento do site. Não podem ser desativados.
                 </p>
               </div>
-              <span className="shrink-0 rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-xs font-medium text-cyan-300">
+              <span className="shrink-0 rounded-full bg-sky-400/12 px-2.5 py-0.5 text-xs font-medium text-sky-300">
                 Sempre ativo
               </span>
             </div>
@@ -174,7 +174,7 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={saveCustom}
-                className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
+                className="rounded-lg border border-sky-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-sky-300 transition hover:bg-sky-400/12"
               >
                 Salvar preferências
               </button>
@@ -196,7 +196,7 @@ export function CookieManageButton() {
     <button
       type="button"
       onClick={reset}
-      className="text-sm text-zinc-500 transition-colors hover:text-cyan-400"
+      className="text-sm text-zinc-500 transition-colors hover:text-sky-400"
     >
       Gerenciar cookies
     </button>

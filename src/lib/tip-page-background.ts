@@ -2,11 +2,11 @@ import type { CSSProperties } from "react";
 import type { TipPageBackgroundStyle, TipPageSettings } from "@/types";
 
 export const BACKGROUND_GRADIENT_PRESETS = [
-  { id: "violet", label: "Violeta", from: "#4c1d95", to: "#09090b" },
-  { id: "emerald", label: "Esmeralda", from: "#064e3b", to: "#09090b" },
-  { id: "sunset", label: "Pôr do sol", from: "#7c2d12", to: "#09090b" },
-  { id: "ocean", label: "Oceano", from: "#0c4a6e", to: "#09090b" },
-  { id: "rose", label: "Rosa", from: "#881337", to: "#09090b" },
+  { id: "studio", label: "Studio", from: "#0c4a6e", to: "#07070a" },
+  { id: "sky", label: "Céu", from: "#0369a1", to: "#07070a" },
+  { id: "sunset", label: "Pôr do sol", from: "#7c2d12", to: "#07070a" },
+  { id: "ocean", label: "Oceano", from: "#0c4a6e", to: "#07070a" },
+  { id: "rose", label: "Rosa", from: "#881337", to: "#07070a" },
   { id: "night", label: "Noite", from: "#27272a", to: "#000000" },
 ] as const;
 
@@ -57,9 +57,9 @@ export function normalizeBackgroundStyle(raw?: string): TipPageBackgroundStyle {
 // como literais para evitar import circular com tip-page-defaults.
 const NEUTRAL_BACKGROUND = {
   style: "theme" as TipPageBackgroundStyle,
-  color: "#09090b",
-  gradientFrom: "#4c1d95",
-  gradientTo: "#09090b",
+  color: "#07070a",
+  gradientFrom: "#0c4a6e",
+  gradientTo: "#07070a",
 };
 
 /**
@@ -137,7 +137,7 @@ export function resolveTipPageBackground(
   }
 
   const style = normalizeBackgroundStyle(settings.backgroundStyle);
-  const base = settings.backgroundColor || "#09090b";
+  const base = settings.backgroundColor || "#07070a";
 
   if (style === "solid") {
     return {
@@ -150,7 +150,7 @@ export function resolveTipPageBackground(
   }
 
   if (style === "gradient") {
-    const from = settings.backgroundGradientFrom || "#4c1d95";
+    const from = settings.backgroundGradientFrom || "#0c4a6e";
     const to = settings.backgroundGradientTo || base;
     return {
       backgroundColor: base,
@@ -177,7 +177,7 @@ export function resolveTipPageBackground(
 
   return {
     backgroundColor: base,
-    backgroundImage: `radial-gradient(ellipse at top, ${themeColor}22, ${base} 60%)`,
+    backgroundImage: `radial-gradient(ellipse at top, ${themeColor}18, ${base} 58%)`,
     backgroundSize: "cover",
     backgroundPosition: "top center",
     backgroundAttachment: "scroll",

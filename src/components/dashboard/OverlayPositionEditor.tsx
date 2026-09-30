@@ -54,7 +54,7 @@ const DRAGGABLE_WIDGETS: DraggableWidgetDef[] = [
     overlayKey: "stats",
     label: "Contador",
     field: "statsPosition",
-    handleClass: "border-emerald-400/70 bg-emerald-600/25 text-emerald-100",
+    handleClass: "border-emerald-400/70 bg-sky-500/25 text-sky-100",
   },
   {
     dragKey: "lastDonation",
@@ -292,7 +292,7 @@ export function OverlayPositionEditor({
                       onClick={() => onChange({ goalOverlayLayout: layout.id })}
                       className={`rounded-lg border px-1 py-1.5 text-center transition ${
                         active
-                          ? "border-cyan-500 bg-cyan-500/15 text-cyan-200"
+                          ? "border-cyan-500 bg-sky-400/10 text-cyan-200"
                           : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
                       }`}
                     >

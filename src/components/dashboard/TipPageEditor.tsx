@@ -157,7 +157,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
     <div className="w-full space-y-6 pb-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
             <OverviewIcon name="link" className="h-5 w-5" />
           </div>
           <div>
@@ -171,7 +171,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
           <button
             type="button"
             onClick={() => void copyLink()}
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700/80 bg-zinc-950/50 px-4 py-2.5 text-sm font-medium text-zinc-200 hover:border-cyan-500/40"
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700/80 bg-zinc-950/50 px-4 py-2.5 text-sm font-medium text-zinc-200 hover:border-sky-400/30"
           >
             <OverviewIcon name="link" className="h-4 w-4" />
             {copied ? "Copiado!" : "Copiar link"}
@@ -180,7 +180,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
             type="button"
             onClick={() => void handleSave()}
             disabled={saving}
-            className="rounded-xl web3-btn-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-900/30 hover:brightness-110 disabled:opacity-50"
+            className="rounded-xl live-btn-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Salvando…" : "Salvar alterações"}
           </button>
@@ -201,7 +201,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition ${
                     active
-                      ? "bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/40"
+                      ? "bg-sky-400/10 text-cyan-200 ring-1 ring-cyan-500/40"
                       : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
                   }`}
                 >
@@ -304,6 +304,56 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
                   onVoicesChange={(tipTtsVoices) => updateSettings({ tipTtsVoices })}
                 />
 
+                <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="font-semibold text-white">Filtro de mensagens</h2>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        Bloqueia doações com palavras ofensivas antes de gerar o Pix
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSettings({
+                          messageFilterEnabled: !(s.messageFilterEnabled !== false),
+                        })
+                      }
+                      className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                        s.messageFilterEnabled !== false ? "bg-cyan-500" : "bg-zinc-700"
+                      }`}
+                      aria-pressed={s.messageFilterEnabled !== false}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+                          s.messageFilterEnabled !== false ? "left-5" : "left-0.5"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  {s.messageFilterEnabled !== false && (
+                    <label className="mt-4 block">
+                      <span className="text-xs text-zinc-400">
+                        Palavras extras (uma por linha). A lista padrão leve já está ativa.
+                      </span>
+                      <textarea
+                        rows={4}
+                        value={(s.blockedWords ?? []).join("\n")}
+                        onChange={(e) =>
+                          updateSettings({
+                            blockedWords: e.target.value
+                              .split(/[\n,]+/)
+                              .map((w) => w.trim())
+                              .filter(Boolean),
+                          })
+                        }
+                        placeholder={"ex.\nxingar\nofertar"}
+                        className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-sky-400/35"
+                      />
+                    </label>
+                  )}
+                </section>
+
                 <div className="space-y-3 border-t border-zinc-800 pt-5">
                   <ToggleCard
                     checked={s.showSupporterWall}
@@ -349,7 +399,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
               <Link
                 href={tipPagePath(creator.username)}
                 target="_blank"
-                className="text-xs font-medium text-cyan-400 hover:text-cyan-300"
+                className="text-xs font-medium text-sky-400 hover:text-sky-300"
               >
                 Abrir →
               </Link>
@@ -363,7 +413,7 @@ export function TipPageEditor({ initialCreator }: TipPageEditorProps) {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
           <OverviewIcon name="check" className="h-4 w-4" />
           {toast}
         </div>

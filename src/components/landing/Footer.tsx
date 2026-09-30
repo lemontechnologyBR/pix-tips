@@ -82,7 +82,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/5 text-zinc-500 transition-all duration-200 hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-400"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/5 text-zinc-500 transition-all duration-200 hover:border-sky-400/30 hover:bg-sky-400/10 hover:text-sky-400"
               >
                 {social.icon}
               </a>
@@ -98,7 +98,7 @@ export function Footer() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="text-sm text-zinc-500 transition-colors hover:text-cyan-400"
+                  className="text-sm text-zinc-500 transition-colors hover:text-sky-400"
                 >
                   {item.label}
                 </Link>
@@ -115,7 +115,7 @@ export function Footer() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="text-sm text-zinc-500 transition-colors hover:text-cyan-400"
+                  className="text-sm text-zinc-500 transition-colors hover:text-sky-400"
                 >
                   {item.label}
                 </Link>
@@ -132,7 +132,7 @@ export function Footer() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="text-sm text-zinc-500 transition-colors hover:text-cyan-400"
+                  className="text-sm text-zinc-500 transition-colors hover:text-sky-400"
                 >
                   {item.label}
                 </Link>

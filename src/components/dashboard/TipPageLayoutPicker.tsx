@@ -19,7 +19,7 @@ function MiniMock({ layout }: { layout: TipPageLayoutPreset }) {
   const shell: React.CSSProperties = {
     background:
       id === "aurora"
-        ? `radial-gradient(circle at 20% 15%, ${accent}66, transparent 45%), radial-gradient(circle at 85% 70%, #818cf866, transparent 50%), ${bg}`
+        ? `radial-gradient(circle at 20% 15%, ${accent}55, transparent 48%), ${bg}`
         : id === "space"
           ? `radial-gradient(circle at 25% 20%, ${accent}55, transparent 35%), ${bg}`
           : id === "sunset"
@@ -171,7 +171,7 @@ export function TipPageLayoutPicker({ value, onChange }: TipPageLayoutPickerProp
                 </span>
               )}
             </div>
-            <div className={`border-t px-2.5 py-2 ${active ? "border-cyan-500/30 bg-cyan-500/5" : "border-zinc-800 bg-zinc-950/40"}`}>
+            <div className={`border-t px-2.5 py-2 ${active ? "border-sky-400/30 bg-sky-400/5" : "border-zinc-800 bg-zinc-950/40"}`}>
               <p className={`text-sm font-semibold ${active ? "text-cyan-200" : "text-zinc-200"}`}>
                 {layout.name}
               </p>

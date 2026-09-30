@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
+  OAUTH_ACCOUNT_KIND_COOKIE,
   OAUTH_LINK_USER_COOKIE,
   OAUTH_PKCE_COOKIE,
   OAUTH_RETURN_COOKIE,
@@ -11,6 +12,7 @@ import {
   isLinkOnlyOAuthProvider,
   isOAuthProvider,
   linkOAuthAccount,
+  type OAuthAccountKind,
 } from "@/lib/auth/oauth";
 import { buildSessionCookie, createSession } from "@/lib/auth/session";
 import {
@@ -72,15 +74,17 @@ export async function GET(request: Request, context: RouteContext) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const oauthError = searchParams.get("error");
-  const streamelementsDenied = searchParams.get("error") === "true";
 
   const cookieStore = await cookies();
   const linkUserId = cookieStore.get(OAUTH_LINK_USER_COOKIE)?.value;
   const returnTo = safeReturnPath(cookieStore.get(OAUTH_RETURN_COOKIE)?.value);
+  const kindRaw = cookieStore.get(OAUTH_ACCOUNT_KIND_COOKIE)?.value;
+  const accountKind: OAuthAccountKind =
+    kindRaw === "fan" || kindRaw === "creator" ? kindRaw : "creator";
 
-  if (oauthError || streamelementsDenied) {
-    if (linkUserId) {
-      return linkResultRedirect(returnTo, {
+  if (oauthError) {
+    if (linkUserId || returnTo !== "/dashboard/settings") {
+      return linkResultRedirect(returnTo === "/dashboard/settings" ? "/login" : returnTo, {
         error: "Login social cancelado ou negado.",
       });
     }
@@ -92,8 +96,10 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   if (!code || !state) {
-    if (linkUserId) {
-      return linkResultRedirect(returnTo, { error: "Resposta OAuth incompleta." });
+    if (linkUserId || returnTo !== "/dashboard/settings") {
+      return linkResultRedirect(returnTo === "/dashboard/settings" ? "/login" : returnTo, {
+        error: "Resposta OAuth incompleta.",
+      });
     }
     return errorRedirect("Resposta OAuth incompleta.");
   }
@@ -102,15 +108,16 @@ export async function GET(request: Request, context: RouteContext) {
   const pkceVerifier = cookieStore.get(OAUTH_PKCE_COOKIE)?.value;
   cookieStore.set({ name: OAUTH_STATE_COOKIE, value: "", ...clearCookieOptions });
   cookieStore.set({ name: OAUTH_PKCE_COOKIE, value: "", ...clearCookieOptions });
+  cookieStore.set({ name: OAUTH_RETURN_COOKIE, value: "", ...clearCookieOptions });
+  cookieStore.set({ name: OAUTH_ACCOUNT_KIND_COOKIE, value: "", ...clearCookieOptions });
 
   if (linkUserId) {
     cookieStore.set({ name: OAUTH_LINK_USER_COOKIE, value: "", ...clearCookieOptions });
-    cookieStore.set({ name: OAUTH_RETURN_COOKIE, value: "", ...clearCookieOptions });
   }
 
   if (!savedState || savedState !== state) {
-    if (linkUserId) {
-      return linkResultRedirect(returnTo, {
+    if (linkUserId || returnTo !== "/dashboard/settings") {
+      return linkResultRedirect(returnTo === "/dashboard/settings" ? "/login" : returnTo, {
         error: "Estado OAuth inválido. Tente novamente.",
       });
     }
@@ -130,7 +137,9 @@ export async function GET(request: Request, context: RouteContext) {
       return linkResultRedirect(returnTo, { connected: provider });
     }
 
-    const session = await findOrCreateOAuthUser(provider, userInfo, tokens);
+    const session = await findOrCreateOAuthUser(provider, userInfo, tokens, {
+      accountKind,
+    });
 
     const sessionPayload = {
       userId: session.userId,
@@ -140,15 +149,37 @@ export async function GET(request: Request, context: RouteContext) {
       onboardingCompleted: session.onboardingCompleted,
     };
 
-    const redirectPath = session.onboardingCompleted
-      ? "/dashboard"
-      : "/onboarding?signup=1";
+    // Tip page / fã: volta pra tip page, sem forçar onboarding de streamer
+    const preferReturn =
+      accountKind === "fan" ||
+      (returnTo !== "/dashboard/settings" &&
+        !returnTo.startsWith("/dashboard") &&
+        !returnTo.startsWith("/onboarding") &&
+        !returnTo.startsWith("/login") &&
+        !returnTo.startsWith("/admin"));
 
-    if (session.totpEnabled) {
+    const redirectPath = preferReturn
+      ? returnTo
+      : !session.creatorId
+        ? "/onboarding?signup=1"
+        : session.onboardingCompleted
+          ? "/dashboard"
+          : "/onboarding?signup=1";
+
+    if (session.totpEnabled && !preferReturn) {
       const mfaToken = await createMfaPendingToken(sessionPayload);
       cookieStore.set(buildMfaPendingCookie(mfaToken));
       const mfaUrl = new URL("/login", redirectBase());
       mfaUrl.searchParams.set("mfa", "1");
+      return NextResponse.redirect(mfaUrl);
+    }
+
+    if (session.totpEnabled && preferReturn) {
+      const mfaToken = await createMfaPendingToken(sessionPayload);
+      cookieStore.set(buildMfaPendingCookie(mfaToken));
+      const mfaUrl = new URL("/login", redirectBase());
+      mfaUrl.searchParams.set("mfa", "1");
+      mfaUrl.searchParams.set("redirect", returnTo);
       return NextResponse.redirect(mfaUrl);
     }
 
@@ -162,8 +193,10 @@ export async function GET(request: Request, context: RouteContext) {
     const message =
       error instanceof Error ? error.message : "Não foi possível concluir o login social.";
 
-    if (linkUserId) {
-      return linkResultRedirect(returnTo, { error: message });
+    if (linkUserId || returnTo !== "/dashboard/settings") {
+      return linkResultRedirect(returnTo === "/dashboard/settings" ? "/login" : returnTo, {
+        error: message,
+      });
     }
 
     return errorRedirect(message);

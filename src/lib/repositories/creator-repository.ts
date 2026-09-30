@@ -9,6 +9,10 @@ import {
 } from "@/lib/repositories/json-fields";
 import type { ChatBotSettings, Creator, TipPageSettings } from "@/types";
 import { defaultChatBotSettings, normalizeChatBotSettings } from "@/lib/chat-bot/settings";
+import {
+  defaultDiscordSettings,
+  normalizeDiscordSettings,
+} from "@/lib/integrations/discord-roles";
 
 const creatorInclude = { user: { select: { email: true } } } as const;
 
@@ -135,6 +139,14 @@ export async function update(
     );
     data.chatBotSettings = JSON.stringify(
       normalizeChatBotSettings({ ...current, ...patch.chatBotSettings }),
+    );
+  }
+  if (patch.discordSettings !== undefined) {
+    const current = normalizeDiscordSettings(
+      parseJson(existing.discordSettings ?? "{}", defaultDiscordSettings()),
+    );
+    data.discordSettings = JSON.stringify(
+      normalizeDiscordSettings({ ...current, ...patch.discordSettings }),
     );
   }
 

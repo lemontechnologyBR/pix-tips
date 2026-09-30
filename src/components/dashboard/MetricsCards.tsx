@@ -18,7 +18,7 @@ function ChangeBadge({ value }: { value: number }) {
         flat
           ? "bg-zinc-800 text-zinc-500"
           : positive
-            ? "bg-emerald-500/15 text-emerald-400"
+            ? "bg-sky-400/12 text-sky-400"
             : "bg-red-500/15 text-red-400"
       }`}
     >
@@ -48,12 +48,12 @@ function MetricCard({
 }) {
   const accents = {
     emerald: {
-      box: "border-emerald-500/20 bg-gradient-to-br from-emerald-600/10 to-zinc-900/40",
-      icon: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+      box: "border-sky-400/20 bg-gradient-to-br from-sky-500/10 to-zinc-900/40",
+      icon: "border-sky-400/30 bg-sky-400/10 text-sky-400",
     },
     violet: {
-      box: "border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-zinc-900/40",
-      icon: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
+      box: "border-sky-400/20 bg-gradient-to-br from-sky-400/10 to-zinc-900/40",
+      icon: "border-sky-400/30 bg-sky-400/10 text-sky-400",
     },
     amber: {
       box: "border-amber-500/20 bg-gradient-to-br from-amber-600/10 to-zinc-900/40",
@@ -68,7 +68,7 @@ function MetricCard({
   const style = accents[accent];
 
   return (
-    <div className={`web3-card rounded-2xl border p-5 ${style.box}`}>
+    <div className={`live-card rounded-2xl border p-5 ${style.box}`}>
       <div className="flex items-start justify-between gap-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${style.icon}`}
@@ -95,7 +95,7 @@ export function MetricsCards({ overview, goal, raised }: MetricsCardsProps) {
         accent="emerald"
         footer={<ChangeBadge value={overview.totalMonthChange} />}
       >
-        <p className="text-2xl font-bold tracking-tight text-emerald-400">
+        <p className="text-2xl font-bold tracking-tight text-sky-400">
           {formatCurrency(overview.totalMonth)}
         </p>
       </MetricCard>
@@ -133,7 +133,7 @@ export function MetricsCards({ overview, goal, raised }: MetricsCardsProps) {
             <p className="truncate text-lg font-bold text-white">
               {last.anonymous ? "Anônimo" : last.donorName}
             </p>
-            <p className="mt-0.5 text-emerald-400">{formatCurrency(last.amount)}</p>
+            <p className="mt-0.5 text-sky-400">{formatCurrency(last.amount)}</p>
             {last.message && (
               <p className="mt-2 line-clamp-2 text-xs text-zinc-500">
                 &ldquo;{last.message}&rdquo;

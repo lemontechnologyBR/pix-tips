@@ -40,7 +40,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     <PublicPageLayout narrow>
       <Link
         href="/blog"
-        className="mb-6 inline-flex text-sm text-cyan-400 hover:text-cyan-300"
+        className="mb-6 inline-flex text-sm text-sky-400 hover:text-sky-300"
       >
         ← Voltar ao blog
       </Link>
@@ -80,7 +80,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               <strong className="font-semibold text-zinc-200">{children}</strong>
             ),
             code: ({ children }) => (
-              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-sm text-cyan-300">
+              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-sm text-sky-300">
                 {children}
               </code>
             ),
@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
             href="/register"
-            className="rounded-lg web3-btn-primary px-6 py-2.5 text-sm font-medium hover:brightness-110"
+            className="rounded-lg live-btn-primary px-6 py-2.5 text-sm font-medium hover:brightness-110"
           >
             Criar conta grátis
           </Link>

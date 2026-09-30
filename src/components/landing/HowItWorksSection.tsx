@@ -60,7 +60,7 @@ const STEP_ICONS: Record<string, React.ReactNode> = {
 
 export function HowItWorksSection() {
   return (
-    <section id="como-funciona" className="border-t border-cyan-500/10 py-20">
+    <section id="como-funciona" className="border-t border-zinc-800 py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Header */}
         <div className="text-center animate-fade-in-up">
@@ -79,22 +79,22 @@ export function HowItWorksSection() {
             aria-hidden
             className="pointer-events-none absolute inset-x-[16.5%] top-[52px] hidden lg:block"
           >
-            <div className="border-t border-dashed border-cyan-500/30" />
+            <div className="border-t border-dashed border-sky-400/30" />
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
             {HOW_IT_WORKS.map((item, i) => (
               <div
                 key={item.step}
-                className="web3-glass rounded-2xl p-6 text-center transition-all duration-300 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10"
+                className="live-panel rounded-2xl p-6 text-center transition-all duration-300 hover:border-sky-400/30 hover:shadow-lg hover:shadow-none"
               >
                 {/* Icon circle */}
-                <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-sky-400/20 bg-cyan-500/10 text-sky-400">
                   {STEP_ICONS[item.icon]}
                 </div>
 
                 {/* Step number */}
-                <p className="mt-5 text-5xl font-black leading-none web3-text-gradient">
+                <p className="mt-5 text-5xl font-black leading-none live-text-accent">
                   {STEP_NUMBERS[i]}
                 </p>
 
@@ -107,7 +107,7 @@ export function HowItWorksSection() {
                 </p>
 
                 {/* Time badge */}
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400">
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-sky-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                   {STEP_TIMES[i]}
                 </div>

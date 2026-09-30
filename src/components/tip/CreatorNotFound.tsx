@@ -14,7 +14,7 @@ export function CreatorNotFound() {
         </p>
         <Link
           href="/"
-          className="mt-8 inline-block rounded-xl web3-btn-primary px-6 py-3 font-semibold hover:brightness-110"
+          className="mt-8 inline-block rounded-xl live-btn-primary px-6 py-3 font-semibold hover:brightness-110"
         >
           Voltar ao início
         </Link>

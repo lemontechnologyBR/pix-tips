@@ -40,7 +40,7 @@ export function VideoModal({
       aria-label="Vídeo demonstrativo"
     >
       <div
-        className="web3-glass-strong relative w-full max-w-3xl overflow-hidden rounded-2xl shadow-2xl shadow-cyan-500/20"
+        className="live-panel relative w-full max-w-3xl overflow-hidden rounded-2xl shadow-2xl shadow-black/40"
         onClick={(e) => e.stopPropagation()}
       >
         <button

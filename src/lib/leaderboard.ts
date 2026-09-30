@@ -32,8 +32,14 @@ export function addDonationToLeaderboard(
   if (existing) {
     existing.amount += payload.amount;
     existing.count += 1;
+    if (payload.isSubscriber) existing.isSubscriber = true;
   } else {
-    map.set(key, { name: payload.name, amount: payload.amount, count: 1 });
+    map.set(key, {
+      name: payload.name,
+      amount: payload.amount,
+      count: 1,
+      isSubscriber: payload.isSubscriber || undefined,
+    });
   }
 
   return [...map.values()].sort((a, b) => b.amount - a.amount);

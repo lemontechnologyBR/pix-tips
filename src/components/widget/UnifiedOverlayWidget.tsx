@@ -46,26 +46,54 @@ interface UnifiedOverlayWidgetProps {
 interface AlertState {
   queue: DonationPayload[];
   current: DonationPayload | null;
+  paused: boolean;
+  last: DonationPayload | null;
 }
 
 type AlertAction =
   | { type: "ENQUEUE"; payload: DonationPayload }
-  | { type: "COMPLETE" };
+  | { type: "COMPLETE" }
+  | { type: "PAUSE" }
+  | { type: "RESUME" }
+  | { type: "SKIP" }
+  | { type: "CLEAR" }
+  | { type: "REPLAY" };
 
 function alertReducer(state: AlertState, action: AlertAction): AlertState {
   switch (action.type) {
     case "ENQUEUE": {
-      if (state.current) {
-        return { ...state, queue: [...state.queue, action.payload] };
+      const last = action.payload;
+      if (state.paused || state.current) {
+        return { ...state, queue: [...state.queue, action.payload], last };
       }
-      return { ...state, current: action.payload };
+      return { ...state, current: action.payload, last };
     }
     case "COMPLETE": {
-      if (state.queue.length === 0) {
-        return { ...state, current: null };
-      }
+      if (state.paused) return state;
+      if (state.queue.length === 0) return { ...state, current: null };
       const [next, ...rest] = state.queue;
-      return { current: next, queue: rest };
+      return { ...state, current: next, queue: rest };
+    }
+    case "PAUSE":
+      return { ...state, paused: true };
+    case "RESUME": {
+      if (!state.paused) return state;
+      if (state.current) return { ...state, paused: false };
+      if (state.queue.length === 0) return { ...state, paused: false };
+      const [next, ...rest] = state.queue;
+      return { ...state, paused: false, current: next, queue: rest };
+    }
+    case "SKIP": {
+      if (state.queue.length === 0) return { ...state, current: null };
+      const [next, ...rest] = state.queue;
+      return { ...state, current: next, queue: rest };
+    }
+    case "CLEAR":
+      return { ...state, queue: [], current: null };
+    case "REPLAY": {
+      if (!state.last) return state;
+      if (state.current) return { ...state, queue: [state.last, ...state.queue] };
+      return { ...state, current: state.last };
     }
     default:
       return state;
@@ -103,7 +131,20 @@ export function UnifiedOverlayWidget({
   const [alertState, dispatchAlert] = useReducer(alertReducer, {
     queue: [],
     current: null,
+    paused: false,
+    last: null,
   });
+
+  const onAlertControl = useCallback((action: import("@/lib/alert-controls").AlertControlAction) => {
+    const map = {
+      pause: "PAUSE",
+      resume: "RESUME",
+      skip: "SKIP",
+      clear: "CLEAR",
+      replay: "REPLAY",
+    } as const;
+    dispatchAlert({ type: map[action] });
+  }, []);
 
   useEffect(() => {
     setCurrentRaised(raised);
@@ -166,7 +207,7 @@ export function UnifiedOverlayWidget({
     [widgets, alertSettings],
   );
 
-  useDonationSocket(userId, token, previewMode, onDonation);
+  useDonationSocket(userId, token, previewMode, onDonation, onAlertControl);
 
   const currentAlert = alertState.current;
   const alertKey = currentAlert
@@ -174,9 +215,9 @@ export function UnifiedOverlayWidget({
     : null;
 
   useEffect(() => {
-    if (!currentAlert) return;
+    if (!currentAlert || alertState.paused) return;
     void playCatalogSound(currentAlert.soundId, currentAlert.soundUrl);
-  }, [alertKey, currentAlert]);
+  }, [alertKey, currentAlert, alertState.paused]);
 
   useEffect(() => {
     if (!previewMode) return;
@@ -342,14 +383,16 @@ export function UnifiedOverlayWidget({
         />
       )}
 
-      {widgets.alerts && currentAlert && (
+      {widgets.alerts && currentAlert && !alertState.paused && (
         <div className="pointer-events-none absolute inset-0 z-[10000]">
           <AlertRenderer
             alert={currentAlert}
             duration={alertSettings.duration}
             textTemplate={alertSettings.textTemplate}
             textConfig={textConfig}
-            onComplete={() => dispatchAlert({ type: "COMPLETE" })}
+            onComplete={() => {
+              if (!alertState.paused) dispatchAlert({ type: "COMPLETE" });
+            }}
             contained={previewMode}
           />
         </div>

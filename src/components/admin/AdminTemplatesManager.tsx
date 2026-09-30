@@ -88,7 +88,7 @@ export function AdminTemplatesManager({
               <span
                 className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
                   t.effectivePlan === "pro"
-                    ? "bg-cyan-500/15 text-cyan-400"
+                    ? "bg-sky-400/10 text-sky-400"
                     : "bg-zinc-700/50 text-zinc-400"
                 }`}
               >

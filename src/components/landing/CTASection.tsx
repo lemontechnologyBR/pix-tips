@@ -4,30 +4,25 @@ export function CTASection() {
   return (
     <section className="py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-cyan-950/50 via-zinc-900 to-purple-950/30 px-8 py-20 text-center shadow-2xl">
-          {/* Decorative blobs */}
+        <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 px-8 py-20 text-center shadow-2xl shadow-black/40">
           <div
-            className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/55 to-transparent"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-purple-600/10 blur-3xl"
-            aria-hidden="true"
-          />
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/5 blur-2xl"
+            className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-sky-400/[0.08] to-transparent"
             aria-hidden="true"
           />
 
           {/* Content */}
           <div className="relative z-10">
-            <p className="text-sm font-semibold uppercase tracking-widest text-cyan-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-sky-400">
               Comece agora · é grátis
             </p>
 
             <h2 className="mx-auto mt-4 max-w-2xl text-4xl font-black text-white sm:text-5xl">
               Pronto para{" "}
-              <span className="web3-text-gradient">monetizar</span> sua live?
+              <span className="live-text-accent">monetizar</span> sua live?
             </h2>
 
             <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
@@ -39,7 +34,7 @@ export function CTASection() {
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/dashboard"
-                className="web3-btn-primary px-8 py-3.5 text-base font-bold"
+          className="live-btn-primary px-8 py-3.5 text-base font-bold text-zinc-950"
               >
                 Criar minha página grátis
               </Link>

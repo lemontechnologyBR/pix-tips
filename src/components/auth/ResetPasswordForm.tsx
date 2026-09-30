@@ -53,7 +53,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     return (
       <div className="space-y-4 text-center">
         <p className="text-sm text-red-400">Link inválido ou expirado.</p>
-        <Link href="/forgot-password" className="text-sm text-cyan-400 hover:underline">
+        <Link href="/forgot-password" className="text-sm text-sky-400 hover:underline">
           Solicitar novo link
         </Link>
       </div>
@@ -97,7 +97,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="web3-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
+        className="live-btn-primary w-full rounded-lg py-2.5 font-medium text-white disabled:opacity-50"
       >
         {loading ? "Salvando..." : "Redefinir senha"}
       </button>

@@ -41,7 +41,7 @@ export default function BlogPage() {
                 {post.category}
               </span>
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-white group-hover:text-cyan-300">
+            <h2 className="mt-4 text-lg font-semibold text-white group-hover:text-sky-300">
               {post.title}
             </h2>
             <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-zinc-400">

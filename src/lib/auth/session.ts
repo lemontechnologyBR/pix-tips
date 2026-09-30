@@ -6,7 +6,8 @@ const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
 
 export interface SessionPayload {
   userId: string;
-  creatorId: string;
+  /** Null for fan-only accounts (login na tip page sem tip page própria). */
+  creatorId: string | null;
   email: string;
   role: string;
   onboardingCompleted: boolean;
@@ -38,7 +39,7 @@ function getSecret(): Uint8Array {
 export async function createSession(payload: SessionPayload): Promise<string> {
   return new SignJWT({
     userId: payload.userId,
-    creatorId: payload.creatorId,
+    creatorId: payload.creatorId ?? null,
     email: payload.email,
     role: payload.role,
     onboardingCompleted: payload.onboardingCompleted,
@@ -52,16 +53,16 @@ export async function createSession(payload: SessionPayload): Promise<string> {
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    if (
-      typeof payload.userId !== "string" ||
-      typeof payload.creatorId !== "string" ||
-      typeof payload.email !== "string"
-    ) {
+    if (typeof payload.userId !== "string" || typeof payload.email !== "string") {
       return null;
     }
+    const creatorId =
+      typeof payload.creatorId === "string" && payload.creatorId.length > 0
+        ? payload.creatorId
+        : null;
     return {
       userId: payload.userId,
-      creatorId: payload.creatorId,
+      creatorId,
       email: payload.email,
       role: typeof payload.role === "string" ? payload.role : "user",
       onboardingCompleted: Boolean(payload.onboardingCompleted),

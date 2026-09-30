@@ -20,7 +20,7 @@ export function BackToTop() {
       type="button"
       aria-label="Voltar ao topo"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="web3-glass fixed bottom-20 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-cyan-500/30 text-zinc-300 transition hover:border-cyan-500/50 hover:text-white sm:bottom-6 sm:left-6"
+      className="live-panel fixed bottom-20 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-sky-400/30 text-zinc-300 transition hover:border-sky-400/40 hover:text-white sm:bottom-6 sm:left-6"
     >
       ↑
     </button>

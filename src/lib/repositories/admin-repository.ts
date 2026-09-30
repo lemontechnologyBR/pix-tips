@@ -37,7 +37,12 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         where: { plan: "pro", ...excludeDemoCreatorFromMetrics },
       }),
       prisma.transaction.findMany({
-        where: { status: "confirmed", ...excludeDemoTransactionsFromMetrics },
+        where: {
+          status: "confirmed",
+          ...excludeDemoTransactionsFromMetrics,
+          wooviPaymentId: { not: null },
+          NOT: { wooviPaymentId: { startsWith: "mp_" } },
+        },
       }),
       prisma.creator.count({
         where: { createdAt: { gte: monthStart }, ...excludeDemoCreatorFromMetrics },
@@ -64,7 +69,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
       sum +
       (transaction.applicationFee != null
         ? transaction.applicationFee
-        : computeFee(transaction.amount)),
+        : computeFee(transaction.amount)) +
+      (transaction.donorServiceFee ?? 0),
     0,
   );
   const mercadoPagoFeeRate = Number(process.env.MERCADOPAGO_FEE_PERCENT ?? 1);
@@ -81,7 +87,8 @@ export async function getAdminOverview(): Promise<AdminOverview> {
     if (!transaction.wooviPaymentId || transaction.wooviPaymentId.startsWith("mp_")) {
       return sum;
     }
-    const pct = transaction.amount * (wooviFeePercent / 100);
+    const charged = transaction.amount + (transaction.donorServiceFee ?? 0);
+    const pct = charged * (wooviFeePercent / 100);
     const fee = Math.min(wooviFeeMax, Math.max(wooviFeeMin, pct));
     return sum + fee;
   }, 0);
@@ -218,7 +225,16 @@ export interface AdminUserRow {
   plan: string | null;
   isSuspended: boolean | null;
   totalRaised: number | null;
+  /** Saldo operacional (ledger legado + subconta Woovi quando aplicável). */
   availableBalance: number | null;
+  /** Saldo só do ledger interno (não inclui Woovi). */
+  ledgerBalance: number | null;
+  /** Saldo da subconta Woovi em reais (null se não consultado / sem subconta). */
+  wooviBalance: number | null;
+  /** Tem chave Pix cadastrada (elegível a Woovi/migração). */
+  hasPixKey: boolean;
+  /** Já tem subconta Woovi vinculada. */
+  hasWooviSubaccount: boolean;
   creatorId: string | null;
   username: string | null;
 }
@@ -275,6 +291,9 @@ export async function listAllUsers(opts: {
             isSuspended: true,
             raised: true,
             availableBalance: true,
+            pixKey: true,
+            wooviPixKey: true,
+            wooviSubaccountName: true,
           },
         },
       },
@@ -285,20 +304,54 @@ export async function listAllUsers(opts: {
     prisma.user.count({ where }),
   ]);
 
+  // Uma consulta Woovi por página — espelha saldo real da subconta no admin
+  const wooviByPix = new Map<string, number>();
+  const needsWoovi = rows.some((r) => r.creator?.wooviSubaccountName?.trim());
+  if (needsWoovi) {
+    try {
+      const { isWooviConfigured, listWooviSubaccounts } = await import(
+        "@/lib/payments/woovi"
+      );
+      if (isWooviConfigured()) {
+        const subs = await listWooviSubaccounts();
+        for (const s of subs) {
+          wooviByPix.set(s.pixKey, Math.round((s.balanceCents / 100) * 100) / 100);
+        }
+      }
+    } catch (err) {
+      console.error("[admin] woovi balances", err);
+    }
+  }
+
   return {
-    items: rows.map((r) => ({
-      id: r.id,
-      email: r.email,
-      name: r.name,
-      role: r.role,
-      createdAt: r.createdAt.toISOString(),
-      plan: r.creator?.plan ?? null,
-      isSuspended: r.creator?.isSuspended ?? null,
-      totalRaised: r.creator?.raised ?? null,
-      availableBalance: r.creator?.availableBalance ?? null,
-      creatorId: r.creator?.id ?? null,
-      username: r.creator?.username ?? null,
-    })),
+    items: rows.map((r) => {
+      const ledger = r.creator?.availableBalance ?? null;
+      const pix = (r.creator?.wooviPixKey || r.creator?.pixKey || "").trim();
+      const hasWoovi = Boolean(r.creator?.wooviSubaccountName?.trim());
+      const wooviBalance =
+        hasWoovi && pix && wooviByPix.has(pix) ? (wooviByPix.get(pix) ?? 0) : hasWoovi ? null : null;
+      const operational =
+        ledger == null && wooviBalance == null
+          ? null
+          : Math.round(((ledger ?? 0) + (wooviBalance ?? 0)) * 100) / 100;
+      return {
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        role: r.role,
+        createdAt: r.createdAt.toISOString(),
+        plan: r.creator?.plan ?? null,
+        isSuspended: r.creator?.isSuspended ?? null,
+        totalRaised: r.creator?.raised ?? null,
+        availableBalance: operational,
+        ledgerBalance: ledger,
+        wooviBalance: hasWoovi ? (wooviBalance ?? 0) : null,
+        hasPixKey: Boolean(r.creator?.pixKey?.trim()),
+        hasWooviSubaccount: hasWoovi,
+        creatorId: r.creator?.id ?? null,
+        username: r.creator?.username ?? null,
+      };
+    }),
     total,
     page,
     totalPages: Math.max(1, Math.ceil(total / limit)),
@@ -340,12 +393,16 @@ export async function updateUser(
           isSuspended: true,
           raised: true,
           availableBalance: true,
+          pixKey: true,
+          wooviSubaccountName: true,
         },
       },
     },
   });
 
   if (!updated) return null;
+  const ledger = updated.creator?.availableBalance ?? null;
+  const hasWoovi = Boolean(updated.creator?.wooviSubaccountName?.trim());
   return {
     id: updated.id,
     email: updated.email,
@@ -355,7 +412,11 @@ export async function updateUser(
     plan: updated.creator?.plan ?? null,
     isSuspended: updated.creator?.isSuspended ?? null,
     totalRaised: updated.creator?.raised ?? null,
-    availableBalance: updated.creator?.availableBalance ?? null,
+    availableBalance: ledger,
+    ledgerBalance: ledger,
+    wooviBalance: hasWoovi ? null : null,
+    hasPixKey: Boolean(updated.creator?.pixKey?.trim()),
+    hasWooviSubaccount: hasWoovi,
     creatorId: updated.creator?.id ?? null,
     username: updated.creator?.username ?? null,
   };

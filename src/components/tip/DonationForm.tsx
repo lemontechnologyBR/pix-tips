@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { io, type Socket } from "socket.io-client";
 import type { Creator, DonationFormState } from "@/types";
+import { computeDonorServiceFee, computePixChargeAmount } from "@/lib/finance";
 import { PixPayment } from "./PixPayment";
 import { AmountSelector } from "./form/AmountSelector";
 import { MessageInput } from "./form/MessageInput";
@@ -13,7 +14,7 @@ import { ProcessingSpinner } from "./form/ProcessingSpinner";
 import { PaymentWaiting } from "./form/PaymentWaiting";
 import { SuccessAnimation } from "./form/SuccessAnimation";
 import { ErrorState } from "./form/ErrorState";
-import { TTS_VOICES, type TtsVoiceConfig } from "@/lib/tts-config";
+import { TTS_VOICES, resolveTtsVoiceId, type TtsVoiceConfig } from "@/lib/tts-config";
 import { speakText } from "@/lib/tts";
 import { resolveTipPageFormTheme } from "@/lib/tip-page-theme";
 
@@ -21,8 +22,7 @@ import { resolveTipPageFormTheme } from "@/lib/tip-page-theme";
 function VoiceIcon({ voiceId, color }: { voiceId: string; color: string }) {
   const c = color;
   switch (voiceId) {
-    // Sarah — microfone feminino
-    case "helena-ia":
+    case "francisca":
       return (
         <svg viewBox="0 0 40 40" className="h-full w-full">
           <circle cx="20" cy="20" r="20" fill={c + "30"} />
@@ -30,11 +30,10 @@ function VoiceIcon({ voiceId, color }: { voiceId: string; color: string }) {
           <path d="M11 20a9 9 0 0 0 18 0" stroke={c} strokeWidth="2" fill="none" strokeLinecap="round" />
           <line x1="20" y1="29" x2="20" y2="33" stroke={c} strokeWidth="2" strokeLinecap="round" />
           <line x1="15" y1="33" x2="25" y2="33" stroke={c} strokeWidth="2" strokeLinecap="round" />
-          <circle cx="26" cy="13" r="3" fill="#f472b6" opacity="0.7" />
+          <circle cx="26" cy="13" r="3" fill="#f472b6" opacity="0.8" />
         </svg>
       );
-    // Adam — voz firme/masculina
-    case "rafael-ia":
+    case "antonio":
       return (
         <svg viewBox="0 0 40 40" className="h-full w-full">
           <circle cx="20" cy="20" r="20" fill={c + "30"} />
@@ -42,101 +41,14 @@ function VoiceIcon({ voiceId, color }: { voiceId: string; color: string }) {
           <path d="M11 20a9 9 0 0 0 18 0" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
           <line x1="20" y1="29" x2="20" y2="33" stroke={c} strokeWidth="2.5" strokeLinecap="round" />
           <line x1="14" y1="33" x2="26" y2="33" stroke={c} strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M16 16 L20 12 L24 16" stroke={c} strokeWidth="1.5" fill="none" opacity="0.5" />
         </svg>
       );
-    // Jessica — animada/estrela
-    case "aurora-ia":
+    case "thalita":
       return (
         <svg viewBox="0 0 40 40" className="h-full w-full">
           <circle cx="20" cy="20" r="20" fill={c + "30"} />
           <polygon points="20,6 22.5,14 31,14 24.5,19 27,27 20,22 13,27 15.5,19 9,14 17.5,14" fill={c} opacity="0.9" />
           <circle cx="20" cy="20" r="3" fill="white" opacity="0.3" />
-        </svg>
-      );
-    // Brian — locutor/rádio
-    case "bruno-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <rect x="11" y="14" width="18" height="12" rx="3" fill={c} opacity="0.85" />
-          <circle cx="17" cy="20" r="3" fill="white" opacity="0.4" />
-          <circle cx="24" cy="17" r="1.5" fill="white" opacity="0.5" />
-          <circle cx="24" cy="21" r="1.5" fill="white" opacity="0.5" />
-          <line x1="20" y1="26" x2="20" y2="30" stroke={c} strokeWidth="2" />
-          <line x1="15" y1="30" x2="25" y2="30" stroke={c} strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      );
-    // Liam — jovem/energético
-    case "nina-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <path d="M10 26 Q15 10 20 20 Q25 30 30 14" stroke={c} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="10" cy="26" r="2" fill={c} />
-          <circle cx="20" cy="20" r="2" fill={c} />
-          <circle cx="30" cy="14" r="2" fill={c} />
-        </svg>
-      );
-    // Charlie — enérgico/trovão
-    case "theo-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <polygon points="22,8 14,22 20,22 18,33 26,18 20,18" fill={c} />
-        </svg>
-      );
-    // River — ondas/neutra
-    case "river-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <path d="M8 16 Q14 11 20 16 Q26 21 32 16" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          <path d="M8 22 Q14 17 20 22 Q26 27 32 22" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          <path d="M8 28 Q14 23 20 28 Q26 33 32 28" stroke={c} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.5" />
-        </svg>
-      );
-    // Alice — educadora/livro
-    case "alice-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <rect x="11" y="10" width="11" height="20" rx="2" fill={c} opacity="0.8" />
-          <rect x="18" y="10" width="11" height="20" rx="2" fill={c} opacity="0.5" />
-          <line x1="20" y1="10" x2="20" y2="30" stroke="white" strokeWidth="1" opacity="0.4" />
-          <line x1="13" y1="15" x2="19" y2="15" stroke="white" strokeWidth="1.2" opacity="0.5" />
-          <line x1="13" y1="19" x2="19" y2="19" stroke="white" strokeWidth="1.2" opacity="0.5" />
-        </svg>
-      );
-    // Eric — suave/headphone
-    case "eric-ia":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "30"} />
-          <path d="M11 21 a9 9 0 0 1 18 0" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-          <rect x="9" y="20" width="5" height="8" rx="2.5" fill={c} />
-          <rect x="26" y="20" width="5" height="8" rx="2.5" fill={c} />
-        </svg>
-      );
-    // Ricardo — browser/navegador
-    case "ricardo-br":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "20"} />
-          <circle cx="20" cy="20" r="9" stroke={c} strokeWidth="2" fill="none" opacity="0.7" />
-          <ellipse cx="20" cy="20" rx="4" ry="9" stroke={c} strokeWidth="1.5" fill="none" opacity="0.5" />
-          <line x1="11" y1="20" x2="29" y2="20" stroke={c} strokeWidth="1.5" opacity="0.5" />
-        </svg>
-      );
-    // Vitória — browser/navegador feminino
-    case "vitoria-br":
-      return (
-        <svg viewBox="0 0 40 40" className="h-full w-full">
-          <circle cx="20" cy="20" r="20" fill={c + "20"} />
-          <circle cx="20" cy="20" r="9" stroke={c} strokeWidth="2" fill="none" opacity="0.7" />
-          <ellipse cx="20" cy="20" rx="4" ry="9" stroke={c} strokeWidth="1.5" fill="none" opacity="0.5" />
-          <line x1="11" y1="20" x2="29" y2="20" stroke={c} strokeWidth="1.5" opacity="0.5" />
-          <circle cx="26" cy="13" r="2.5" fill="#f472b6" opacity="0.8" />
         </svg>
       );
     default:
@@ -192,10 +104,9 @@ function VoiceSelector({ voices, selected, onSelect }: VoiceSelectorProps) {
         <span className="flex-1 text-sm font-medium text-white">
           {currentVoice?.name ?? "Voz padrão"}
         </span>
-        {currentVoice?.isAi && (
-          <span className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase"
-            style={{ background: (currentVoice.avatarColor) + "30", color: currentVoice.avatarColor }}>
-            IA
+        {currentVoice?.isMicrosoft && (
+          <span className="rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-sky-500/20 text-sky-300">
+            Microsoft
           </span>
         )}
         {/* Chevron */}
@@ -287,6 +198,7 @@ function VoiceSelector({ voices, selected, onSelect }: VoiceSelectorProps) {
 interface DonationFormProps {
   creator: Creator;
   layoutId?: string;
+  suggestedDonorName?: string;
 }
 
 interface PaymentData {
@@ -294,18 +206,26 @@ interface PaymentData {
   pixCode?: string;
   expiresIn: number;
   amount: number;
+  serviceFee?: number;
+  chargeAmount?: number;
   mock?: boolean;
   paymentProvider?: "woovi";
 }
 
-export function DonationForm({ creator, layoutId }: DonationFormProps) {
+export function DonationForm({
+  creator,
+  layoutId,
+  suggestedDonorName,
+}: DonationFormProps) {
   const resolvedLayoutId = layoutId ?? creator.tipPageSettings.layoutId ?? "default";
   const formTheme = resolveTipPageFormTheme(resolvedLayoutId);
   const presets = creator.tipPageSettings.presetAmounts;
   const tipTtsEnabled = creator.tipPageSettings.tipTtsEnabled ?? false;
-  const tipTtsVoices = creator.tipPageSettings.tipTtsVoices ?? [];
+  const tipTtsVoices = new Set(
+    (creator.tipPageSettings.tipTtsVoices ?? []).map((v) => resolveTtsVoiceId(v)),
+  );
   const availableVoices = TTS_VOICES.filter(
-    (v) => v.id !== "off" && tipTtsVoices.includes(v.id),
+    (v) => v.id !== "off" && tipTtsVoices.has(v.id),
   );
 
   const [state, setState] = useState<DonationFormState>("idle");
@@ -313,13 +233,19 @@ export function DonationForm({ creator, layoutId }: DonationFormProps) {
   const [customAmount, setCustomAmount] = useState("");
   const [message, setMessage] = useState("");
   const [anonymous, setAnonymous] = useState(false);
-  const [donorName, setDonorName] = useState("");
+  const [donorName, setDonorName] = useState(suggestedDonorName ?? "");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<string>(
     availableVoices[0]?.id ?? "off",
   );
+
+  useEffect(() => {
+    if (suggestedDonorName && !donorName.trim()) {
+      setDonorName(suggestedDonorName);
+    }
+  }, [suggestedDonorName, donorName]);
 
   useEffect(() => {
     if (availableVoices.length > 0 && !availableVoices.find(v => v.id === selectedVoice)) {
@@ -333,7 +259,11 @@ export function DonationForm({ creator, layoutId }: DonationFormProps) {
       ? parseFloat(customAmount.replace(",", "."))
       : amount;
 
+  const serviceFee = computeDonorServiceFee(effectiveAmount);
+  const chargeAmount = computePixChargeAmount(effectiveAmount);
   const amountLabel = `R$ ${effectiveAmount?.toFixed(2).replace(".", ",") ?? "0,00"}`;
+  const chargeLabel = `R$ ${chargeAmount.toFixed(2).replace(".", ",")}`;
+  const serviceLabel = `R$ ${serviceFee.toFixed(2).replace(".", ",")}`;
 
   useEffect(() => {
     if (state !== "awaiting_payment" || !paymentData) return;
@@ -433,6 +363,8 @@ export function DonationForm({ creator, layoutId }: DonationFormProps) {
         pixCode: data.pixCode,
         expiresIn: data.expiresIn,
         amount: data.amount,
+        serviceFee: data.serviceFee,
+        chargeAmount: data.chargeAmount,
         mock: Boolean(data.mock),
         paymentProvider: data.paymentProvider,
       });
@@ -490,7 +422,9 @@ export function DonationForm({ creator, layoutId }: DonationFormProps) {
         {paymentData.pixCode && (
           <PixPayment
             pixCode={paymentData.pixCode}
-            amount={paymentData.amount}
+            amount={paymentData.chargeAmount ?? paymentData.amount}
+            tipAmount={paymentData.amount}
+            serviceFee={paymentData.serviceFee}
             expiresIn={paymentData.expiresIn}
             mock={paymentData.mock}
             onSimulatePay={paymentData.mock ? simulatePayment : undefined}
@@ -537,9 +471,23 @@ export function DonationForm({ creator, layoutId }: DonationFormProps) {
         />
       )}
 
+      {creator.discordSettings?.guildId &&
+        (creator.discordSettings.roleMappings?.length ?? 0) > 0 && (
+        <p className={formTheme.muted}>
+          Cargo Discord: conecte Discord no menu da conta (acima) antes de doar —
+          o cargo é aplicado pelo valor do tip.
+        </p>
+      )}
+
+      {serviceFee > 0 && Number.isFinite(effectiveAmount) && effectiveAmount > 0 && (
+        <p className={formTheme.muted}>
+          {amountLabel} para o criador + {serviceLabel} de taxa de serviço. O Pix sai {chargeLabel}.
+        </p>
+      )}
+
       {error && <p className={formTheme.error}>{error}</p>}
 
-      <SubmitButton themeColor={creator.themeColor} amountLabel={amountLabel} formTheme={formTheme} />
+      <SubmitButton themeColor={creator.themeColor} amountLabel={chargeLabel} formTheme={formTheme} />
 
       <p className={formTheme.muted}>
         Ao enviar, você concorda que seu nome escolhido e mensagem serão exibidos

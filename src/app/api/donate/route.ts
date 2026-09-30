@@ -5,8 +5,10 @@ import {
   updateTransactionPayment,
 } from "@/lib/store";
 import {
+  computeDonorServiceFee,
   computeFee,
   computeNetAmount,
+  computePixChargeAmount,
   getCommissionFixedFee,
   getCommissionRate,
   MIN_DONATION_AMOUNT,
@@ -17,10 +19,12 @@ import {
   WooviApiError,
 } from "@/lib/payments/woovi";
 import { shouldUseWooviSplit } from "@/lib/payments/payout-mode";
-import { TTS_VOICES } from "@/lib/tts-config";
+import { resolveTtsVoiceId } from "@/lib/tts-config";
 import { isDemoCreator } from "@/lib/demo";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPrisma } from "@/lib/db";
+import { findBlockedWordInMessage } from "@/lib/message-moderation";
+import { getSession } from "@/lib/auth";
 
 const DEMO_PIX_CODE =
   "00020126580014BR.GOV.BCB.PIX0136demo-pix-tips-page5204000053039865802BR5913pix.tips Demo6009SAO PAULO62070503***6304DEMO";
@@ -97,17 +101,39 @@ export async function POST(request: Request) {
       );
     }
 
-    const validTtsVoiceIds = TTS_VOICES.filter(v => v.id !== "off").map(v => v.id) as string[];
+    const filterEnabled = creator.tipPageSettings?.messageFilterEnabled !== false;
+    if (filterEnabled && message.trim()) {
+      const hit = findBlockedWordInMessage(
+        message,
+        creator.tipPageSettings?.blockedWords ?? [],
+        true,
+      );
+      if (hit) {
+        return NextResponse.json(
+          {
+            error:
+              "Sua mensagem contém palavras não permitidas. Edite o texto e tente novamente.",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const tipTtsEnabled = creator.tipPageSettings?.tipTtsEnabled ?? false;
-    const tipTtsVoices: string[] = creator.tipPageSettings?.tipTtsVoices ?? [];
+    const tipTtsVoices = new Set(
+      (creator.tipPageSettings?.tipTtsVoices ?? []).map((v) => resolveTtsVoiceId(v)),
+    );
+    const resolvedDonorVoice =
+      typeof ttsVoiceId === "string" ? resolveTtsVoiceId(ttsVoiceId) : "off";
     const sanitizedTtsVoiceId =
       tipTtsEnabled &&
-      typeof ttsVoiceId === "string" &&
-      ttsVoiceId !== "off" &&
-      validTtsVoiceIds.includes(ttsVoiceId) &&
-      tipTtsVoices.includes(ttsVoiceId)
-        ? ttsVoiceId
+      resolvedDonorVoice !== "off" &&
+      tipTtsVoices.has(resolvedDonorVoice)
+        ? resolvedDonorVoice
         : undefined;
+
+    const session = await getSession();
+    const donorUserId = session?.userId;
 
     if (isDemoCreator(creator.id, creator.username)) {
       const transaction = await createTransaction({
@@ -118,9 +144,11 @@ export async function POST(request: Request) {
         donorName,
         method: "pix",
         donorTtsVoiceId: sanitizedTtsVoiceId,
+        donorUserId,
         pixCode: DEMO_PIX_CODE,
       });
 
+      const serviceFee = computeDonorServiceFee(Number(amount));
       return NextResponse.json({
         transactionId: transaction.id,
         status: transaction.status,
@@ -129,6 +157,8 @@ export async function POST(request: Request) {
         paymentProvider: "woovi",
         expiresIn: 900,
         amount: transaction.amount,
+        serviceFee,
+        chargeAmount: computePixChargeAmount(Number(amount)),
         mock: true,
       });
     }
@@ -148,12 +178,15 @@ export async function POST(request: Request) {
       donorName,
       method: "pix",
       donorTtsVoiceId: sanitizedTtsVoiceId,
+      donorUserId,
     });
 
     const commissionRate = getCommissionRate();
     const fixedFee = getCommissionFixedFee();
     const applicationFee = computeFee(Number(amount), commissionRate, fixedFee);
     const netAmount = computeNetAmount(Number(amount), commissionRate, fixedFee);
+    const serviceFee = computeDonorServiceFee(Number(amount));
+    const chargeAmount = computePixChargeAmount(Number(amount));
 
     const payoutCtx = await getPrisma().creator.findUnique({
       where: { id: creator.id },
@@ -176,7 +209,7 @@ export async function POST(request: Request) {
       : undefined;
 
     const charge = await createWooviPixCharge({
-      amount: Number(amount),
+      amount: chargeAmount,
       correlationID: transaction.id,
       comment: `Doação para ${creator.displayName} via pix.tips`,
       expiresInSeconds: 900,
@@ -189,6 +222,7 @@ export async function POST(request: Request) {
       wooviPaymentId: charge.correlationID,
       splitPayment: Boolean(splitPixKey),
       applicationFee,
+      donorServiceFee: serviceFee,
     });
 
     return NextResponse.json({
@@ -199,6 +233,8 @@ export async function POST(request: Request) {
       paymentProvider: "woovi",
       expiresIn: 900,
       amount: transaction.amount,
+      serviceFee,
+      chargeAmount,
       mock: false,
       splitPayment: Boolean(splitPixKey),
     });

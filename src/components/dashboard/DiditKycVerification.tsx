@@ -17,9 +17,9 @@ function statusConfig(status: KycProfile["status"]) {
     case "approved":
       return {
         icon: "status-approved" as const,
-        box: "border-emerald-500/30 bg-gradient-to-r from-emerald-600/10 to-emerald-900/5",
-        title: "text-emerald-100",
-        body: "text-emerald-200/80",
+        box: "border-sky-400/30 bg-gradient-to-r from-sky-500/10 to-violet-950/10",
+        title: "text-sky-100",
+        body: "text-sky-200/80",
       };
     case "pending":
       return {
@@ -126,7 +126,7 @@ export function DiditKycVerification({
     <div className={embedded ? "space-y-6" : "mx-auto max-w-2xl space-y-6"}>
       {!embedded && (
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-sky-400/30 bg-cyan-500/10 text-sky-300">
             <KycFormIcon name="shield" className="h-6 w-6" />
           </div>
           <div>
@@ -218,7 +218,7 @@ export function DiditKycVerification({
               type="button"
               onClick={() => void startVerification()}
               disabled={loading}
-              className="rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50"
+              className="rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50"
             >
               {loading
                 ? "Abrindo…"
@@ -244,7 +244,7 @@ export function DiditKycVerification({
       {profile.status === "approved" && !embedded && (
         <Link
           href="/dashboard/finance"
-          className="inline-flex rounded-lg web3-btn-primary px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+          className="inline-flex rounded-lg live-btn-primary px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110"
         >
           Ir para Financeiro
         </Link>

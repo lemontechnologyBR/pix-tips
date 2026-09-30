@@ -8,11 +8,11 @@ interface RecentDonationsProps {
 }
 
 const AVATAR_COLORS = [
-  "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-  "bg-emerald-600/20 text-emerald-300 border-emerald-500/30",
+  "bg-sky-400/12 text-sky-300 border-sky-400/30",
+  "bg-sky-500/20 text-sky-300 border-sky-400/30",
   "bg-amber-600/20 text-amber-300 border-amber-500/30",
   "bg-pink-600/20 text-pink-300 border-pink-500/30",
-  "bg-cyan-600/20 text-cyan-300 border-cyan-500/30",
+  "bg-cyan-600/20 text-sky-300 border-sky-400/30",
 ];
 
 function donorInitial(d: Transaction): string {
@@ -25,7 +25,7 @@ export function RecentDonations({ donations }: RecentDonationsProps) {
     <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-600/10 text-emerald-300">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-400/30 bg-sky-500/10 text-sky-300">
             <OverviewIcon name="heart" className="h-5 w-5" />
           </div>
           <div>
@@ -35,7 +35,7 @@ export function RecentDonations({ donations }: RecentDonationsProps) {
         </div>
         <Link
           href="/dashboard/finance"
-          className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs font-medium text-cyan-400 transition hover:border-cyan-500/40 hover:text-cyan-300"
+          className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs font-medium text-sky-400 transition hover:border-sky-400/30 hover:text-sky-300"
         >
           Ver todas →
         </Link>
@@ -66,7 +66,7 @@ export function RecentDonations({ donations }: RecentDonationsProps) {
                   <span className="truncate font-medium text-zinc-200">
                     {d.anonymous ? "Anônimo" : d.donorName}
                   </span>
-                  <span className="shrink-0 font-semibold text-emerald-400">
+                  <span className="shrink-0 font-semibold text-sky-400">
                     {formatCurrency(d.amount)}
                   </span>
                 </div>

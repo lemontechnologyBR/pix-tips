@@ -21,11 +21,11 @@ export default function DevelopersPage() {
 
       <p className="mt-14 text-center text-sm text-zinc-500">
         Gere sua chave em{" "}
-        <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">
+        <Link href="/dashboard/settings" className="text-sky-400 hover:underline">
           Configurações
         </Link>{" "}
         ou via{" "}
-        <code className="text-cyan-300">GET /api/user/api-key</code> autenticado.
+        <code className="text-sky-300">GET /api/user/api-key</code> autenticado.
       </p>
     </PublicPageLayout>
   );
